@@ -113,3 +113,22 @@ def test_compiler_no_self_3():
     delete_file("/tmp/")
     more_input_case()
     assert file_and_key_match("/tmp/", "compiler_id_4")
+
+
+def test_compiler_staticmap_3():
+    x = (Tensor(4), Tensor(5), Tensor(6))
+    # 'jit' need that mindspore version 2.0.0-alpha or later
+
+    @mindspore.ms_function
+    def index_get(y):
+        return x[y]
+
+    @ts.proposal(write_file_path="/tmp/")
+    def staticmap_case():
+        y = Tensor(2)
+        out = index_get(y)
+        print(out)
+
+    delete_file("/tmp/")
+    staticmap_case()
+    assert file_and_key_match("/tmp/", "compiler_id_22")
