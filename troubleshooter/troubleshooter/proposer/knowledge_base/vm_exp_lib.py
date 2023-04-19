@@ -156,6 +156,109 @@ vm_experience_list_cn = [
      "Fault Cause": "device_id设置错误，超出机器支持的device_id范围",
      "Modification Suggestion": "请检查环境或者配置中设置的device_id是否在范围内，通常单机8卡情况，device_id的范围是0-7 ",
      },
+    {
+     "ID": "vm_id_11",
+     "Fault Name": "算子选择失败",
+     "Key Log Information": "Can not find any available kernel info for",
+     "Key Python Stack Information": "",
+     "Key C++ Stack Information": "HandleKernelSelectFailure",
+     "Code Path": "mindspore/ccsrc/plugin/device/ascend/hal/device/kernel_select_ascend.cc",
+     "Fault Cause": "网络编译报错，某算子选择失败。",
+     "Modification Suggestion": "1. 检查该硬件平台是否支持该算子，可以在算子库API中查看关于该算子的文档："
+                                "2. 如果AI CORE候选算子信息为空，则可能是在算子check support阶段，所有的算子信息均校验未通过。"
+                                "可以在日志中搜索关键字CheckSupport找到未通过的原因，根据具体信息修改shape或data type，或者找"
+                                "开发人员进一步定位。"
+                                "3. 如果AI CPU候选算子信息不为空，或者AI CORE和AI CPU候选算子信息都不为空，则可能是用户给到该"
+                                "算子的输入数据类型不在候选列表中，在选择阶段被过滤导致，可以根据候选列表尝试修改该算子的输入data type。",
+     "Fault Case": "1. Mindspore.ops算子库API: "
+                   "https://www.mindspore.cn/docs/zh-CN/master/api_python/mindspore.ops.html"
+                   "2. MindSpore在Ascend后端报错算子不支持: "
+                   "https://bbs.huaweicloud.com/forum/thread-183313-1-1.html"
+    },
+    {
+     "ID": "vm_id_12",
+     "Fault Name": "mindspore版本和run包不匹配",
+     "Key Log Information": "errNo\[0x0000000005010001\]",
+     "Key Python Stack Information": "",
+     "Key C++ Stack Information": "",
+     "Code Path": "hcom_ops_kernel_info_store.cc",
+     "Fault Cause": "mindspore版本和run包不匹配。",
+     "Modification Suggestion": "使用匹配的mindspore版本和run包，mindspore版本和run包匹配关系可在【Mindspore安装指南】中查看。",
+     "Fault Case": "Mindspore安装指南: "
+                   "https://www.mindspore.cn/install"
+    },
+    {
+     "ID": "vm_id_13",
+     "Fault Name": "通信算子下发失败",
+     "Key Log Information": "load task fail, return ret:",
+     "Key Python Stack Information": "",
+     "Key C++ Stack Information": "Distribute",
+     "Code Path": "mindspore\ccsrc\plugin\device\ascend\hal\device\ge_runtime\task\hccl_task.cc",
+     "Fault Cause": "通信算子下发失败。",
+     "Modification Suggestion": "1. 检查是否是其他节点提前退出，可查看首个退出节点日志找到异常退出原因。"
+                                "2. 可能是不支持的建链方式导致，检查通信组网配置。",
+     "Fault Case": "多卡训练报错davinci_model : load task fail, return ret xxx: "
+                   "https://bbs.huaweicloud.com/forum/thread-182395-1-1.html"
+    },
+    {
+     "ID": "vm_id_14",
+     "Fault Name": "流超限",
+     "Key Log Information": "Total stream number.*?exceeds the limit of",
+     "Key Python Stack Information": "",
+     "Key C++ Stack Information": "",
+     "Code Path": "mindspore\ccsrc\plugin\device\ascend\hal\device\ascend_stream_assign.cc",
+     "Fault Cause": "一般是通信算子多导致流超过硬件限制。",
+     "Modification Suggestion": "1. 如果使用pipeline并行，可以尝试减少micro batch数。"
+                                "2. 尝试设置通信算子融合。"
+                                "3. 尝试设置通信算子图提取与复用",
+     "Fault Case": "1. 报错Total stream number xxx exceeds the limit of："
+                   "https://bbs.huaweicloud.com/forum/thread-181720-1-1.html"
+                   "2. 通信融合特性文档："
+                   "https://www.mindspore.cn/tutorials/experts/zh-CN/master/parallel/comm_fusion.html"
+                   "3. 通信子图提取与复用特性文档："
+                   "https://www.mindspore.cn/tutorials/experts/zh-CN/master/parallel/comm_subgraph.html"
+    },
+    {
+     "ID": "vm_id_15",
+     "Fault Name": "算子编译中response is empty",
+     "Key Log Information": "Response is empty",
+     "Key Python Stack Information": "",
+     "Key C++ Stack Information": "mindspore/ccsrc/backend/common/session/kernel_build_client.h:.*?Response",
+     "Code Path": "mindspore/ccsrc/backend/common/session/kernel_build_client.h",
+     "Fault Cause": "一般是算子编译的子进程挂了或者调用阻塞卡住导致的超时",
+     "Modification Suggestion": "1. 检查日志，在这个错误前是否有其他错误日志，如果有请先解决前面的错误，一些算子相关的问题"
+                                "（比如昇腾上TBE包没装好，GPU上没有nvcc）会导致后续的Response is empty报错。"
+                                "2. 如果有使用图算融合特性，有可能是图算的AKG算子编译卡死超时导致，可以尝试关闭图算特性。"
+                                "3. 在昇腾上可以尝试减少算子并行编译的进程数，可以通过环境变量MS_BUILD_PROCESS_NUM设置，"
+                                "取值范围为1~24。"
+                                "4. 如果在云上训练环境遇到该问题，可以尝试重启内核。",
+     "Fault Case": "训练报Response Is Empty："
+                   "https://bbs.huaweicloud.com/forum/thread-115541-1-1.html"
+    },
+    {
+     "ID": "vm_id_16",
+     "Fault Name": "EI9999错误码：异步拷贝失败",
+     "Key Log Information": "Memory async copy failed",
+     "Key Python Stack Information": "",
+     "Key C++ Stack Information": "",
+     "Code Path": "",
+     "Fault Cause": "可能是算子溢出导致",
+     "Modification Suggestion": "检查日志，如果算子发生溢出会有overflow报错信息，找到发生溢出的算子再进一步分析。",
+     "Fault Case": "报错rtStreamSynchronize failed, ret: 507011："
+                   "https://bbs.huaweicloud.com/forum/thread-0229101440416021085-1-1.html"
+    },
+    {
+     "ID": "vm_id_17",
+     "Fault Name": "数据格式不匹配",
+     "Key Log Information": "Found inconsistent format! input format",
+     "Key Python Stack Information": "",
+     "Key C++ Stack Information": "",
+     "Code Path": "mindspore\ccsrc\plugin\device\ascend\optimizer\format_type\check_consistency.cc",
+     "Fault Cause": "输入数据的格式与算子选择得到的数据格式不一致",
+     "Modification Suggestion": "检查输入的数据格式与算子选择过程，分析导致数据格式不一致的原因。",
+     "Fault Case": "输入数据要要求的数据格式不匹配："
+                   "https://bbs.huaweicloud.com/forum/thread-187574-1-1.html"
+    },
 ]
 
 vm_general_experience_list_cn = [

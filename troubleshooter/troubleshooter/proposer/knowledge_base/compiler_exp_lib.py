@@ -508,7 +508,113 @@ compiler_experience_list_cn = [
                                    "2）函数中调用的get_context()接口，迁移到函数外调用; "
                                    "3）如果没发现调用函数位置，则可能为函数多级调用或者框架内部多级调用，可去社区提单求助",
         "Fault Case": "1.静态图语法支持： "
-                      "https://www.mindspore.cn/docs/note/zh-CN/r1.6/static_graph_syntax_support.html "}
+                      "https://www.mindspore.cn/docs/note/zh-CN/r1.6/static_graph_syntax_support.html "},
+    {
+         "ID": "compiler_id_20",
+         "Fault Name": "静态图自定义类语法",
+         "Key Log Information": "initializing input to create instance for MsClassObject.*?should be a constant",
+         "Key Python Stack Information": "",
+         "Key C++ Stack Information": "",
+         "Fault Cause": "静态图模式下，不支持在construct中用动态输入去初始化自定义类，创建自定义类的实例时，参数必须是常量。",
+         "Error Case": """
+                    class Net(nn.Cell):
+                        def construct(self, x):
+                            net = InnerNet(x)
+                                           ^~~~~~~~~~~~~~不支持
+                            return net.number""",
+         "Modification Suggestion": "在__init__中创建自定义类的实例",
+         "Fixed Case": """
+                    class Net(nn.Cell):
+                        def __init__(self):
+                            super(Net, self).__init__()
+                            self.inner = InnerNet(val)
+                              ^~~~~~~~~~~~~~在__init__中创建实例
+                        def construct(self, x):
+                            return self.inner.number""",
+         "Fault Case": """1.静态图语法： 
+                       https://www.mindspore.cn/tutorials/experts/zh-CN/r2.0.0-alpha/network/jit_class.html#%E5%88%9B%E5%BB%BA%E8%87%AA%E5%AE%9A%E4%B9%89%E7%B1%BB%E7%9A%84%E5%AE%9E%E4%BE%8B"""},
+    {
+         "ID": "compiler_id_21",
+         "Fault Name": "静态图变量未赋初值报错",
+         "Key Log Information": "The name.*?is not defined, or not supported in graph mode",
+         "Key Python Stack Information": "",
+         "Key C++ Stack Information": "",
+         "Fault Cause": "静态图模式下，需要保证变量在每一个分支都有定义，因此建议在if判断前给变量赋一个初始值。",
+         "Error Case": """
+                    class Net(nn.Cell):
+                        def construct(self, x):
+                            if condition:
+                                var = (1, 2, 3)
+                            for i in var:
+                                      ^~~~~~~~~~~~~~未给变量var赋一个初始值
+                                print(i)
+                            return True""",
+         "Modification Suggestion": "在if判断条件前给变量赋一个初始值。",
+         "Fixed Case": """
+                    class Net(nn.Cell):
+                        def construct(self, x):
+                            var = ()
+                            ^~~~~~~~~~~~~~在if判断前给变量var赋一个初值
+                            if condition:
+                                var = (1, 2, 3)  
+                            for i in var:
+                                print(i)
+                            return True""",
+         "Fault Case": """1.静态图语法： 
+                       https://www.mindspore.cn/tutorials/experts/zh-CN/r2.0.0-alpha/network/jit_class.html#%E5%88%9B%E5%BB%BA%E8%87%AA%E5%AE%9A%E4%B9%89%E7%B1%BB%E7%9A%84%E5%AE%9E%E4%BE%8B"""},
+    {
+         "ID": "compiler_id_22",
+         "Fault Name": "静态图Tensor索引报错",
+         "Key Log Information": "switch_layer index must be an int32, but got Int64",
+         "Key Python Stack Information": "",
+         "Key C++ Stack Information": "",
+         "Fault Cause": "静态图模式下，索引值为Tensor有限制。索引Tensor是一个dtype为int32的标量",
+         "Error Case": """
+                    @jit
+                    def index_get(y):
+                        return x[y]
+                                 ^~~~~~~~~~~~~~索引值为int32的标量Tensor
+                    x = (Tensor(4), Tensor(5), Tensor(6))
+                    y = Tensor(2)
+                    out = index_get(y)""",
+         "Modification Suggestion": "改用索引值为scalar。",
+         "Fixed Case": """
+                   @jit
+                    def index_get(y):
+                        return x[y]
+                                 ^~~~~~~~~~~~~~改用索引值为scalar。
+                    x = (Tensor(4), Tensor(5), Tensor(6))
+                    y = 2
+                    out = index_get(y)""",
+         "Fault Case": """1.静态图Tensor索引语法支持： 
+                       https://www.mindspore.cn/docs/zh-CN/master/note/static_graph_syntax_support.html#tuple"""},
+    {
+         "ID": "compiler_id_23",
+         "Fault Name": "静态图Tensor索引报错",
+         "Key Log Information": "switch_layer requires that the 2th arg be tuple of functions, but got AbstractTensor",
+         "Key Python Stack Information": "",
+         "Key C++ Stack Information": "",
+         "Fault Cause": "静态图模式下，索引值为Tensor有限制。索引Tensor是一个dtype为int32的标量",
+         "Error Case": """
+                    @jit
+                    def index_get(y):
+                        return x[y]
+                                 ^~~~~~~~~~~~~~静态图中，索引值为Tensor有限制。
+                                               tuple里存放的必须是Cell。
+                    x = (Tensor(4), Tensor(5), Tensor(6))
+                    y = Tensor(2, mindspore.int32)
+                    out = index_get(y)""",
+         "Modification Suggestion": "改用索引值为scalar。",
+         "Fixed Case": """
+                   @jit
+                    def index_get(y):
+                        return x[y]
+                                 ^~~~~~~~~~~~~~改用索引值为scalar。
+                    x = (Tensor(4), Tensor(5), Tensor(6))
+                    y = 2
+                    out = index_get(y)""",
+         "Fault Case": """1.静态图Tensor索引语法支持： 
+                       https://www.mindspore.cn/docs/zh-CN/master/note/static_graph_syntax_support.html#tuple"""},
 ]
 
 compiler_general_experience_list_cn = [

@@ -155,3 +155,75 @@ def test_ascend_single_op_compile_failed():
     delete_file("/tmp/")
     main()
     assert file_and_key_match("/tmp/", "vm_id_9")
+
+
+def test_version_not_match():
+    @ts.proposal(write_file_path="/tmp/")
+    def main():
+        raise ValueError("""errNo[0x0000000005010001]
+                            hcom_ops_kernel_info_store.cc""")
+
+    delete_file("/tmp/")
+    main()
+    assert file_and_key_match("/tmp/", "vm_id_12")
+
+
+def test_broadcast_op_distribute_failed():
+    @ts.proposal(write_file_path="/tmp/")
+    def main():
+        raise ValueError("mindspore\ccsrc\plugin\device\ascend\hal\device\ge_runtime\task\hccl_task.cc]"
+                         " davinci_model: load task fail, return ret: 1343225860")
+
+    delete_file("/tmp/")
+    main()
+    assert file_and_key_match("/tmp/", "vm_id_13")
+
+
+def test_stream_exceeds():
+    @ts.proposal(write_file_path="/tmp/")
+    def main():
+        raise ValueError("AssignAllNodesStream] Total stream number xxx exceeds the limit of 1024, "
+                         "secrch details information in mindspore's FAQ.")
+
+    delete_file("/tmp/")
+    main()
+    assert file_and_key_match("/tmp/", "vm_id_14")
+
+
+def test_response_is_empty():
+    @ts.proposal(write_file_path="/tmp/")
+    def main():
+        raise ValueError("""
+        Traceback (most recent call last):
+            ...
+        RuntimeError: mindspore/ccsrc/backend/common/session/kernel_build_client.h:107 Response] Response is empty
+        """)
+
+    delete_file("/tmp/")
+    main()
+    assert file_and_key_match("/tmp/", "vm_id_15")
+
+
+def test_memasycpy_failed():
+    # 'Key Log Information' is not in Traceback information
+    @ts.proposal(write_file_path="/tmp/")
+    def main():
+        raise ValueError("Memory async copy failed, device_id=0, stream_id=102, task_id=171, flip_num=0, "
+                         "copy_type=10, memcpy_type=0, copy_data_type=0, length=896[FUNC:GetError]"
+                         "[FILE:stream.cc][LINE:741]")
+
+    delete_file("/tmp/")
+    main()
+    assert file_and_key_match("/tmp/", "vm_id_16")
+
+
+def data_format_not_match():
+    @ts.proposal(write_file_path="/tmp/")
+    def main():
+        raise ValueError("[mindspore/ccsrc/backend/optimizer/ascend/format_type/check_consistency.cc:64] "
+                         "CheckFormatForConsistency] Found inconsistent format! input format 0: FracZ, "
+                         "selected input format: DefaultFormat")
+
+    delete_file("/tmp/")
+    main()
+    assert file_and_key_match("/tmp/", "vm_id_17  ")

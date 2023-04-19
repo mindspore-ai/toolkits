@@ -439,3 +439,94 @@ def test_compiler_more_input_3():
     delete_file("/tmp/")
     more_input_case()
     assert file_and_key_match("/tmp/", "compiler_id_5")
+
+
+def test_compiler_staticmap_1():
+    # 'jit_class' need that mindspore version 2.0.0-alpha or later
+    @mindspore.jit_class
+    class InnerNet:
+        def __init__(self, val):
+            self.number = val + 3
+
+    class Net(nn.Cell):
+        def __init__(self, val):
+            super(Net, self).__init__()
+            self.inner = InnerNet(val)
+
+        def construct(self, x):
+            net = InnerNet(x)
+            return net.number
+
+    @ts.proposal(write_file_path="/tmp/")
+    def staticmap_case():
+        mindspore.set_context(mode=mindspore.GRAPH_MODE)
+        x = mindspore.Tensor(2, dtype=mindspore.int32)
+        net = Net(x)
+        out = net(x)
+        print(out)
+
+    delete_file("/tmp/")
+    staticmap_case()
+    assert file_and_key_match("/tmp/", "compiler_id_20")
+
+
+def test_compiler_staticmap_2():
+    class Net(nn.Cell):
+        def __init__(self, mode):
+            super(Net, self).__init__()
+            self.mode = mode
+
+        def construct(self):
+            if self.mode == "print_var":
+                var = (1, 2, 3)
+            for i in var:
+                print(1)
+            return True
+
+    @ts.proposal(write_file_path="/tmp/")
+    def staticmap_case():
+        mindspore.set_context(mode=mindspore.GRAPH_MODE)
+        net = Net("not_print_var")
+        out = net()
+        print(out)
+
+    delete_file("/tmp/")
+    staticmap_case()
+    assert file_and_key_match("/tmp/", "compiler_id_21")
+
+
+def test_compiler_staticmap_3():
+    x = (Tensor(4), Tensor(5), Tensor(6))
+    # 'jit' need that mindspore version 2.0.0-alpha or later
+
+    @mindspore.common.jit
+    def index_get(y):
+        return x[y]
+
+    @ts.proposal(write_file_path="/tmp/")
+    def staticmap_case():
+        y = Tensor(2)
+        out = index_get(y)
+        print(out)
+
+    delete_file("/tmp/")
+    staticmap_case()
+    assert file_and_key_match("/tmp/", "compiler_id_22")
+
+
+def test_compiler_staticmap_4():
+    x = (Tensor(4), Tensor(5), Tensor(6))
+
+    class IndexGet(nn.Cell):
+        def construct(self, x, y):
+            return x[y]
+
+    @ts.proposal(write_file_path="/tmp/")
+    def staticmap_case():
+        context.set_context(mode=context.GRAPH_MODE, save_graphs=True, save_graphs_path="../ir/tupleindextensor/1")
+        y = Tensor(2, mindspore.int32)
+        print(IndexGet()(x, y))
+
+    delete_file("/tmp/")
+    staticmap_case()
+    assert file_and_key_match("/tmp/", "compiler_id_23")
