@@ -212,9 +212,22 @@ class WeightMigrator:
         return res_weight_map
 
 
-    def get_weight_map(self, print_map=False):
+    def _custorm_weight_name_prefix(self, weight_name_map, prefix=None):
+        if prefix:
+            custorm_name_map = {}
+            for key, value in weight_name_map.items():
+                print(key, ":", prefix + '.' + value)
+                custorm_name_map[key] = str(prefix) + '.' + str(value)
+            return custorm_name_map
+        else:
+            return weight_name_map
+
+
+    def get_weight_map(self, print_map=False, full_name_map=False):
         res_weight_name_map = {}
         res_weight_value_map = {}
+        full_weight_name_map = {}
+
         for name, module in self.pt_model.named_modules():
             tmp_name_map = self._get_trans_map(name, module, weight_name_map)
             if tmp_name_map:
@@ -222,6 +235,12 @@ class WeightMigrator:
             tmp_value_map = self._get_trans_map(name, module, weight_value_map, igone_name=True)
             if tmp_value_map:
                 res_weight_value_map.update(tmp_value_map)
+        if full_name_map:
+            for key, value in self.pt_para_dict.items():
+                full_weight_name_map[key]=key
+            full_weight_name_map.update(res_weight_name_map)
+            res_weight_name_map =  full_weight_name_map
+
         if print_map:
             pprint(res_weight_name_map)
             pprint(res_weight_value_map)
@@ -251,8 +270,14 @@ class WeightMigrator:
         return new_name, ms_tensor
 
 
-    def convert(self, weight_name_map=None, weight_value_map=None ,print_conv_info=True):
-        name_map, value_map  = self.get_weight_map()
+    def convert(self, weight_name_map=None, weight_value_map=None ,weight_name_prefix=None, print_conv_info=True):
+
+        if weight_name_prefix:
+            name_map, value_map = self.get_weight_map(full_name_map=True)
+            name_map = self._custorm_weight_name_prefix(name_map, weight_name_prefix)
+        else:
+            name_map, value_map = self.get_weight_map()
+
         if weight_name_map is not None:
             name_map =  weight_name_map
         if weight_value_map is not None:
