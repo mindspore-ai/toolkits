@@ -433,7 +433,7 @@ x = self.sqrt(y) 出现 nan, 给出“User Warning 'nan' is detected”报错。
     # pytroch的resnet50网络
     net = resnet50(num_classes=10).cuda() if use_cuda else resnet50(num_classes=10)
     pth_path="/mnt/d/06_project/m/resnet_pytorch_res/resnet_pytroch_res/resnet.pth"
-    
+
     # pt_model：pytorch网络名称
     # pth_file_path：要转换的pth文件路径
     # ckpt_save_path：保存MindSpore的ckpt的路径与文件名称
@@ -441,29 +441,58 @@ x = self.sqrt(y) 出现 nan, 给出“User Warning 'nan' is detected”报错。
     # 调用转换接口
     wm.convert()
 
-#### 如何使用2-网络结构有一定差异，需要定制权重转换：
-在MindSpore迁移后的网络结构与pytorch网络结构不完全一致时，需要用户手工定义转换规则，此时工具提供了定制接口，满足此种场景下用户的定制诉求。
+#### 如何使用2-网络结构有一定差异，需要定制权重名称前缀：
     import troubleshooter as ts
 
     # pytroch的resnet50网络
     net = resnet50(num_classes=10).cuda() if use_cuda else resnet50(num_classes=10)
     pth_path="/mnt/d/06_project/m/resnet_pytorch_res/resnet_pytroch_res/resnet.pth"
-    
+
+    # pt_model：pytorch网络名称
+    # pth_file_path：要转换的pth文件路径
+    # ckpt_save_path：保存MindSpore的ckpt的路径与文件名称
+    wm = ts.weight_migrator(pt_model=net, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
+    # 调用转换接口
+    wm.convert(weight_name_prefix="uvp", print_conv_info=True)
+
+#### 如何使用3-网络结构有一定差异，需要对权重名称做复杂的定制转换：
+在MindSpore迁移后的网络结构与pytorch网络结构不完全一致时，需要用户手工定义转换规则，此时工具提供了定制接口，满足此种场景下用户的定制诉求。
+
+    import troubleshooter as ts
+
+    def custorm_weight_name(weight_name_map):
+        prefix='.custorm.'
+        custorm_name_map = {}
+        for key, value in weight_name_map.items():
+            index = value.find(".")
+            value = value[0:index] + prefix + value[index+1:]
+            print(key, ":", value)
+            custorm_name_map[key] = str(value)
+        return custorm_name_map
+
+    # pytroch的resnet50网络
+    net = resnet50(num_classes=10).cuda() if use_cuda else resnet50(num_classes=10)
+    pth_path="/mnt/d/06_project/m/resnet_pytorch_res/resnet_pytroch_res/resnet.pth"
+
     # pt_model：pytorch网络名称
     # pth_file_path：要转换的pth文件路径
     # ckpt_save_path：保存MindSpore的ckpt的路径与文件名称
     wm = ts.weight_migrator(pt_model=net, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
 
-    # 用户获得根据默认规则转换后的map，
+    # 用户获得根据默认规则转换后的map，get_weight_map返回两个map，一个是name map用于名称转换，一个是value map用于值转换，此例子只有name map
+    # full_name_map:get_weight_map默认只返回自动转换的权重名称映射字典，配置为True则会返回所有权重名称映射字典，便于用户进行批量名称定制
     # print_map：打印映射的map
-    w_map = wm.get_weight_map(print_map=True)
+    name_map, value_map = wm.get_weight_map(full_name_map=True, print_map=True)
 
-    # 用户可封装定制函数，例如：custom_map，然后通过修改w_map内容，完成映射关系的定制
-    w_map = custom_map(w_map)
-    
+    # 用户可封装定制函数，例如：custorm_weight_name，然后通过修改w_map内容，完成映射关系的定制
+    w_map = custorm_weight_name(name_map)
+
     # 将定制好的map传入转换接口
-    # weight_map：传入定制后的map，以定制后的map进行权重转换
-    wm.convert(weight_map=w_map)
+    # weight_name_map：传入定制后的map，以定制后的map进行权重名称转换
+    wm.convert(weight_name_map=w_map)
+
+    # 执行结果：根据定制所有参数名称增加一个层custorm ，执行后举例: features.Linear_mm.weight 参数名称将转换为 features.custorm.Linear_mm.weight
+
 
 
 ### 应用场景2：将转换后的ckpt与MindSpore网络生成的ckpt进行对比：
