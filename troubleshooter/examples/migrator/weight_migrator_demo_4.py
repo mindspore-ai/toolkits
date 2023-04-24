@@ -261,11 +261,18 @@ if __name__ == '__main__':
     torch_net = MyNet3(in_features=10,out_classes=2)
 
     torch.save(torch_net.state_dict(), "torch_net.pth")
+
+    # @验证模型保存
+    # torch.save(torch_net, "torch_net.pth")
     pth_path = "./torch_net.pth"
 
     model = torch.load(pth_path)
-    for name, param in model.items():
-        print(name,":",param.size())
+
+    # @验证模型场景下提取权重参数
+    #pd = model.state_dict()
+
+    #for name, param in model.items():
+    #    print(name,":",param.size())
 
     wm = ts.weight_migrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
     #w_maps = wm.get_weight_map(full_name_map=True, print_map=True)

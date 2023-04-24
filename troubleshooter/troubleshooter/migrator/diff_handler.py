@@ -16,6 +16,7 @@
 import os
 import torch
 import numpy as np
+from collections import OrderedDict
 from pprint import pprint
 from troubleshooter import log as logger
 from troubleshooter.common.util import validate_and_normalize_path, find_file, make_directory
@@ -174,13 +175,33 @@ class DifferenceFinder:
 
 class WeightMigrator:
 
-    def __init__(self, pt_model=None, pth_file_path=None, ckpt_save_path=None):
+    def __init__(self, pt_model=None, pth_file_path=None, pth_para_dict=None, ckpt_save_path=None):
         self.weight_map = weight_name_map
         self.ckpt_path = ckpt_save_path
         self.pt_model = pt_model
-        self.pt_para_dict = torch.load(pth_file_path, map_location='cpu')
+        self.pt_para_dict = self._get_para_dict(pth_file_path, pth_para_dict)
         self.print_params_list = []
 
+
+    def _get_para_dict(self, pth_file_path, pth_para_dict):
+        if pth_para_dict:
+            return pth_para_dict
+
+        pt_para_dict = {}
+        pt_object = torch.load(pth_file_path, map_location='cpu')
+        if isinstance(pt_object, OrderedDict):
+            pt_para_dict = pt_object
+        elif isinstance(pt_object, torch.nn.Module):
+            pt_para_dict = pt_object.state_dict()
+        else:
+            raise ValueError("The file cannot be parsed properly. For customized parameter saved files, "
+                              "please load and parse them yourself, and set the 'pth_para_dict' parameter directly")
+
+        values = list(pt_para_dict.values())
+        if values and not isinstance(values[0], torch.Tensor):
+            raise ValueError("The file cannot be parsed properly. For customized parameter saved files, "
+                             "please load and parse them yourself, and set the 'pth_para_dict' parameter directly")
+        return pt_para_dict
 
     def _get_object(self, name):
         object_res = None
