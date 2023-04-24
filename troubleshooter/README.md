@@ -436,6 +436,10 @@ x = self.sqrt(y) 出现 nan, 给出“User Warning 'nan' is detected”报错。
 
     # pt_model：pytorch网络名称
     # pth_file_path：要转换的pth文件路径
+    # 注意：支持模型（例如：torch.save(torch_net, "torch_net.pth") ）和参数（例如：torch.save(torch_net.state_dict(), "torch_net.pth")
+    #      两种形式保存后的pth文件的自动加载，如果保存的pth文件内容经过定制，不能进行自动加载，可使用"pth_para_dict"直接传入加载并解析后的
+    #      权重参数字典
+    # pth_para_dict: 直接传入权重参数字典，当配置此项时pth_file_path参数将失效
     # ckpt_save_path：保存MindSpore的ckpt的路径与文件名称
     wm = ts.weight_migrator(pt_model=net, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
     # 调用转换接口
@@ -479,9 +483,9 @@ x = self.sqrt(y) 出现 nan, 给出“User Warning 'nan' is detected”报错。
     # ckpt_save_path：保存MindSpore的ckpt的路径与文件名称
     wm = ts.weight_migrator(pt_model=net, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
 
-    # 用户获得根据默认规则转换后的map，get_weight_map返回两个map，一个是name map用于名称转换，一个是value map用于值转换，此例子只有name map
-    # full_name_map:get_weight_map默认只返回自动转换的权重名称映射字典，配置为True则会返回所有权重名称映射字典，便于用户进行批量名称定制
-    # print_map：打印映射的map
+    # 用户获得根据默认规则转换后的map，get_weight_map返回两个map，一个是name map用于名称转换，一个是value map用于值转换，此例子只有
+    # name map full_name_map:get_weight_map默认只返回自动转换的权重名称映射字典，配置为True则会返回所有权重名称映射字典，便于
+    # 用户进行批量名称定制print_map：打印映射的map
     name_map, value_map = wm.get_weight_map(full_name_map=True, print_map=True)
 
     # 用户可封装定制函数，例如：custorm_weight_name，然后通过修改w_map内容，完成映射关系的定制
@@ -491,12 +495,14 @@ x = self.sqrt(y) 出现 nan, 给出“User Warning 'nan' is detected”报错。
     # weight_name_map：传入定制后的map，以定制后的map进行权重名称转换
     wm.convert(weight_name_map=w_map)
 
-    # 执行结果：根据定制所有参数名称增加一个层custorm ，执行后举例: features.Linear_mm.weight 参数名称将转换为 features.custorm.Linear_mm.weight
+    # 执行结果：根据定制所有参数名称增加一个层custorm ，执行后举例: features.Linear_mm.weight 参数名称将转换为 
+    # features.custorm.Linear_mm.weight
 
 
 
 ### 应用场景2：将转换后的ckpt与MindSpore网络生成的ckpt进行对比：
-我们写完MindSpore网络后，就可以保存一个ckpt。我们可以将网络生产的ckpt与转换的ckpt（用权重转换工具从pth转换过来的ckpt）进行对比，以起到验证网络结构是否正确等目的。当前仅支持名称与shape的比对。
+我们写完MindSpore网络后，就可以保存一个ckpt。我们可以将网络生产的ckpt与转换的ckpt（用权重转换工具从pth转换过来的ckpt）进行对比，
+以起到验证网络结构是否正确等目的。当前仅支持名称与shape的比对。
 #### 结果展示：
 ![avatar](docs/images/19h51_37.png)
 #### 如何使用1：
@@ -516,11 +522,13 @@ x = self.sqrt(y) 出现 nan, 给出“User Warning 'nan' is detected”报错。
     ms_path = "/mnt/d/06_project/m/docs-r1.9/docs-r1.9/docs/mindspore/source_zh_cn/migration_guide/code/resnet_convert/resnet_ms/resnet.ckpt"
     # ckpt_path：用户编写网络保存的ckpt文件路径
     # print_result：1 打印所有比对结果  2仅打印比对不上的结果
-    # converted_ckpt_path：使用工具转换后的ckpt文件路径，在调用wm.convert后直接调用此接口，则不需要配置此参数。单独调用wm.compare_ckpt，则需要配置此参数。
+    # converted_ckpt_path：使用工具转换后的ckpt文件路径，在调用wm.convert后直接调用此接口，则不需要配置此参数。单独调用wm.compare_ckpt，
+    # 则需要配置此参数。
     wm.compare_ckpt(ckpt_path=ms_path, print_result=1)
 
 ### 应用场景3：比较两组tensor值(npy文件)是否相等
-进行网络迁移精度问题排查等场景，需要获取网络中的tensor值进行比较。一般我们将tensor保存成npy进行手工比较，此功能提供了批量对比两个目录下名称可以映射的npy值的接口。
+进行网络迁移精度问题排查等场景，需要获取网络中的tensor值进行比较。一般我们将tensor保存成npy进行手工比较，此功能提供了批量对比两个目录下名称可以
+映射的npy值的接口。
 #### 结果展示：
 ![avatar](docs/images/20h21_53.png)
 #### 如何使用1-两个目录下名称可自动映射：
