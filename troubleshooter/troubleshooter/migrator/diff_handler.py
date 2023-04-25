@@ -99,7 +99,8 @@ class DifferenceFinder:
         none_flag = False
 
         if not (orig_name_list and target_name_list):
-            logger.user_error("The comparison file is not found in the directory. Please check whether the directory is correct")
+            logger.user_error("The comparison file is not found in the directory. "
+                              "Please check whether the directory is correct")
             exit(1)
 
         for name in orig_name_list:
@@ -170,7 +171,8 @@ class DifferenceFinder:
                 diff_detail = ("Shape is inconsistent", orig_value.shape, target_value.shape)
 
             result_list.append((orig_name, target_name, result, diff_detail))
-        logger.user_attention("The compare directory information:\n The orig dir: %s \n The target dir: %s", self.orig_dir, self.target_dir)
+        logger.user_attention("The compare directory information:\n The orig dir: %s \n The target dir: %s",
+                              self.orig_dir, self.target_dir)
         print_diff_result(result_list)
 
 class WeightMigrator:
@@ -194,13 +196,19 @@ class WeightMigrator:
         elif isinstance(pt_object, torch.nn.Module):
             pt_para_dict = pt_object.state_dict()
         else:
-            raise ValueError("The file cannot be parsed properly. For customized parameter saved files, "
-                              "please load and parse them yourself, and set the 'pth_para_dict' parameter directly")
+            raise ValueError("PTH file parsing failed, possible reasons: "
+                             "1) If using a custom method to save parameter files, please load and set "
+                             "the 'pth_para_dict' parameter yourself to use the conversion tool."
+                             "2) If the input is an optimizer parameter, this tool does not support "
+                             "the conversion of optimizer parameters.")
 
         values = list(pt_para_dict.values())
         if values and not isinstance(values[0], torch.Tensor):
-            raise ValueError("The file cannot be parsed properly. For customized parameter saved files, "
-                             "please load and parse them yourself, and set the 'pth_para_dict' parameter directly")
+            raise ValueError("PTH file parsing failed, possible reasons: "
+                             "1) If using a custom method to save parameter files, please load and set "
+                             "the 'pth_para_dict' parameter yourself to use the conversion tool."
+                             "2) If the input is an optimizer parameter, this tool does not support "
+                             "the conversion of optimizer parameters.")
         return pt_para_dict
 
     def _get_object(self, name):
@@ -337,7 +345,8 @@ class WeightMigrator:
             ms_para_after_conv = ckpt_after_conv_dict.get(ms_para_name)
 
             if ms_para_after_conv is not None:
-                name_map_list.append((ms_para_name, ms_para_name, (ms_para.shape == ms_para_after_conv.shape), ms_para.shape, ms_para_after_conv.shape))
+                name_map_list.append((ms_para_name, ms_para_name, (ms_para.shape == ms_para_after_conv.shape),
+                                      ms_para.shape, ms_para_after_conv.shape))
                 ckpt_after_conv_dict.pop(ms_para_name)
             else:
                 name_map_list.append((ms_para_name, None, None, ms_para.shape, None))
