@@ -24,7 +24,7 @@ from setuptools import setup
 from setuptools.command.egg_info import egg_info
 from setuptools.command.build_py import build_py
 
-version = '1.0.6'
+version = '1.0.7'
 cur_dir = os.path.dirname(os.path.realpath(__file__))
 pkg_dir = os.path.join(cur_dir, 'build')
 
@@ -113,9 +113,13 @@ class BuildPy(build_py):
 setup(
     name='troubleshooter',
     version=version,
-    author='Tiger Miao and collaborators.',
-    author_email='asktiger@yeah.net',
-    url='https://gitee.com/askmiao/troubleshooter',
+    author='The MindSpore Authors',
+    author_email='contact@mindspore.cn',
+    url='https://www.mindspore.cn/',
+    project_urls={
+        'Sources': 'https://gitee.com/mindspore/toolkits/tree/master/troubleshooter',
+        'Issue Tracker': 'https://gitee.com/mindspore/toolkits/issues',
+    },
     description=get_description(),
     license='Apache 2.0',
     packages=find_packages(),
