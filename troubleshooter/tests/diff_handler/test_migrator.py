@@ -4,6 +4,7 @@ import torch.nn as nn
 import troubleshooter as ts
 import torch.optim as optim
 from collections import OrderedDict
+from mindspore.common.initializer import Normal
 
 
 class MyModule(nn.Module):
@@ -265,3 +266,52 @@ def test_conv1d_value_case(capsys):
     res = mindspore.load_param_into_net(ms_net, param_dict)
     ms_param_dict = ms_net.parameters_dict()
     assert len(ms_param_dict) == 2
+
+def test_compare_ckpt_case(capsys):
+    class MSNet(mindspore.nn.Cell):
+        def __init__(self, in_features, out_classes):
+            super(MSNet, self).__init__()
+
+            self.features = mindspore.nn.SequentialCell(
+                OrderedDict([
+                    ('Linear_mm', mindspore.nn.Dense(in_features, 64, weight_init=Normal(0.02))),
+                    ('bn_mm', mindspore.nn.BatchNorm1d(64)),
+                    ('relu_mm', mindspore.nn.ReLU()),
+                    ('Linear_mm', mindspore.nn.Dense(64, out_classes, weight_init=Normal(0.02)))
+                ])
+            )
+
+        def construct(self, x):
+            x = self.features(x)
+            return x
+
+    class MyNet(nn.Module):
+        def __init__(self, in_features, out_classes):
+            super(MyNet, self).__init__()
+
+            self.features = nn.Sequential(
+                OrderedDict([
+                    ('Linear_mm', nn.Linear(in_features, 64)),
+                    ('bn_mm', nn.BatchNorm1d(64)),
+                    ('relu_mm', nn.ReLU()),
+                    ('Linear_mm', nn.Linear(64, out_classes))
+                ])
+            )
+
+        def forward(self, x):
+            x = self.features(x)
+            return x
+
+    torch_net = MyNet(in_features=10, out_classes=2)
+    ms_net = MSNet(in_features=10, out_classes=2)
+    torch.save(torch_net.state_dict(), "/tmp/torch_net.pth")
+    ckpt_path = "/tmp/test.ckpt"
+    mindspore.save_checkpoint(ms_net, ckpt_path)
+    pth_path = "/tmp/torch_net.pth"
+    wm = ts.weight_migrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='/tmp/convert_resnet.ckpt')
+    wm.convert(print_conv_info=False)
+    wm.compare_ckpt(ckpt_path=ckpt_path)
+    ms_param_dict = ms_net.parameters_dict()
+    result = capsys.readouterr().out
+    key_result = 'features.bn_mm.moving_mean   |     features.bn_mm.moving_mean '
+    assert result.count('True') == 6 and result.count(key_result) == 1
