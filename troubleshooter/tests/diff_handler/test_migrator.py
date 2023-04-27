@@ -311,7 +311,6 @@ def test_compare_ckpt_case(capsys):
     wm = ts.weight_migrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='/tmp/convert_resnet.ckpt')
     wm.convert(print_conv_info=False)
     wm.compare_ckpt(ckpt_path=ckpt_path)
-    ms_param_dict = ms_net.parameters_dict()
     result = capsys.readouterr().out
     key_result = 'features.bn_mm.moving_mean   |     features.bn_mm.moving_mean '
     assert result.count('True') == 6 and result.count(key_result) == 1
