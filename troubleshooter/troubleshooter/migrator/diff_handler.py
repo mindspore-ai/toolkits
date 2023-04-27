@@ -245,7 +245,7 @@ class WeightMigrator:
         if prefix:
             custorm_name_map = {}
             for key, value in weight_name_map.items():
-                print(key, ":", prefix + '.' + value)
+                # print(key, ":", prefix + '.' + value)
                 custorm_name_map[key] = str(prefix) + '.' + str(value)
             return custorm_name_map
         else:

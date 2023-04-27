@@ -57,9 +57,13 @@ class Net(nn.Cell):
 
 
 #@场景： CellList
-class MyNet(nn.Cell):
+# 0.weight : Parameter (name=0.weight, shape=(20, 10), dtype=Float32, requires_grad=True)
+# 0.bias : Parameter (name=0.bias, shape=(20,), dtype=Float32, requires_grad=True)
+# 1.weight : Parameter (name=1.weight, shape=(2, 20), dtype=Float32, requires_grad=True)
+# 1.bias : Parameter (name=1.bias, shape=(2,), dtype=Float32, requires_grad=True)
+class MyNet_CellList(nn.Cell):
     def __init__(self, in_channels, out_channels, hidden_size):
-        super(MyNet, self).__init__()
+        super(MyNet_CellList, self).__init__()
         self.fc_layers = nn.CellList()
         self.fc_layers.append(nn.Dense(in_channels, hidden_size))
         self.fc_layers.append(nn.Dense(hidden_size, out_channels))
@@ -195,7 +199,7 @@ class MyNet(nn.Cell):
 #net = Net()
 
 #@验证2：CellList
-#net = MyNet(in_channels=10,out_channels=2, hidden_size=20)
+net = MyNet_CellList(in_channels=10,out_channels=2, hidden_size=20)
 
 #@验证3：SequentialCell
 #net = MyNet(in_channels=3, out_channels=10, hidden_size=128)
@@ -204,7 +208,7 @@ class MyNet(nn.Cell):
 #net = MyNet(in_features=10, out_classes=2)
 
 #@验证5 SequentialCell+BatchNorm1d+OrderedDict
-net = MyNet(in_features=10, out_classes=2)
+#net = MyNet(in_features=10, out_classes=2)
 
 pth = "./test.ckpt"
 mindspore.save_checkpoint(net, pth)
