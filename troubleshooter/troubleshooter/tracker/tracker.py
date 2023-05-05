@@ -78,9 +78,10 @@ class Tracker(Tracer):
             self.ms_func_blacklist.update(blacklist)
 
         self.pop_key_list = ['event_list', 'func_wl', 'path_wl', 'depth', 'max_variable_length', 'check_keyword',
-                             'path_bl', 'check_mode']
+                             'path_bl', 'check_mode', 'framework']
         for key in self.pop_key_list:
-            if kwargs.get(key):
+            value = kwargs.get(key)
+            if value is not None:
                 kwargs.pop(key)
         super(Tracker, self).__init__(depth=self.depth, max_variable_length=self.max_variable_length, **kwargs)
 
