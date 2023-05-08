@@ -25,6 +25,7 @@ pip install troubleshooter
 * 应用场景1：pth到ckpt权重转换
 * 应用场景2：将转换后的ckpt与MindSpore网络生成的ckpt进行对比
 * 应用场景3：比较两组tensor值(npy文件)是否相等
+* 应用场景4：比较pytorch和mindspore的网络输出是否相等
 
 ## 其他调试功能
 * 应用场景1：tracking在指定epoch/step停止跟踪（使用model.train训练）
@@ -553,6 +554,52 @@ x = self.sqrt(y) 出现 nan, 给出“User Warning 'nan' is detected”报错。
     # 将调整后的名称传入比较接口
     dif.compare_npy_dir(name_map_list=name_list)
 
+### 应用场景：比较mindspore和pytorch网络输出是否一致
+
+在进行网络迁移时，由于大多数网络是使用pytorch搭建的，在迁移到mindspore过程中，我们需要比较mindspore和pytorch网络输出结果是否一致。此功能实现对比mindspore和pytorch的输出结果。
+
+#### 接口参数
+
+| 参数         | 类型                      | 说明                                                         |
+| ------------ | ------------------------- | ------------------------------------------------------------ |
+| ms_net       | mindspore.nn.Cell         | mindspore模型实例                                            |
+| pt_net       | torch.nn.Module           | torch模型实例                                                |
+| input_data   | Union(list[Iterable[np.array]], list[Iterable[str]]) | 模型的输入。支持多输入，每个输入使用一个list。当list中为array时，将会依序使用其中的array作为模型的输入，每个array形状与模型输入形状相同，以图像分类任务为例，输入形状为[batch_size, num_channel, w, h]；当为str时，将会加载相应位置的npy文件作为模型输入。 对于单输入情况，用户需要传入[[input1, input2, ...]] 或者 [['input1.npy', 'input2.npy', ...]]；对于多输入，用户应当传入[[input1_1, input1_2, ...], [input2_1, input2_2, ...]]或者[['input1_1.npy', 'input1_2.npy', ...], ['input2_1.npy', 'input2_2.npy', ...]]|
+| out_path     | str                       | 结果保存的文件夹，例如，'troubleshooter/results'            |
+| print_result | bool                      | 是否打印输出结果，以及中间过程                               |
+
+#### 如何使用
+
+可以参考troubleshooter/tests/diff_handler/test_netdifffinder.py中的使用方法，或者下面的使用方法：
+
+```python
+# 构造输入，这里假设测试用例有两个，分别为input1，input2；
+input1 = [np.random.randn(1, 12).astype(np.float32), np.random.randn(1, 13).astype(np.float32)]
+input2 = [np.random.randn(1, 12).astype(np.float32), np.random.randn(1, 13).astype(np.float32)]
+# 实例化mindspore模型以及torch模型
+ms_net = MSNet()
+pt_net = TorchNet()
+diff_finder = NetDifferenceFinder(
+  ms_net=ms_net,
+  pt_net=pt_net,
+  inputs=[input1, input2],
+  out_path='troubleshooter/tests/diff_handler/results', 
+  print_result=False,
+)
+diff_finder.start_compare()
+```
+
+#### 结果展示
+
+命令：
+
+```python
+python troubleshooter/tests/diff_handler/test_netdifffinder.py
+```
+
+输出结果：
+
+![网络输出对比结果展示](docs/images/outputcompare.png)
 ## 其他调试功能：
 
 ### 应用场景1：tracking在指定epoch/step停止跟踪（使用model.train训练）

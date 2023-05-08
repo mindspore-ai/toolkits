@@ -211,3 +211,46 @@ class SaveNet(nn.Cell):
 
 
 save = SaveNet()
+
+
+def cal_cosine_sim(a, b):
+    a, b = a.flatten(), b.flatten()
+    sim = 0.
+    num = np.dot(a, b)
+    denom = np.linalg.norm(a) * np.linalg.norm(b)
+    if not denom == 0.:
+        sim = 0.5 + 0.5 * (num / denom)
+    return sim
+
+
+def cal_similarity(ms_data, th_data, index, **kwargs):
+    result_list = []
+    rtol = kwargs.get('rtol', 1e-05)
+    atol = kwargs.get('atol', 1e-08)
+    equal_nan = kwargs.get('equal_nan', False)
+    if ms_data.shape == th_data.shape:
+        result = np.allclose(ms_data, th_data, rtol=rtol,
+                             atol=atol, equal_nan=equal_nan)
+
+        if not result:
+            value_diff = np.abs(ms_data - th_data)
+            value_mean = value_diff.mean()
+            value_max = value_diff.max()
+            value_min = value_diff.min()
+            cosine_sim = cal_cosine_sim(ms_data, th_data)
+            diff_detail = value_mean, value_max, value_min
+        else:
+            diff_detail = ()
+    else:
+        result = False
+        diff_detail = ("Shape is inconsistent", ms_data.shape, th_data.shape)
+
+    result_list = ['mindspore output {}'.format(
+        index), 'torch output {}'.format(index), result, cosine_sim, diff_detail]
+    return result_list
+
+
+def save_numpy_data(file_path, data):
+    if not os.path.exists(os.path.dirname(file_path)):
+        os.makedirs(os.path.dirname(file_path))
+    np.save(file_path, data)

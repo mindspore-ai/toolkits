@@ -1,0 +1,6 @@
+Pytorch data,MindSpore data,Results of comparison,cosine similarity,"(mean, max, min)"
+test0-result_0,test0-a,False,0.46132,"['0.44795', '1.04435', '0.06219']"
+test0-result_1,test0-b,False,0.44855,"['0.36956', '1.00635', '0.00237']"
+,,,,
+test1-result_0,test1-a,False,0.40539,"['0.70020', '1.53871', '0.02968']"
+test1-result_1,test1-b,False,0.51905,"['0.59969', '1.36461', '0.02182']"
