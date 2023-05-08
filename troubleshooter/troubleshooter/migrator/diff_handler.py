@@ -14,16 +14,23 @@
 # ============================================================================
 """compare tools"""
 import os
+import csv
+import time
+from pprint import pprint
 import torch
 import numpy as np
-from collections import OrderedDict
-from pprint import pprint
 from troubleshooter import log as logger
-from troubleshooter.common.util import validate_and_normalize_path, find_file, make_directory
+from troubleshooter.common.util import validate_and_normalize_path, find_file, make_directory, \
+    cal_similarity, cal_cosine_sim, save_numpy_data
 from troubleshooter.migrator.mapping_relation.weight_mapping_lib import weight_name_map, weight_value_map
-from troubleshooter.common.format_msg import print_diff_result, print_weight_compare_result, print_convert_result
+from troubleshooter.common.format_msg import print_diff_result, print_weight_compare_result, \
+    print_convert_result, print_net_infer_diff_result
 
 FRAMEWORK_TYPE = "ms"
+MS_OUTPUT_PATH = "data/output/MindSpore"
+PT_OUTPUT_PATH = "data/output/PyTorch"
+RESULT_COLUMNS = ["Pytorch data", "MindSpore data",
+                  "Results of comparison", "cosine similarity", "(mean, max, min)"]
 
 try:
     import mindspore as ms
@@ -35,6 +42,7 @@ except ModuleNotFoundError as e:
     else:
         raise e
 
+
 class TensorRecorder:
     def __init__(self):
         self.summary_record = None
@@ -45,7 +53,8 @@ class TensorRecorder:
             record_mode = ms.get_context("mode")
 
         if record_mode == 0:
-            self.summary_record = ms.SummaryRecord(record_path, export_options={'tensor_format': 'npy'})
+            self.summary_record = ms.SummaryRecord(
+                record_path, export_options={'tensor_format': 'npy'})
 
     def record(self):
         if not self.summary_record:
@@ -63,7 +72,7 @@ class TensorRecorder:
             normal_dir = validate_and_normalize_path(record_dir)
             make_directory(normal_dir)
 
-        if framework=="ms":
+        if framework == "ms":
             if record_mode is None:
                 record_mode = ms.get_context("mode")
             if record_mode == 0:
@@ -86,11 +95,13 @@ class TensorRecorder:
 
         return save_op
 
+
 class DifferenceFinder:
 
     def __init__(self, orig_dir, target_dir):
         self.orig_dir = orig_dir
         self.target_dir = target_dir
+
     def get_filename_map_list(self):
         name_map_list = []
         orig_name_list = find_file(self.orig_dir)
@@ -99,8 +110,8 @@ class DifferenceFinder:
         none_flag = False
 
         if not (orig_name_list and target_name_list):
-            logger.user_error("The comparison file is not found in the directory. "
-                              "Please check whether the directory is correct")
+            logger.user_error("The comparison file is not found in the directory. Please \
+                check whether the directory is correct")
             exit(1)
 
         for name in orig_name_list:
@@ -123,7 +134,6 @@ class DifferenceFinder:
             print("filename mapping list:" + str(name_map_list))
         return name_map_list
 
-
     def compare_npy_dir(self, name_map_list=None, **kwargs):
         """
         """
@@ -144,7 +154,8 @@ class DifferenceFinder:
             if orig_name is None or target_name is None:
                 result = False
                 diff_detail = ()
-                result_list.append((orig_name, target_name, result, diff_detail))
+                result_list.append(
+                    (orig_name, target_name, result, diff_detail))
                 continue
 
             orig_file = os.path.join(normal_orig_dir, orig_name)
@@ -156,60 +167,39 @@ class DifferenceFinder:
             orig_value = np.load(orig_file)
             target_value = np.load(target_file)
             if orig_value.shape == target_value.shape:
-                result = np.allclose(orig_value, target_value, rtol=rtol, atol=atol, equal_nan=equal_nan)
+                result = np.allclose(
+                    orig_value, target_value, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
                 if not result:
                     value_diff = np.abs(orig_value - target_value)
                     value_mean = value_diff.mean()
                     value_max = value_diff.max()
                     value_min = value_diff.min()
+                    cosine_sim = cal_cosine_sim(orig_value, target_value)
                     diff_detail = value_mean, value_max, value_min
                 else:
                     diff_detail = ()
+                    cosine_sim = cal_cosine_sim(orig_value, target_value)
             else:
                 result = False
-                diff_detail = ("Shape is inconsistent", orig_value.shape, target_value.shape)
+                diff_detail = ("Shape is inconsistent",
+                               orig_value.shape, target_value.shape)
 
-            result_list.append((orig_name, target_name, result, diff_detail))
+            result_list.append(
+                (orig_name, target_name, result, cosine_sim, diff_detail))
         logger.user_attention("The compare directory information:\n The orig dir: %s \n The target dir: %s",
                               self.orig_dir, self.target_dir)
         print_diff_result(result_list)
 
+
 class WeightMigrator:
 
-    def __init__(self, pt_model=None, pth_file_path=None, pth_para_dict=None, ckpt_save_path=None):
+    def __init__(self, pt_model=None, pth_file_path=None, ckpt_save_path=None):
         self.weight_map = weight_name_map
         self.ckpt_path = ckpt_save_path
         self.pt_model = pt_model
-        self.pt_para_dict = self._get_para_dict(pth_file_path, pth_para_dict)
+        self.pt_para_dict = torch.load(pth_file_path, map_location='cpu')
         self.print_params_list = []
-
-
-    def _get_para_dict(self, pth_file_path, pth_para_dict):
-        if pth_para_dict:
-            return pth_para_dict
-
-        pt_para_dict = {}
-        pt_object = torch.load(pth_file_path, map_location='cpu')
-        if isinstance(pt_object, OrderedDict):
-            pt_para_dict = pt_object
-        elif isinstance(pt_object, torch.nn.Module):
-            pt_para_dict = pt_object.state_dict()
-        else:
-            raise ValueError("PTH file parsing failed, possible reasons: "
-                             "1) If using a custom method to save parameter files, please load and set "
-                             "the 'pth_para_dict' parameter yourself to use the conversion tool."
-                             "2) If the input is an optimizer parameter, this tool does not support "
-                             "the conversion of optimizer parameters.")
-
-        values = list(pt_para_dict.values())
-        if values and not isinstance(values[0], torch.Tensor):
-            raise ValueError("PTH file parsing failed, possible reasons: "
-                             "1) If using a custom method to save parameter files, please load and set "
-                             "the 'pth_para_dict' parameter yourself to use the conversion tool."
-                             "2) If the input is an optimizer parameter, this tool does not support "
-                             "the conversion of optimizer parameters.")
-        return pt_para_dict
 
     def _get_object(self, name):
         object_res = None
@@ -221,7 +211,6 @@ class WeightMigrator:
             imp_module = importlib.import_module(module_name)
             object_res = getattr(imp_module, class_name)
         return object_res
-
 
     def _get_trans_map(self, weight_name, module, weight_map, igone_name=False):
         res_weight_map = {}
@@ -240,41 +229,21 @@ class WeightMigrator:
 
         return res_weight_map
 
-
-    def _custorm_weight_name_prefix(self, weight_name_map, prefix=None):
-        if prefix:
-            custorm_name_map = {}
-            for key, value in weight_name_map.items():
-                # print(key, ":", prefix + '.' + value)
-                custorm_name_map[key] = str(prefix) + '.' + str(value)
-            return custorm_name_map
-        else:
-            return weight_name_map
-
-
-    def get_weight_map(self, print_map=False, full_name_map=False):
+    def get_weight_map(self, print_map=False):
         res_weight_name_map = {}
         res_weight_value_map = {}
-        full_weight_name_map = {}
-
         for name, module in self.pt_model.named_modules():
             tmp_name_map = self._get_trans_map(name, module, weight_name_map)
             if tmp_name_map:
                 res_weight_name_map.update(tmp_name_map)
-            tmp_value_map = self._get_trans_map(name, module, weight_value_map, igone_name=True)
+            tmp_value_map = self._get_trans_map(
+                name, module, weight_value_map, igone_name=True)
             if tmp_value_map:
                 res_weight_value_map.update(tmp_value_map)
-        if full_name_map:
-            for key, value in self.pt_para_dict.items():
-                full_weight_name_map[key]=key
-            full_weight_name_map.update(res_weight_name_map)
-            res_weight_name_map =  full_weight_name_map
-
         if print_map:
             pprint(res_weight_name_map)
             pprint(res_weight_value_map)
         return res_weight_name_map, res_weight_value_map
-
 
     def _get_name_and_value(self, pth_param_name, name_map, value_map):
         new_name = pth_param_name
@@ -294,45 +263,38 @@ class WeightMigrator:
             def_get_value = self._get_object(fun)
             ms_tensor = def_get_value(ms_tensor)
 
-        self.print_params_list.append((pth_param_name, new_name, bool(ms_para_item), bool(fun) , parameter.size(),
+        self.print_params_list.append((pth_param_name, new_name, bool(ms_para_item), bool(fun), parameter.size(),
                                        ms_tensor.shape))
         return new_name, ms_tensor
 
-
-    def convert(self, weight_name_map=None, weight_value_map=None ,weight_name_prefix=None, print_conv_info=True):
-
-        if weight_name_prefix:
-            name_map, value_map = self.get_weight_map(full_name_map=True)
-            name_map = self._custorm_weight_name_prefix(name_map, weight_name_prefix)
-        else:
-            name_map, value_map = self.get_weight_map()
-
+    def convert(self, weight_name_map=None, weight_value_map=None, print_conv_info=True):
+        name_map, value_map = self.get_weight_map()
         if weight_name_map is not None:
-            name_map =  weight_name_map
+            name_map = weight_name_map
         if weight_value_map is not None:
-            value_map =  weight_value_map
+            value_map = weight_value_map
 
         new_params_list = []
 
         for pth_param_name in self.pt_para_dict:
             # get ckpt name and value
-            new_name, ms_tensor = self._get_name_and_value(pth_param_name,name_map,value_map)
+            new_name, ms_tensor = self._get_name_and_value(
+                pth_param_name, name_map, value_map)
             # add name and value to list
             new_params_list.append({"name": new_name, "data": ms_tensor})
 
         if new_params_list:
-            ms.save_checkpoint(new_params_list , self.ckpt_path)
+            ms.save_checkpoint(new_params_list, self.ckpt_path)
         else:
             logger.user_warning("There are no parameters to be converted. Parameter conversion failed. "
                                 "Please check whether the configuration is correct")
 
         if print_conv_info:
-             print_convert_result(self.print_params_list)
+            print_convert_result(self.print_params_list)
 
         logger.user_attention("The PTH has been converted to the checkpoint of MindSpore. "
                               "Please check whether the conversion result is correct. "
-                              "The saved path is: %s",self.ckpt_path)
-
+                              "The saved path is: %s", self.ckpt_path)
 
     def compare_ckpt(self, ckpt_path=None, converted_ckpt_path=None, print_result=1):
         name_map_list = []
@@ -345,12 +307,166 @@ class WeightMigrator:
             ms_para_after_conv = ckpt_after_conv_dict.get(ms_para_name)
 
             if ms_para_after_conv is not None:
-                name_map_list.append((ms_para_name, ms_para_name, (ms_para.shape == ms_para_after_conv.shape),
-                                      ms_para.shape, ms_para_after_conv.shape))
+                name_map_list.append((ms_para_name, ms_para_name, (ms_para.shape ==
+                                     ms_para_after_conv.shape), ms_para.shape, ms_para_after_conv.shape))
                 ckpt_after_conv_dict.pop(ms_para_name)
             else:
-                name_map_list.append((ms_para_name, None, None, ms_para.shape, None))
+                name_map_list.append(
+                    (ms_para_name, None, None, ms_para.shape, None))
 
         for name, ms_para in ckpt_after_conv_dict.items():
             name_map_list.append((None, name, None, None, ms_para.shape))
         print_weight_compare_result(name_map_list, print_type=print_result)
+
+
+class NetDifferenceFinder:
+
+    def __init__(self, ms_net, pt_net, inputs,
+                 out_path, print_result):
+        self.ms_net = ms_net
+        self.pt_net = pt_net
+        self.inputs = inputs
+        self.out_path = out_path
+        self.print_result = print_result
+
+    def start_compare(self):
+        compare_results = []
+        for idx, input in enumerate(self.inputs):
+            input_data = self.get_input_data(input)
+            result_ms, result_pt = self.infer_net(
+                input_data, self.ms_net, self.pt_net, idx)
+            self.check_output(result_ms, result_pt)
+            if idx != 0:
+                compare_results.append(['', '', '', '', ''])
+            compare_results.extend(
+                self.compare_results(result_ms, result_pt, idx))
+        self.save_results(compare_results)
+        print_net_infer_diff_result(compare_results)
+
+    def get_input_data(self, input):
+        input_data = []
+        if isinstance(input, dict):
+            input_data = list(input.values())
+        else:
+            for data in input:
+                if isinstance(data, str):
+                    input_data.append(np.load(data))
+                elif isinstance(data, np.ndarray):
+                    input_data.append(data)
+                else:
+                    logger.user_error(
+                        'Unknow input data type {}'.format(type(data)))
+                    exit(1)
+        return input_data
+
+    def infer_net(self, input_data, ms_net, pt_net, idx):
+        if self.print_result:
+            print(
+                "\n=================================Start inference net=================================")
+        start_pt = time.time()
+        result_pt = self.run_pt_net(pt_net, input_data)
+        end_pt = time.time()
+        print(f"In test case {idx}, the PyTorch net inference completed cost %.5f seconds." % (
+            end_pt - start_pt))
+        start_ms = time.time()
+        result_ms = self.run_ms_net(ms_net, input_data)
+        end_ms = time.time()
+        print(f"In test case {idx}, the MindSpore net inference completed cost %.5f seconds." % (
+            end_ms - start_ms))
+        if isinstance(result_ms, tuple):
+            result_ms = {f"result_{idx}": result for idx,
+                         result in enumerate(result_ms)}
+        if isinstance(result_pt, tuple):
+            result_pt = {f"result_{idx}": result for idx,
+                         result in enumerate(result_pt)}
+        return result_ms, result_pt
+
+    def run_pt_net(self, pt_net, input_data_list):
+        data_list = []
+        for data in input_data_list:
+            data_list.append(torch.tensor(data))
+        pt_results = pt_net(*data_list)
+        return pt_results
+
+    def run_ms_net(self, ms_net, input_data_list):
+        data_list = []
+        for data in input_data_list:
+            data_list.append(ms.Tensor(data))
+        ms_results = ms_net(*data_list)
+        return ms_results
+
+    def check_output(self, result_ms, result_pt):
+        ms_result_num = len(result_ms)
+        if self.print_result:
+            print("The MindSpore net inference have %s result." % ms_result_num)
+        pt_result_num = len(result_pt)
+        if self.print_result:
+            print("The PyTorch net inference have %s result." % pt_result_num)
+        assert ms_result_num == pt_result_num, "output results are in different counts!"
+
+    def compare_results(self, result_ms, result_pt, idx):
+        index = 0
+        compare_result = []
+        for (k_pt, k_ms) in zip(result_pt, result_ms):
+            result_pt_ = result_pt[k_pt].detach().numpy()
+            result_ms_ = result_ms[k_ms].asnumpy()
+            self.check_out_data_shape(index, result_ms_, result_pt_)
+            self.save_out_data(index, k_ms, k_pt, result_ms_, result_pt_)
+            result_pt_ = result_pt_.reshape(1, -1)
+            result_ms_ = result_ms_.reshape(1, -1)
+            result = self.compare_data(result_ms_, result_pt_, index)
+            result[0], result[1] = f"test{idx}-{k_ms}", f"test{idx}-{k_pt}"
+            result[3] = "%.5f" % float(result[3])
+            min_max = ['%.5f' % r for r in result[4]]
+            result[4] = min_max
+            compare_result.append(result)
+            index += 1
+        return compare_result
+
+    def check_out_data_shape(self, index, result_ms, result_pt):
+        if self.print_result:
+            print(
+                "\n=========================Start Check Out Data %s ===========================" % index)
+        pt_out_shape = result_pt.shape
+        ms_out_shape = result_pt.shape
+        assert pt_out_shape == ms_out_shape, "output results are in different shapes!"
+        if self.print_result:
+            print("shape of result_pt: %s" % str(pt_out_shape))
+            print("shape of result_ms: %s" % str(ms_out_shape))
+            print("-result_pt-: \n", result_pt)
+            print("-result_ms-: \n", result_ms)
+
+    def save_out_data(self, index, k_ms, k_pt, result_ms, result_pt):
+        if self.print_result:
+            print(
+                "\n================= ======Start Save Out Data %s =========================" % index)
+        result_file = "%s.npy" % k_ms
+        ms_out_path = os.path.join(self.out_path, MS_OUTPUT_PATH, result_file)
+        save_numpy_data(ms_out_path, result_ms)
+        if self.print_result:
+            print("Saved MindSpore output data at: %s" % ms_out_path)
+
+        result_file = "%s.npy" % k_pt
+        pt_out_path = os.path.join(self.out_path, PT_OUTPUT_PATH, result_file)
+        save_numpy_data(pt_out_path, result_pt)
+        if self.print_result:
+            print("Saved PyTorch output data at: %s" % pt_out_path)
+
+    def compare_data(self, result_ms, result_pt, index):
+        if self.print_result:
+            print(
+                "\n=========================Start Compare Out Data %s ===========================" % index)
+        sim_result = cal_similarity(result_ms, result_pt, index)
+        return sim_result
+
+    def save_results(self, compare_results):
+        if self.print_result:
+            logger.info(
+                "=================================Start save result=================================")
+        result_path = os.path.join(self.out_path, "compare_result.csv")
+        with open(result_path, "w", encoding='utf-8') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(RESULT_COLUMNS)
+            writer.writerows(compare_results)
+            logger.info(
+                "The comparison result have been written to %s" % result_path)

@@ -48,7 +48,8 @@ def _add_row(x, item, message, width=TABLE_WIDTH, break_long_words=False, break_
     if message is None:
         return
     item_cn = _item_to_cn.get(item)
-    format_message = _format_str_length(message) if os.linesep in message else message
+    format_message = _format_str_length(
+        message) if os.linesep in message else message
     x.add_row([item_cn, fill(format_message, width=width, break_long_words=break_long_words,
                              break_on_hyphens=break_on_hyphens)])
 
@@ -56,10 +57,11 @@ def _add_row(x, item, message, width=TABLE_WIDTH, break_long_words=False, break_
 def print_weight_compare_result(result_list, print_type=1):
     x = PrettyTable()
     x.title = 'The list of comparison results'
-    x.field_names = ["Parameter name of input ckpt", "Parameter name of converted ckpt", "Whether shape are equal", "Parameter shape of input ckpt", "Parameter shape of converted ckpt"]
+    x.field_names = ["Parameter name of input ckpt", "Parameter name of converted ckpt", "Whether shape are equal",
+                     "Parameter shape of input ckpt", "Parameter shape of converted ckpt"]
     for result in result_list:
         if print_type == 1:
-            x.add_row([result[0],result[1],result[2],result[3],result[4]])
+            x.add_row([result[0], result[1], result[2], result[3], result[4]])
         elif result[2] is not True:
             x.add_row([result[0], result[1], result[2], result[3], result[4]])
     print(x.get_string())
@@ -69,18 +71,32 @@ def print_convert_result(result_list):
     x = PrettyTable()
     x.title = 'The list of conversion result'
     x.field_names = ["Parameter name of pth", "Parameter name of converted ckpt", "Whether the name is converted",
-                     "Whether the weight value is converted","Parameter shape of pth","Parameter shape of ckpt"]
+                     "Whether the weight value is converted", "Parameter shape of pth", "Parameter shape of ckpt"]
     for result in result_list:
-        x.add_row([result[0],result[1],result[2],result[3],result[4],result[5]])
+        x.add_row([result[0], result[1], result[2],
+                  result[3], result[4], result[5]])
     print(x.get_string())
+
 
 def print_diff_result(result_list):
     x = PrettyTable()
     x.title = 'The list of comparison results'
-    x.field_names = ["orig array name", "target array name", "Results of comparison", "(mean,max,min)"]
+    x.field_names = ["orig array name", "target array name",
+                     "Results of comparison", "(mean,max,min)"]
     for result in result_list:
-        x.add_row([result[0],result[1],result[2],result[3]])
+        x.add_row([result[0], result[1], result[2], result[3]])
     print(x.get_string())
+
+
+def print_net_infer_diff_result(result_list):
+    x = PrettyTable()
+    x.title = 'The list of comparison results'
+    x.field_names = ["Pytorch data", "MindSpore data",
+                     "Results of comparison", "cosine similarity", "(mean, max, min)"]
+    for result in result_list:
+        x.add_row([result[0], result[1], result[2], result[3], result[4]])
+    print(x.get_string())
+
 
 def print_result(expert_experience, write_file_path):
     """
@@ -94,19 +110,25 @@ def print_result(expert_experience, write_file_path):
     mindspore_version = expert_experience.get("mindspore_version")
     mindspore_mode = expert_experience.get("mindspore_mode")
     mindspore_device = expert_experience.get("Device Type")
-    x.add_row([item_desc.get("ms_version"), fill(mindspore_version, width=TABLE_WIDTH)])
-    x.add_row([item_desc.get("ms_mode"), fill(mindspore_mode, width=TABLE_WIDTH)])
+    x.add_row([item_desc.get("ms_version"), fill(
+        mindspore_version, width=TABLE_WIDTH)])
+    x.add_row([item_desc.get("ms_mode"), fill(
+        mindspore_mode, width=TABLE_WIDTH)])
     if mindspore_device:
-        x.add_row([item_desc.get("ms_device"), fill(mindspore_device, width=TABLE_WIDTH)])
+        x.add_row([item_desc.get("ms_device"), fill(
+            mindspore_device, width=TABLE_WIDTH)])
     ms_status = expert_experience.get("ms_status")
     code_line = expert_experience.get("code_line")
     sink_mode = expert_experience.get("Sink Mode")
     if ms_status:
-        x.add_row([item_desc.get("ms_status"), fill(ms_status, width=TABLE_WIDTH)])
+        x.add_row([item_desc.get("ms_status"),
+                  fill(ms_status, width=TABLE_WIDTH)])
     if code_line:
-        x.add_row([item_desc.get("code_line"), fill(code_line, width=TABLE_WIDTH)])
+        x.add_row([item_desc.get("code_line"),
+                  fill(code_line, width=TABLE_WIDTH)])
     if sink_mode:
-        x.add_row([item_desc.get("sink_mode"), fill(sink_mode, width=TABLE_WIDTH)])
+        x.add_row([item_desc.get("sink_mode"),
+                  fill(sink_mode, width=TABLE_WIDTH)])
 
     # 可能原因
     fault_cause = expert_experience.get('Fault Cause')
@@ -131,7 +153,8 @@ def print_result(expert_experience, write_file_path):
     if write_file_path:
         case_id = expert_experience.get("ID")
         _add_row(x, "case_id", case_id)
-        file = os.path.join(write_file_path, "mindspore_failure_analysis_report.log")
+        file = os.path.join(
+            write_file_path, "mindspore_failure_analysis_report.log")
         with open(file, "w") as f:
             f.write(x.get_string() + os.linesep)
     print(x.get_string())
@@ -243,7 +266,8 @@ def _format_case_str(content, mindspore_version):
                 # no mindspore link, return
                 if match:
                     link_version = line[match.start():match.end()]
-                    line = _replace_link_version(line, link_version, mindspore_version)
+                    line = _replace_link_version(
+                        line, link_version, mindspore_version)
                 result += line + os.linesep
             else:  # link version same with mindspore version, no replace
                 return content
@@ -271,8 +295,10 @@ def _filter_stack(stack):
 
 def print_clear_exception(exc_type, exc_value, exc_traceback_obj):
     if exc_traceback_obj:
-        _print_msg("[TroubleShooter-Clear Stack] Python Traceback (most recent call last):", "NULL", False)
-        org_err_stack = traceback.format_exception(exc_type, exc_value, exc_traceback_obj)
+        _print_msg(
+            "[TroubleShooter-Clear Stack] Python Traceback (most recent call last):", "NULL", False)
+        org_err_stack = traceback.format_exception(
+            exc_type, exc_value, exc_traceback_obj)
         for stack in org_err_stack:
             if _filter_stack(stack):
                 print(stack.rstrip(os.linesep))
@@ -293,9 +319,11 @@ def print_format_exception(exc_type, exc_value, exc_traceback_obj):
     _print_msg("Error Message:", msg_dict.get("err_msg"))
 
     if msg_dict.get("construct_stack_msg"):
-        _print_msg("The Traceback of Net Construct Code:", msg_dict.get("construct_stack_msg"))
+        _print_msg("The Traceback of Net Construct Code:",
+                   msg_dict.get("construct_stack_msg"))
     else:
-        _print_msg("The Traceback of Net Construct Code:", msg_dict.get("construct_stack_in_file_msg"))
+        _print_msg("The Traceback of Net Construct Code:",
+                   msg_dict.get("construct_stack_in_file_msg"))
     _print_msg("C++ Function:", msg_dict.get("cpp_fun_msg"))
     _print_msg("Inner Message:", msg_dict.get("abstract_inner_msg"))
 
@@ -304,7 +332,8 @@ def format_error_message(error_message):
     """
     format error message, from string to dict
     """
-    msg_list = error_message.split('----------------------------------------------------')
+    msg_list = error_message.split(
+        '----------------------------------------------------')
     format_msg_dict = {}
     current_key = None
     for msg in msg_list:
