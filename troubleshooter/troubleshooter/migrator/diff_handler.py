@@ -373,10 +373,10 @@ class NetDifferenceFinder:
         end_ms = time.time()
         print(f"In test case {idx}, the MindSpore net inference completed cost %.5f seconds." % (
             end_ms - start_ms))
-        if isinstance(result_ms, tuple):
+        if isinstance(result_ms, (tuple, list, ms.Tensor)):
             result_ms = {f"result_{idx}": result for idx,
                          result in enumerate(result_ms)}
-        if isinstance(result_pt, tuple):
+        if isinstance(result_pt, (tuple, list)) or torch.is_tensor(result_pt):
             result_pt = {f"result_{idx}": result for idx,
                          result in enumerate(result_pt)}
         return result_ms, result_pt
