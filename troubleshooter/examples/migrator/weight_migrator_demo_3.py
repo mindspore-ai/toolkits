@@ -34,7 +34,7 @@ if __name__ == '__main__':
     torch.save(torch_net.state_dict(), "torch_net.pth")
 
     pth_path = "./torch_net.pth"
-    wm = ts.weight_migrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
+    wm = ts.WeightMigrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
     #w_map = wm.get_weight_map(print_map=True)
     # test_map = {'bn1.bias': 'bn1.beta',}
     wm.convert(print_conv_info=True)

@@ -65,7 +65,7 @@ if __name__ == '__main__':
     # 2. define forward network
     net = resnet50(num_classes=10).cuda() if use_cuda else resnet50(num_classes=10)
     pth_path="/mnt/d/06_project/m/resnet_pytorch_res/resnet_pytroch_res/resnet.pth"
-    wm = ts.weight_migrator(pt_model=net, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
+    wm = ts.WeightMigrator(pt_model=net, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
 
     wm.convert(print_conv_info=True)
     # ms_path = "/mnt/d/06_project/m/docs-r1.9/docs-r1.9/docs/mindspore/source_zh_cn/migration_guide/code/resnet_convert/resnet_ms/resnet.ckpt"

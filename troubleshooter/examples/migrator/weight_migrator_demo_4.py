@@ -274,7 +274,7 @@ if __name__ == '__main__':
     #for name, param in model.items():
     #    print(name,":",param.size())
 
-    wm = ts.weight_migrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
+    wm = ts.WeightMigrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
     #w_maps = wm.get_weight_map(full_name_map=True, print_map=True)
     # test_map = {'bn1.bias': 'bn1.beta',}
 
