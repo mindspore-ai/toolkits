@@ -442,7 +442,7 @@ x = self.sqrt(y) 出现 nan, 给出“User Warning 'nan' is detected”报错。
     #      权重参数字典
     # pth_para_dict: 直接传入权重参数字典，当配置此项时pth_file_path参数将失效
     # ckpt_save_path：保存MindSpore的ckpt的路径与文件名称
-    wm = ts.weight_migrator(pt_model=net, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
+    wm = ts.WeightMigrator(pt_model=net, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
     # 调用转换接口
     wm.convert()
 
@@ -456,7 +456,7 @@ x = self.sqrt(y) 出现 nan, 给出“User Warning 'nan' is detected”报错。
     # pt_model：pytorch网络名称
     # pth_file_path：要转换的pth文件路径
     # ckpt_save_path：保存MindSpore的ckpt的路径与文件名称
-    wm = ts.weight_migrator(pt_model=net, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
+    wm = ts.WeightMigrator(pt_model=net, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
     # 调用转换接口
     wm.convert(weight_name_prefix="uvp", print_conv_info=True)
 
@@ -482,7 +482,7 @@ x = self.sqrt(y) 出现 nan, 给出“User Warning 'nan' is detected”报错。
     # pt_model：pytorch网络名称
     # pth_file_path：要转换的pth文件路径
     # ckpt_save_path：保存MindSpore的ckpt的路径与文件名称
-    wm = ts.weight_migrator(pt_model=net, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
+    wm = ts.WeightMigrator(pt_model=net, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
 
     # 用户获得根据默认规则转换后的map，get_weight_map返回两个map，一个是name map用于名称转换，一个是value map用于值转换，此例子只有
     # name map full_name_map:get_weight_map默认只返回自动转换的权重名称映射字典，配置为True则会返回所有权重名称映射字典，便于
@@ -516,7 +516,7 @@ x = self.sqrt(y) 出现 nan, 给出“User Warning 'nan' is detected”报错。
     # pt_model：pytorch网络名称
     # pth_file_path：要转换的pth文件路径
     # ckpt_save_path：保存MindSpore的ckpt的路径与文件名称
-    wm = ts.weight_migrator(pt_model=net, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
+    wm = ts.WeightMigrator(pt_model=net, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
     # print_conv_info：为False则不打印转换结果
     wm.convert(print_conv_info=False)
     
