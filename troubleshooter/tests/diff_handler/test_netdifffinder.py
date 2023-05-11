@@ -1,6 +1,6 @@
 import mindspore.nn as m_nn
 import torch.nn as t_nn
-from troubleshooter.migrator.diff_handler import NetDifferenceFinder
+import troubleshooter as ts
 import sys
 import re
 import numpy as np
@@ -37,7 +37,7 @@ def test_model(capsys):
               np.random.randn(1, 13).astype(np.float32))
     ms_net = MSNet()
     pt_net = TorchNet()
-    diff_finder = NetDifferenceFinder(
+    diff_finder = ts.NetDifferenceFinder(
         ms_net=ms_net,
         pt_net=pt_net,
         inputs=[input1, input2],
@@ -58,7 +58,7 @@ def test_dict(capsys):
         np.float32), 'b': np.random.randn(1, 13).astype(np.float32)}
     ms_net = MSNet()
     pt_net = TorchNet()
-    diff_finder = NetDifferenceFinder(
+    diff_finder = ts.NetDifferenceFinder(
         ms_net=ms_net,
         pt_net=pt_net,
         inputs=[input1, input2],
