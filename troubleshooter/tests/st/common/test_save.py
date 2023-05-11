@@ -22,6 +22,71 @@ class NetWorkSave(nn.Cell):
         return x
 
 
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
+@pytest.mark.parametrize('mode', [ms.PYNATIVE_MODE, ms.GRAPH_MODE])
+def test_ms_save(mode):
+    """
+    Feature: ts.save
+    Description: Verify the result of save
+    Expectation: success
+    """
+    ms.set_context(mode=mode, device_target="CPU")
+    ts.save.cnt.set_data(Tensor(0, ms.int32))
+    x1 = Tensor(-0.5962, ms.float32)
+    x2 = Tensor(0.4985, ms.float32)
+    net = NetWorkSave('/tmp/save/numpy', True, "ms")
+
+    try:
+        shutil.rmtree("/tmp/save/")
+    except FileNotFoundError:
+        pass
+    os.makedirs("/tmp/save/")
+
+    x1 = net(x1)
+    x2 = net(x2)
+    time.sleep(1)
+    assert np.allclose(np.load("/tmp/save/0_numpy_ms.npy"),
+                       x1.asnumpy())
+    assert np.allclose(np.load("/tmp/save/1_numpy_ms.npy"),
+                       x2.asnumpy())
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
+@pytest.mark.parametrize('mode', [ms.PYNATIVE_MODE])
+def test_torch_save(mode):
+    """
+    Feature: ts.save
+    Description: Verify the result of save
+    Expectation: success
+    """
+    ms.set_context(mode=mode, device_target="CPU")
+    ts.save.cnt.set_data(Tensor(0, ms.int32))
+    x1 = torch.tensor(-0.5962, dtype=torch.float32)
+    x2 = torch.tensor(0.4985, dtype=torch.float32)
+    file = '/tmp/save/numpy'
+    try:
+        shutil.rmtree("/tmp/save/")
+    except FileNotFoundError:
+        pass
+    os.makedirs("/tmp/save/")
+
+    ts.save(file, x1, True, "torch")
+    ts.save(file, x2, True, "torch")
+    time.sleep(1)
+
+    assert np.allclose(np.load("/tmp/save/0_numpy_torch.npy"),
+                       x1.cpu().detach().numpy())
+
+    assert np.allclose(np.load("/tmp/save/1_numpy_torch.npy"),
+                       x2.cpu().detach().numpy())
+
+@pytest.mark.skip(reason="r2.0 not support")
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 @pytest.mark.parametrize('mode', [ms.PYNATIVE_MODE, ms.GRAPH_MODE])
 def test_ms_save(mode):
     """
@@ -68,7 +133,10 @@ def test_ms_save(mode):
     assert np.allclose(np.load("/tmp/save/3_numpy_x2_ms.npy"),
                        dict_output["x2"].asnumpy())
 
-
+@pytest.mark.skip(reason="r2.0 not support")
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 @pytest.mark.parametrize('mode', [ms.PYNATIVE_MODE])
 def test_torch_save(mode):
     """

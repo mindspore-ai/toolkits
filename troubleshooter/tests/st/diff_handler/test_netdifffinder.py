@@ -30,6 +30,9 @@ class MSNet(m_nn.Cell):
         return self.net1(x), self.net2(y)
 
 
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_model(capsys):
     input1 = (np.random.randn(1, 12).astype(np.float32),
               np.random.randn(1, 13).astype(np.float32))
@@ -51,6 +54,9 @@ def test_model(capsys):
     assert err == ''
 
 
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_dict(capsys):
     input1 = {'a': np.random.randn(1, 12).astype(
         np.float32), 'b': np.random.randn(1, 13).astype(np.float32)}

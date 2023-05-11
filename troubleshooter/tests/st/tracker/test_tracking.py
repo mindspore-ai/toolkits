@@ -13,6 +13,10 @@ from download import download
 from tests.util import delete_file, file_and_key_match
 context.set_context(mode=mindspore.PYNATIVE_MODE)
 
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_tacking_for_function_code_2_0_level():
     def main():
         url = "https://mindspore-website.obs.cn-north-4.myhuaweicloud.com/notebook/datasets/MNIST_Data.zip"
@@ -120,6 +124,9 @@ def test_tacking_for_function_code_2_0_level():
                               file_name="mindspore_tracking_test.log")
 
 
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_sequentialcell_level1():
     @ts.tracking(level=1, output="/tmp/mindspore_tracking_test.log")
     def main():
@@ -137,6 +144,9 @@ def test_sequentialcell_level1():
                               file_name="mindspore_tracking_test.log")
 
 
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_sequentialcell_level2():
     @ts.tracking(level=2, output="/tmp/mindspore_tracking_test.log")
     def main():
@@ -154,6 +164,9 @@ def test_sequentialcell_level2():
                               file_name="mindspore_tracking_test.log")
 
 
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_sequentialcell_level3():
     @ts.tracking(level=3, output="/tmp/mindspore_tracking_test.log")
     def main():
@@ -171,6 +184,9 @@ def test_sequentialcell_level3():
                               file_name="mindspore_tracking_test.log")
 
 
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_sequentialcell_level4():
     @ts.tracking(level=4, output="/tmp/mindspore_tracking_test.log")
     def main():
@@ -188,6 +204,9 @@ def test_sequentialcell_level4():
                               file_name="mindspore_tracking_test.log")
 
 
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_sqrt_nan(caplog):
     mindspore.set_context(mode=mindspore.PYNATIVE_MODE)
     class Net(nn.Cell):
@@ -218,6 +237,9 @@ def test_sqrt_nan(caplog):
     assert count == 2
 
 
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_white_list(capsys):
     mindspore.set_context(mode=mindspore.PYNATIVE_MODE)
     @ts.tracking(level=3, color=False, path_wl=['layer/conv.py'])
@@ -235,6 +257,9 @@ def test_white_list(capsys):
     assert result.count("Source path:") == 2
 
 
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_func_white_list(capsys):
     mindspore.set_context(mode=mindspore.PYNATIVE_MODE)
     # path_bl=['layer/activation.py']
@@ -254,6 +279,9 @@ def test_func_white_list(capsys):
     assert result.count("activation.py") == 0
 
 
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_func_white_list(capsys):
     mindspore.set_context(mode=mindspore.PYNATIVE_MODE)
     # path_bl=['layer/activation.py']
@@ -273,6 +301,9 @@ def test_func_white_list(capsys):
     assert result.count("activation.py") == 0
 
 
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_func_event_list(capsys):
     mindspore.set_context(mode=mindspore.PYNATIVE_MODE)
     # path_bl=['layer/activation.py']

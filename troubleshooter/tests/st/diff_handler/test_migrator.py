@@ -25,6 +25,9 @@ class MyModule(nn.Module):
         return x
 
 
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_ordereddict_sequential_case(capsys):
     torch_net = MyModule(in_features=10, out_classes=2)
     torch.save(torch_net.state_dict(), "/tmp/torch_net.pth")
@@ -36,6 +39,9 @@ def test_ordereddict_sequential_case(capsys):
     assert result.count('True') == 4 and result.count(key_result) == 1
 
 
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_save_model_pth_case(capsys):
     torch_net = MyModule(in_features=10,out_classes=2)
     #save model
@@ -48,6 +54,9 @@ def test_save_model_pth_case(capsys):
     assert result.count('True') == 4 and result.count(key_result) == 1
 
 
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_torch_modulelist_and_loadckpt_case(capsys):
     class MyNet_CellList(mindspore.nn.Cell):
         def __init__(self, in_channels, out_channels, hidden_size):
@@ -90,6 +99,9 @@ def test_torch_modulelist_and_loadckpt_case(capsys):
     assert len(ms_param_dict) == 4
 
 
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_modulelist_sequential_case(capsys):
     class MyModule(nn.Module):
         def __init__(self):
@@ -128,6 +140,9 @@ def test_modulelist_sequential_case(capsys):
     assert result.count('False') == 20 and result.count(key_result) == 1
 
 
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_weight_name_prefix_case(capsys):
     torch_net = MyModule(in_features=10,out_classes=2)
     torch.save(torch_net.state_dict(), "/tmp/torch_net.pth")
@@ -139,6 +154,9 @@ def test_weight_name_prefix_case(capsys):
     assert result.count('pre_test') == 7 and result.count(key_result) == 1
 
 
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_save_model_pth_and_input_dict_case(capsys):
     torch_net = MyModule(in_features=10,out_classes=2)
     #save model
@@ -154,6 +172,9 @@ def test_save_model_pth_and_input_dict_case(capsys):
     assert result.count('True') == 4 and result.count(key_result) == 1
 
 
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_save_optimizer_case(capsys):
     class Net(nn.Module):
         def __init__(self):
@@ -194,6 +215,9 @@ def test_save_optimizer_case(capsys):
         assert error_str.count('PTH file parsing failed, possible reasons:') == 1
 
 
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_save_model_pth_and_input_dict_case(capsys):
     torch_net = MyModule(in_features=10, out_classes=2)
     #save model
@@ -209,6 +233,9 @@ def test_save_model_pth_and_input_dict_case(capsys):
     assert result.count('True') == 4 and result.count(key_result) == 1
 
 
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_save_model_pth_and_input_dict_case(capsys):
     def custorm_weight_name(weight_name_map):
         prefix = '.custorm.'
@@ -238,6 +265,9 @@ def test_save_model_pth_and_input_dict_case(capsys):
     assert result.count('.custorm.') == 7 and result.count(key_result) == 1
 
 
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_conv1d_value_case(capsys):
     class MSNet(mindspore.nn.Cell):
         def __init__(self):
@@ -267,6 +297,10 @@ def test_conv1d_value_case(capsys):
     ms_param_dict = ms_net.parameters_dict()
     assert len(ms_param_dict) == 2
 
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_compare_ckpt_case(capsys):
     class MSNet(mindspore.nn.Cell):
         def __init__(self, in_features, out_classes):

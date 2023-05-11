@@ -140,6 +140,65 @@ class SaveNet(nn.Cell):
 
     Inputs:
         file (str): The name of the file to be stored.
+        data (Union(Tensor)): Supports data types of Tensor for both MindSpore and PyTorch.
+        auto_id (bool): Whether to enable automatic numbering. If set to True, an incremental number will be
+          added before the saved file name. If set to False, no numbering will be added to the file name.
+        suffix (str): The suffix of the saved file name.
+
+    Outputs:
+        The output storage name is '{id}_name_{suffix}.npy'.
+    """
+
+    def __init__(self):
+        super(SaveNet, self).__init__()
+        self.cnt = Parameter(Tensor(0, ms.int32),
+                             name="cnt", requires_grad=False)
+        self.sep = os.sep
+
+    def numpy(self, data):
+        if isinstance(data, ms.Tensor):
+            return data.asnumpy()
+        elif torch.is_tensor(data):
+            return data.cpu().detach().numpy()
+        else:
+            raise TypeError(f"For ts.save, the type of argument 'data' must be mindspore.Tensor or torch.tensor, " \
+                            f"but got {type(data)}")
+
+    def handle_path(self, file):
+        if file[-1] == self.sep:
+            raise ValueError(f"For ts.save, the type of argument 'file' must be a valid filename, but got {file}")
+        name = ''
+        for c in file:
+            if c == self.sep:
+                name = ''
+            else:
+                name += c
+        path = ''
+        for i in range(len(file) - len(name)):
+            path += file[i]
+        return path, name
+
+    def construct(self, file, data, auto_id, suffix):
+        path, name = self.handle_path(file)
+        if auto_id:
+            np.save(f"{path}{int(self.cnt)}_{name}_{suffix}" if suffix else
+                    f"{path}{int(self.cnt)}_{name}", self.numpy(data))
+        else:
+            np.save(f"{file}_{suffix}" if suffix else file,
+                    self.numpy(data))
+        if auto_id:
+            self.cnt += 1
+        return
+
+save = SaveNet()
+
+class _SaveNet(nn.Cell):
+    """
+    The SaveNet class is used to build a unified data storage interface that supports PyTorch and MindSpore
+    PYNATIVE_MODE as well as GRAPH_MODE, but currently does not support MindSpore GRAPH_MODE.
+
+    Inputs:
+        file (str): The name of the file to be stored.
         data (Union(Tensor, list[Tensor], Tuple[Tensor], dict[str, Tensor])): Supports data types of Tensor,
           list[Tensor], tuple(Tensor), and dict[str, Tensor] for both MindSpore and PyTorch. When the input is
           a list or tuple of Tensor, the file name will be numbered according to the index of the Tensor.
@@ -210,7 +269,7 @@ class SaveNet(nn.Cell):
             self.cnt += 1
 
 
-save = SaveNet()
+_save = _SaveNet()
 
 
 def save_numpy_data(file_path, data):
