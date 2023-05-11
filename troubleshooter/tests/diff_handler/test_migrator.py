@@ -29,7 +29,7 @@ def test_ordereddict_sequential_case(capsys):
     torch_net = MyModule(in_features=10,out_classes=2)
     torch.save(torch_net.state_dict(), "/tmp/torch_net.pth")
     pth_path = "/tmp/torch_net.pth"
-    wm = ts.weight_migrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='/tmp/convert_resnet.ckpt')
+    wm = ts.WeightMigrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='/tmp/convert_resnet.ckpt')
     wm.convert()
     result = capsys.readouterr().out
     key_result = 'features.bn_mm.weight        |        features.bn_mm.gamma'
@@ -41,7 +41,7 @@ def test_save_model_pth_case(capsys):
     #save model
     torch.save(torch_net, "/tmp/torch_net.pth")
     pth_path = "/tmp/torch_net.pth"
-    wm = ts.weight_migrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='/tmp/convert_resnet.ckpt')
+    wm = ts.WeightMigrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='/tmp/convert_resnet.ckpt')
     wm.convert()
     result = capsys.readouterr().out
     key_result = 'features.bn_mm.weight        |        features.bn_mm.gamma'
@@ -82,7 +82,7 @@ def test_torch_modulelist_and_loadckpt_case(capsys):
     ms_net = MyNet_CellList(in_channels=10, out_channels=2, hidden_size=20)
     torch.save(torch_net.state_dict(), "/tmp/torch_net.pth")
     pth_path = "/tmp/torch_net.pth"
-    wm = ts.weight_migrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='/tmp/convert_resnet.ckpt')
+    wm = ts.WeightMigrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='/tmp/convert_resnet.ckpt')
     wm.convert(print_conv_info=False)
     param_dict = mindspore.load_checkpoint("/tmp/convert_resnet.ckpt")
     res = mindspore.load_param_into_net(ms_net, param_dict)
@@ -121,7 +121,7 @@ def test_modulelist_sequential_case(capsys):
     torch_net=MyModule()
     torch.save(torch_net.state_dict(), "/tmp/torch_net.pth")
     pth_path = "/tmp/torch_net.pth"
-    wm = ts.weight_migrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='/tmp/convert_resnet.ckpt')
+    wm = ts.WeightMigrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='/tmp/convert_resnet.ckpt')
     wm.convert()
     result = capsys.readouterr().out
     key_result = 'features.0.weight   |        features.0.weight'
@@ -132,7 +132,7 @@ def test_weight_name_prefix_case(capsys):
     torch_net = MyModule(in_features=10,out_classes=2)
     torch.save(torch_net.state_dict(), "/tmp/torch_net.pth")
     pth_path = "/tmp/torch_net.pth"
-    wm = ts.weight_migrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='/tmp/convert_resnet.ckpt')
+    wm = ts.WeightMigrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='/tmp/convert_resnet.ckpt')
     wm.convert(weight_name_prefix="pre_test")
     result = capsys.readouterr().out
     key_result = 'pre_test.features.Linear_mm.weight'
@@ -147,7 +147,7 @@ def test_save_model_pth_and_input_dict_case(capsys):
     model = torch.load(pth_path)
     # @验证模型场景下提取权重参数
     pd = model.state_dict()
-    wm = ts.weight_migrator(pt_model=torch_net, pth_para_dict=pd, ckpt_save_path='/tmp/convert_resnet.ckpt')
+    wm = ts.WeightMigrator(pt_model=torch_net, pth_para_dict=pd, ckpt_save_path='/tmp/convert_resnet.ckpt')
     wm.convert()
     result = capsys.readouterr().out
     key_result = 'features.bn_mm.weight        |        features.bn_mm.gamma'
@@ -187,7 +187,7 @@ def test_save_optimizer_case(capsys):
     new_optimizer.load_state_dict(opt_para)
     pth_path = './optimizer.pth'
     try:
-        wm = ts.weight_migrator(pt_model=model, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
+        wm = ts.WeightMigrator(pt_model=model, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
         wm.convert()
     except ValueError as e:
         error_str = str(e)
@@ -202,7 +202,7 @@ def test_save_model_pth_and_input_dict_case(capsys):
     model = torch.load(pth_path)
     # @验证模型场景下提取权重参数
     pd = model.state_dict()
-    wm = ts.weight_migrator(pt_model=torch_net, pth_para_dict=pd, ckpt_save_path='/tmp/convert_resnet.ckpt')
+    wm = ts.WeightMigrator(pt_model=torch_net, pth_para_dict=pd, ckpt_save_path='/tmp/convert_resnet.ckpt')
     wm.convert()
     result = capsys.readouterr().out
     key_result = 'features.bn_mm.weight        |        features.bn_mm.gamma'
@@ -227,7 +227,7 @@ def test_save_model_pth_and_input_dict_case(capsys):
     # model = torch.load(pth_path)
     # @验证模型场景下提取权重参数
     # pd = model.state_dict()
-    wm = ts.weight_migrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='/tmp/convert_resnet.ckpt')
+    wm = ts.WeightMigrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='/tmp/convert_resnet.ckpt')
     name_map, value_map = wm.get_weight_map(full_name_map=True)
     w_map = custorm_weight_name(name_map)
     # 将定制好的map传入转换接口
@@ -259,7 +259,7 @@ def test_conv1d_value_case(capsys):
     #save model
     torch.save(torch_net.state_dict(), "/tmp/torch_net.pth")
     pth_path = "/tmp/torch_net.pth"
-    wm = ts.weight_migrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='/tmp/convert_resnet.ckpt')
+    wm = ts.WeightMigrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='/tmp/convert_resnet.ckpt')
     wm.convert()
     result = capsys.readouterr().out
     param_dict = mindspore.load_checkpoint("/tmp/convert_resnet.ckpt")
@@ -308,7 +308,7 @@ def test_compare_ckpt_case(capsys):
     ckpt_path = "/tmp/test.ckpt"
     mindspore.save_checkpoint(ms_net, ckpt_path)
     pth_path = "/tmp/torch_net.pth"
-    wm = ts.weight_migrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='/tmp/convert_resnet.ckpt')
+    wm = ts.WeightMigrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='/tmp/convert_resnet.ckpt')
     wm.convert(print_conv_info=False)
     wm.compare_ckpt(ckpt_path=ckpt_path)
     result = capsys.readouterr().out
