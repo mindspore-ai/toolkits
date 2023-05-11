@@ -25,6 +25,7 @@ and use @snooping(...) to print the running result information of echo line code
 
 from .migrator.diff_handler import TensorRecorder as tensor_recorder
 from .migrator.diff_handler import DifferenceFinder as diff_finder
+from .migrator.weight_migrator import WeightMigrator as weight_migrator
 from .migrator.weight_migrator import WeightMigrator
 from .migrator.diff_handler import NetDifferenceFinder
 from .proposer import ProposalAction as proposal
