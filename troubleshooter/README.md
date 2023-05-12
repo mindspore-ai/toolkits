@@ -538,7 +538,7 @@ x = self.sqrt(y) 出现 nan, 给出“User Warning 'nan' is detected”报错。
 
     ta = "/mnt/d/06_project/troubleshooter/troubleshooter/tests/diff_handler/ta"
     tb = "/mnt/d/06_project/troubleshooter/troubleshooter/tests/diff_handler/tb"
-    dif = ts.diff_finder(ta, tb)
+    dif = ts.DifferenceFinder(ta, tb)
     # 比较ta与tb目录下名称可以映射的npy文件的值
     dif.compare_npy_dir()
 
@@ -548,7 +548,7 @@ x = self.sqrt(y) 出现 nan, 给出“User Warning 'nan' is detected”报错。
 
     ta = "/mnt/d/06_project/troubleshooter/troubleshooter/tests/diff_handler/ta"
     tb = "/mnt/d/06_project/troubleshooter/troubleshooter/tests/diff_handler/tb"
-    dif = ts.diff_finder(ta, tb)
+    dif = ts.DifferenceFinder(ta, tb)
     # 可以通过如下接口获取名称映射列表，对npy文件名称映射进行调整
     name_list = dif.get_filename_map_list()
     # 将调整后的名称传入比较接口
@@ -579,7 +579,7 @@ input2 = [np.random.randn(1, 12).astype(np.float32), np.random.randn(1, 13).asty
 # 实例化mindspore模型以及torch模型
 ms_net = MSNet()
 pt_net = TorchNet()
-diff_finder = NetDifferenceFinder(
+diff_finder = ts.NetDifferenceFinder(
   ms_net=ms_net,
   pt_net=pt_net,
   inputs=[input1, input2],
