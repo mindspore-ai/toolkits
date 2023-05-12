@@ -49,11 +49,10 @@ def test_model(capsys):
         #out_path='troubleshooter/tests/diff_handler/results',
         #print_result=False,
     )
-    diff_finder.start_compare()
+    diff_finder.compare()
     out, err = capsys.readouterr()
-    info_pattern = r".*In test case \d+, the .*? net inference completed cost .*? seconds\..*"
-    assert re.match(info_pattern, out) is not None
-    assert err == ''
+    key_result = 'test0-result_0 | test0-a |          True         |    100.00   |      1.00000'
+    assert out.count(key_result) == 1
 
 
 @pytest.mark.skip
@@ -74,8 +73,7 @@ def test_dict(capsys):
         #out_path='troubleshooter/tests/diff_handler/results',
         #print_result=False,
     )
-    diff_finder.start_compare()
+    diff_finder.compare()
     out, err = capsys.readouterr()
-    info_pattern = r".*In test case \d+, the .*? net inference completed cost .*? seconds\..*"
-    assert re.match(info_pattern, out) is not None
-    assert err == ''
+    key_result = 'test0-result_0 | test0-a |          True         |    100.00   |      1.00000'
+    assert out.count(key_result) == 1
