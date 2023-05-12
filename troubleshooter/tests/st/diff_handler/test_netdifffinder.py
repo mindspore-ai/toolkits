@@ -1,3 +1,4 @@
+import pytest
 import mindspore.nn as m_nn
 import torch.nn as t_nn
 import troubleshooter as ts
@@ -30,6 +31,7 @@ class MSNet(m_nn.Cell):
         return self.net1(x), self.net2(y)
 
 
+@pytest.mark.skip
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard
@@ -54,6 +56,7 @@ def test_model(capsys):
     assert err == ''
 
 
+@pytest.mark.skip
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard

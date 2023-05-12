@@ -1,3 +1,4 @@
+import pytest
 import mindspore
 import torch
 import torch.nn as nn

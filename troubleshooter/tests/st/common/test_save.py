@@ -88,7 +88,7 @@ def test_torch_save(mode):
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard
 @pytest.mark.parametrize('mode', [ms.PYNATIVE_MODE, ms.GRAPH_MODE])
-def test_ms_save(mode):
+def test_ms_save_multiple(mode):
     """
     Feature: ts.save
     Description: Verify the result of save
@@ -138,7 +138,7 @@ def test_ms_save(mode):
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard
 @pytest.mark.parametrize('mode', [ms.PYNATIVE_MODE])
-def test_torch_save(mode):
+def test_torch_save_multiple(mode):
     """
     Feature: ts.save
     Description: Verify the result of save

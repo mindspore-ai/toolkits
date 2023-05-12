@@ -2,6 +2,7 @@
 # coding: utf-8
 
 import os
+import pytest
 import mindspore
 import numpy as np
 from mindspore import nn, ops, context, Tensor

@@ -212,7 +212,7 @@ class _SaveNet(nn.Cell):
     """
 
     def __init__(self):
-        super(SaveNet, self).__init__()
+        super(_SaveNet, self).__init__()
         self.cnt = Parameter(Tensor(0, ms.int32),
                              name="cnt", requires_grad=False)
         self.sep = os.sep
