@@ -65,7 +65,7 @@ class DifferenceFinder:
         if name_map_list is None:
             name_map_list = self.get_filename_map_list()
 
-        rtol = kwargs.get('rtol', 1e-05)
+        rtol = kwargs.get('rtol', 1e-04)
         atol = kwargs.get('atol', 1e-08)
         equal_nan = kwargs.get('equal_nan', False)
 
@@ -91,31 +91,33 @@ class DifferenceFinder:
 
             orig_value = np.load(orig_file)
             target_value = np.load(target_file)
-            if orig_value.shape == target_value.shape:
-                result = np.allclose(
-                    orig_value, target_value, rtol=rtol, atol=atol, equal_nan=equal_nan)
-
-                if not result:
-                    value_diff = np.abs(orig_value - target_value)
-                    value_mean = value_diff.mean()
-                    value_max = value_diff.max()
-                    value_min = value_diff.min()
-                    cosine_sim = cal_cosine_sim(orig_value, target_value)
-                    diff_detail = value_mean, value_max, value_min
-                else:
-                    diff_detail = ()
-                    cosine_sim = cal_cosine_sim(orig_value, target_value)
-            else:
-                result = False
-                diff_detail = ("Shape is inconsistent",
-                               orig_value.shape, target_value.shape)
-
-            result_list.append(
-                (orig_name, target_name, result, cosine_sim, diff_detail))
+            result, rel_ratio, cosine_sim, diff_detail = cal_algorithm(orig_value, target_value, rtol, atol, equal_nan)
+            result_list.append((orig_name, target_name, result, rel_ratio, cosine_sim, diff_detail))
         logger.user_attention("The compare directory information:\n The orig dir: %s \n The target dir: %s",
                               self.orig_dir, self.target_dir)
         print_diff_result(result_list)
 
+
+def cal_algorithm(orig_value, target_value, rtol, atol, equal_nan):
+    if orig_value.shape == target_value.shape:
+        result = np.allclose(orig_value, target_value, rtol=rtol, atol=atol, equal_nan=equal_nan)
+        if not result:
+            value_diff = np.abs(orig_value - target_value)
+            value_mean = value_diff.mean()
+            value_max = value_diff.max()
+            value_min = value_diff.min()
+            diff_detail = value_mean, value_max, value_min
+        else:
+            diff_detail = ()
+        cosine_sim = cal_cosine_sim(orig_value, target_value)
+        rel_ratio = np.isclose(orig_value, target_value, rtol=rtol, atol=atol,
+                               equal_nan=equal_nan).sum()/np.size(orig_value)
+    else:
+        result = False
+        diff_detail = ("Shape is inconsistent",
+                       orig_value.shape, target_value.shape)
+
+    return result, rel_ratio, cosine_sim, diff_detail
 
 def cal_cosine_sim(a, b):
     a, b = a.flatten(), b.flatten()
@@ -129,22 +131,23 @@ def cal_cosine_sim(a, b):
 
 def cal_similarity(ms_data, th_data, index, **kwargs):
     result_list = []
-    rtol = kwargs.get('rtol', 1e-05)
+    rtol = kwargs.get('rtol', 1e-04)
     atol = kwargs.get('atol', 1e-08)
     equal_nan = kwargs.get('equal_nan', False)
     if ms_data.shape == th_data.shape:
         result = np.allclose(ms_data, th_data, rtol=rtol,
                              atol=atol, equal_nan=equal_nan)
-
         if not result:
             value_diff = np.abs(ms_data - th_data)
             value_mean = value_diff.mean()
             value_max = value_diff.max()
             value_min = value_diff.min()
-            cosine_sim = cal_cosine_sim(ms_data, th_data)
             diff_detail = value_mean, value_max, value_min
         else:
             diff_detail = ()
+
+        cosine_sim = cal_cosine_sim(ms_data, th_data)
+
     else:
         result = False
         diff_detail = ("Shape is inconsistent", ms_data.shape, th_data.shape)

@@ -5,10 +5,8 @@ import os
 import random
 import time
 import torch
-from troubleshooter.common.format_msg import print_net_infer_diff_result
+from troubleshooter.migrator.diff_handler import cal_similarity,cal_algorithm
 from troubleshooter.common.util import save_numpy_data, validate_and_normalize_path
-from troubleshooter.migrator.diff_handler import cal_similarity
-
 from troubleshooter import WeightMigrator
 from troubleshooter import log as logger
 
@@ -98,8 +96,7 @@ class NetDifferenceFinder:
 
     def infer_net(self, input_data, ms_net, pt_net, idx):
         if self.print_result:
-            print(
-                "\n=================================Start inference net=================================")
+            print("\n=================================Start inference net=================================")
         start_pt = time.time()
         result_pt = self.run_pt_net(pt_net, input_data)
         end_pt = time.time()
