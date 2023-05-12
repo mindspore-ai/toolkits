@@ -38,11 +38,11 @@ def test_model(capsys):
     ms_net = MSNet()
     pt_net = TorchNet()
     diff_finder = ts.NetDifferenceFinder(
-        ms_net=ms_net,
         pt_net=pt_net,
+        ms_net=ms_net,
         inputs=[input1, input2],
-        out_path='troubleshooter/tests/diff_handler/results',
-        print_result=False,
+        #out_path='troubleshooter/tests/diff_handler/results',
+        #print_result=False,
     )
     diff_finder.start_compare()
     out, err = capsys.readouterr()
@@ -59,11 +59,11 @@ def test_dict(capsys):
     ms_net = MSNet()
     pt_net = TorchNet()
     diff_finder = ts.NetDifferenceFinder(
-        ms_net=ms_net,
         pt_net=pt_net,
+        ms_net=ms_net,
         inputs=[input1, input2],
-        out_path='troubleshooter/tests/diff_handler/results',
-        print_result=False,
+        #out_path='troubleshooter/tests/diff_handler/results',
+        #print_result=False,
     )
     diff_finder.start_compare()
     out, err = capsys.readouterr()

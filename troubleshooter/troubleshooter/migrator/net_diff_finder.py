@@ -1,11 +1,13 @@
 import os
 import csv
 import time
+import random
 import torch
 import numpy as np
+from troubleshooter import WeightMigrator
 from troubleshooter import log as logger
 from troubleshooter.migrator.diff_handler import cal_similarity
-from troubleshooter.common.util import save_numpy_data
+from troubleshooter.common.util import save_numpy_data, validate_and_normalize_path
 from troubleshooter.common.format_msg import print_net_infer_diff_result
 
 try:
@@ -25,15 +27,29 @@ RESULT_COLUMNS = ["Pytorch data", "MindSpore data",
 
 class NetDifferenceFinder:
 
-    def __init__(self, ms_net, pt_net, inputs, out_path, print_result):
+    def __init__(self, pt_net, ms_net, inputs, **kwargs):
         self.ms_net = ms_net
         self.pt_net = pt_net
         self.inputs = inputs
-        self.out_path = out_path
-        self.print_result = print_result
+        self.print_result = kwargs.get('print_result', True)
+        self.auto_conv_ckpt = kwargs.get('auto_conv_ckpt', True)
+        self.fix_random_sed = kwargs.get('fix_random_sed', 16)
+        self.out_path = validate_and_normalize_path(kwargs.get('out_path', './'))
+        self.pt_org_pth = os.path.join(self.out_path, 'net_diff_finder_pt_org_pth.pth')
+        self.conv_ckpt_name = os.path.join(self.out_path, 'net_diff_finder_conv_ckpt.ckpt')
+        self.ms_org_ckpt = os.path.join(self.out_path, 'net_diff_finder_ms_org_ckpt.ckpt')
+
 
     def start_compare(self):
         compare_results = []
+
+        if self.fix_random_sed is not None:
+            self._fix_random(self.fix_random_sed)
+
+        if self.auto_conv_ckpt:
+            self._conv_compare_ckpt();
+            self._load_conve_ckpt();
+
         for idx, input in enumerate(self.inputs):
             input_data = self.get_input_data(input)
             result_ms, result_pt = self.infer_net(
@@ -61,6 +77,32 @@ class NetDifferenceFinder:
                         'Unknow input data type {}'.format(type(data)))
                     exit(1)
         return input_data
+
+    def _fix_random(self,seed):
+        np.random.seed(seed)
+        random.seed(seed)
+        #for torch
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        torch.cuda.manual_seed(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.enabled = False
+        #for mindspore
+        ms.set_seed(1)
+
+    def _save_ckpt(self):
+        torch.save(self.pt_net.state_dict(), self.pt_org_pth)
+        ms.save_checkpoint(self.ms_net, self.ms_org_ckpt)
+
+    def _conv_compare_ckpt(self):
+        self._save_ckpt()
+        wm = WeightMigrator(pt_model=self.pt_net, pth_file_path=self.pt_org_pth, ckpt_save_path=self.conv_ckpt_name)
+        wm.convert()
+        wm.compare_ckpt(ckpt_path=self.ms_org_ckpt)
+
+    def _load_conve_ckpt(self):
+        param_dict = ms.load_checkpoint(self.conv_ckpt_name)
+        ms.load_param_into_net(self.ms_net, param_dict)
 
     def infer_net(self, input_data, ms_net, pt_net, idx):
         if self.print_result:
@@ -107,6 +149,7 @@ class NetDifferenceFinder:
             print("The PyTorch net inference have %s result." % pt_result_num)
         assert ms_result_num == pt_result_num, "output results are in different counts!"
 
+
     def compare_results(self, result_ms, result_pt, idx):
         index = 0
         compare_result = []
@@ -124,7 +167,8 @@ class NetDifferenceFinder:
                 min_max = ['%.5f' % r for r in result[4]]
                 result[4] = min_max
                 compare_result.append(result)
-            except:
+            except Exception as e:
+                logger.info(e)
                 logger.user_warning("The returned result cannot be compared normally, "
                                     "the result index is " + str(index))
             index += 1

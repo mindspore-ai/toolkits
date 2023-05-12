@@ -26,7 +26,7 @@ class MyModule(nn.Module):
 
 
 def test_ordereddict_sequential_case(capsys):
-    torch_net = MyModule(in_features=10,out_classes=2)
+    torch_net = MyModule(in_features=10, out_classes=2)
     torch.save(torch_net.state_dict(), "/tmp/torch_net.pth")
     pth_path = "/tmp/torch_net.pth"
     wm = ts.WeightMigrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='/tmp/convert_resnet.ckpt')
