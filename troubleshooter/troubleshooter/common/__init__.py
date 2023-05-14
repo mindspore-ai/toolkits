@@ -12,3 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
+from __future__ import absolute_import
+
+from troubleshooter.common import framework_detection
+from troubleshooter.common.framework_detection import FRAMEWORK_TYPE
+
+__all__ = []
+__all__.extend(framework_detection.__all__)

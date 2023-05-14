@@ -12,17 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""troubleshooter.common"""
+"""troubleshooter.save"""
 from __future__ import absolute_import
 
 from troubleshooter import FRAMEWORK_TYPE
 
 __all__ = [
     'save',
-    'DifferenceFinder',
-    'diff_finder'
 ]
 
-from troubleshooter.migrator.save import save
-from troubleshooter.migrator.diff_handler import DifferenceFinder as diff_finder
-from troubleshooter.migrator.diff_handler import DifferenceFinder
+if {"torch", "mindspore"}.issubset(FRAMEWORK_TYPE):
+    from troubleshooter.migrator.save.unified_saver import save
+elif {"torch"}.issubset(FRAMEWORK_TYPE):
+    from troubleshooter.migrator.save.pt_saver import save
+elif {"mindspore"}.issubset(FRAMEWORK_TYPE):
+    from troubleshooter.migrator.save.ms_saver import save
+else:
+    from troubleshooter.common.framework_detection import save

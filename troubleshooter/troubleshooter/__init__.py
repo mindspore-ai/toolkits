@@ -18,15 +18,22 @@ TroubleShooter Module Introduction.
 
 This module provides Python APIs to shoot trouble of MindSpore neural networks.
 Users can import the proposal, initialize the ProposalAction object to start analyse,
-and use @proposal() to analyse the Traceback error message .
+and use @proposal() to analyse the Traceback error message.
 Users can import the snooping, initialize the Snooper object to start debug,
 and use @snooping(...) to print the running result information of echo line code of neural networks.
 """
-from .migrator.diff_handler import DifferenceFinder as diff_finder
-from .migrator.diff_handler import DifferenceFinder
-from .migrator.weight_migrator import WeightMigrator as weight_migrator
-from .migrator.weight_migrator import WeightMigrator
-from .migrator.net_diff_finder import NetDifferenceFinder
-from .proposer import ProposalAction as proposal
-from .tracker import Tracker as tracking
-from .common.util import save
+from __future__ import absolute_import
+from troubleshooter.common import FRAMEWORK_TYPE
+from troubleshooter import common, migrator, proposer, tracker
+from troubleshooter.migrator import *
+from troubleshooter.proposer import ProposalAction as proposal
+from troubleshooter.tracker import Tracker as tracking
+
+if {"torch", "mindspore"}.issubset(FRAMEWORK_TYPE):    
+    from troubleshooter.migrator.weight_migrator import WeightMigrator as weight_migrator
+    from troubleshooter.migrator.weight_migrator import WeightMigrator
+    from troubleshooter.migrator.net_diff_finder import NetDifferenceFinder
+else:
+    from troubleshooter.common.framework_detection import WeightMigrator as weight_migrator
+    from troubleshooter.common.framework_detection import WeightMigrator
+    from troubleshooter.common.framework_detection import NetDifferenceFinder

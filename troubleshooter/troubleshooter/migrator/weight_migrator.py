@@ -1,19 +1,11 @@
+import mindspore as ms
 import torch
-from pprint import pprint
 from collections import OrderedDict
-from troubleshooter import log as logger
-from troubleshooter.migrator.mapping_relation.weight_mapping_lib import weight_name_map, weight_value_map
+from pprint import pprint
 from troubleshooter.common.format_msg import print_weight_compare_result, print_convert_result
+from troubleshooter.migrator.mapping_relation.weight_mapping_lib import weight_name_map, weight_value_map
 
-try:
-    import mindspore as ms
-except ModuleNotFoundError as e:
-    e_msg = e.msg
-    no_module_msg = "No module named 'mindspore'"
-    if e_msg == no_module_msg:
-        FRAMEWORK_TYPE = 'pt'
-    else:
-        raise e
+from troubleshooter import log as logger
 
 
 class WeightMigrator:
@@ -23,7 +15,6 @@ class WeightMigrator:
         self.pt_model = pt_model
         self.pt_para_dict = self._get_para_dict(pth_file_path, pth_para_dict)
         self.print_params_list = []
-
 
     def _get_para_dict(self, pth_file_path, pth_para_dict):
         if pth_para_dict:
@@ -62,7 +53,6 @@ class WeightMigrator:
             object_res = getattr(imp_module, class_name)
         return object_res
 
-
     def _get_trans_map(self, weight_name, module, weight_map, igone_name=False):
         res_weight_map = {}
         for api_name in weight_map:
@@ -80,7 +70,6 @@ class WeightMigrator:
 
         return res_weight_map
 
-
     def _custorm_weight_name_prefix(self, weight_name_map, prefix=None):
         if prefix:
             custorm_name_map = {}
@@ -90,7 +79,6 @@ class WeightMigrator:
             return custorm_name_map
         else:
             return weight_name_map
-
 
     def get_weight_map(self, print_map=False, full_name_map=False):
         res_weight_name_map = {}
@@ -106,15 +94,14 @@ class WeightMigrator:
                 res_weight_value_map.update(tmp_value_map)
         if full_name_map:
             for key, value in self.pt_para_dict.items():
-                full_weight_name_map[key]=key
+                full_weight_name_map[key] = key
             full_weight_name_map.update(res_weight_name_map)
-            res_weight_name_map =  full_weight_name_map
+            res_weight_name_map = full_weight_name_map
 
         if print_map:
             pprint(res_weight_name_map)
             pprint(res_weight_value_map)
         return res_weight_name_map, res_weight_value_map
-
 
     def _get_name_and_value(self, pth_param_name, name_map, value_map):
         new_name = pth_param_name
@@ -134,12 +121,11 @@ class WeightMigrator:
             def_get_value = self._get_object(fun)
             ms_tensor = def_get_value(ms_tensor)
 
-        self.print_params_list.append((pth_param_name, new_name, bool(ms_para_item), bool(fun) , parameter.size(),
+        self.print_params_list.append((pth_param_name, new_name, bool(ms_para_item), bool(fun), parameter.size(),
                                        ms_tensor.shape))
         return new_name, ms_tensor
 
-
-    def convert(self, weight_name_map=None, weight_value_map=None ,weight_name_prefix=None, print_conv_info=True):
+    def convert(self, weight_name_map=None, weight_value_map=None, weight_name_prefix=None, print_conv_info=True):
 
         if weight_name_prefix:
             name_map, value_map = self.get_weight_map(full_name_map=True)
@@ -148,31 +134,30 @@ class WeightMigrator:
             name_map, value_map = self.get_weight_map()
 
         if weight_name_map is not None:
-            name_map =  weight_name_map
+            name_map = weight_name_map
         if weight_value_map is not None:
-            value_map =  weight_value_map
+            value_map = weight_value_map
 
         new_params_list = []
 
         for pth_param_name in self.pt_para_dict:
             # get ckpt name and value
-            new_name, ms_tensor = self._get_name_and_value(pth_param_name,name_map,value_map)
+            new_name, ms_tensor = self._get_name_and_value(pth_param_name, name_map, value_map)
             # add name and value to list
             new_params_list.append({"name": new_name, "data": ms_tensor})
 
         if new_params_list:
-            ms.save_checkpoint(new_params_list , self.ckpt_path)
+            ms.save_checkpoint(new_params_list, self.ckpt_path)
         else:
             logger.user_warning("There are no parameters to be converted. Parameter conversion failed. "
                                 "Please check whether the configuration is correct")
 
         if print_conv_info:
-             print_convert_result(self.print_params_list)
+            print_convert_result(self.print_params_list)
 
         logger.user_attention("The PTH has been converted to the checkpoint of MindSpore. "
                               "Please check whether the conversion result is correct. "
-                              "The saved path is: %s",self.ckpt_path)
-
+                              "The saved path is: %s", self.ckpt_path)
 
     def compare_ckpt(self, ckpt_path=None, converted_ckpt_path=None, print_result=1):
         name_map_list = []

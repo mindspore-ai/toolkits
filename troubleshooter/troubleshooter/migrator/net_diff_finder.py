@@ -1,29 +1,22 @@
-import os
 import csv
-import time
-import random
-import torch
+import mindspore as ms
 import numpy as np
+import os
+import random
+import time
+import torch
+from troubleshooter.common.format_msg import print_net_infer_diff_result
+from troubleshooter.common.util import save_numpy_data, validate_and_normalize_path
+from troubleshooter.migrator.diff_handler import cal_similarity
+
 from troubleshooter import WeightMigrator
 from troubleshooter import log as logger
-from troubleshooter.migrator.diff_handler import cal_similarity
-from troubleshooter.common.util import save_numpy_data, validate_and_normalize_path
-from troubleshooter.common.format_msg import print_net_infer_diff_result
-
-try:
-    import mindspore as ms
-except ModuleNotFoundError as e:
-    e_msg = e.msg
-    no_module_msg = "No module named 'mindspore'"
-    if e_msg == no_module_msg:
-        FRAMEWORK_TYPE = 'pt'
-    else:
-        raise e
 
 MS_OUTPUT_PATH = "data/output/MindSpore"
 PT_OUTPUT_PATH = "data/output/PyTorch"
 RESULT_COLUMNS = ["Pytorch data", "MindSpore data",
                   "Results of comparison", "cosine similarity", "(mean, max, min)"]
+
 
 class NetDifferenceFinder:
 
@@ -38,7 +31,6 @@ class NetDifferenceFinder:
         self.pt_org_pth = os.path.join(self.out_path, 'net_diff_finder_pt_org_pth.pth')
         self.conv_ckpt_name = os.path.join(self.out_path, 'net_diff_finder_conv_ckpt.ckpt')
         self.ms_org_ckpt = os.path.join(self.out_path, 'net_diff_finder_ms_org_ckpt.ckpt')
-
 
     def start_compare(self):
         compare_results = []
@@ -78,16 +70,16 @@ class NetDifferenceFinder:
                     exit(1)
         return input_data
 
-    def _fix_random(self,seed):
+    def _fix_random(self, seed):
         np.random.seed(seed)
         random.seed(seed)
-        #for torch
+        # for torch
         torch.manual_seed(seed)
         torch.cuda.manual_seed_all(seed)
         torch.cuda.manual_seed(seed)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.enabled = False
-        #for mindspore
+        # for mindspore
         ms.set_seed(1)
 
     def _save_ckpt(self):
@@ -112,18 +104,18 @@ class NetDifferenceFinder:
         result_pt = self.run_pt_net(pt_net, input_data)
         end_pt = time.time()
         print(f"In test case {idx}, the PyTorch net inference completed cost %.5f seconds." % (
-            end_pt - start_pt))
+                end_pt - start_pt))
         start_ms = time.time()
         result_ms = self.run_ms_net(ms_net, input_data)
         end_ms = time.time()
         print(f"In test case {idx}, the MindSpore net inference completed cost %.5f seconds." % (
-            end_ms - start_ms))
+                end_ms - start_ms))
         if isinstance(result_ms, (tuple, list, ms.Tensor)):
             result_ms = {f"result_{idx}": result for idx,
-                         result in enumerate(result_ms)}
+            result in enumerate(result_ms)}
         if isinstance(result_pt, (tuple, list)) or torch.is_tensor(result_pt):
             result_pt = {f"result_{idx}": result for idx,
-                         result in enumerate(result_pt)}
+            result in enumerate(result_pt)}
         return result_ms, result_pt
 
     def run_pt_net(self, pt_net, input_data_list):
@@ -148,7 +140,6 @@ class NetDifferenceFinder:
         if self.print_result:
             print("The PyTorch net inference have %s result." % pt_result_num)
         assert ms_result_num == pt_result_num, "output results are in different counts!"
-
 
     def compare_results(self, result_ms, result_pt, idx):
         index = 0

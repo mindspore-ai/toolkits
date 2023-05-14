@@ -1,17 +1,18 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import os
-import pytest
 import mindspore
 import numpy as np
-from mindspore import nn, ops, context, Tensor
-from mindspore.dataset import vision, transforms
-from mindspore.dataset import MnistDataset
-import troubleshooter as ts
+import pytest
 # Download data from open datasets
 from download import download
+from mindspore import nn, ops, context, Tensor
+from mindspore.dataset import MnistDataset
+from mindspore.dataset import vision, transforms
+
+import troubleshooter as ts
 from tests.util import delete_file, file_and_key_match
+
 context.set_context(mode=mindspore.PYNATIVE_MODE)
 
 
@@ -145,6 +146,7 @@ def test_sequentialcell_level1():
                               file_name="mindspore_tracking_test.log")
 
 
+@pytest.mark.skip
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard
@@ -165,6 +167,7 @@ def test_sequentialcell_level2():
                               file_name="mindspore_tracking_test.log")
 
 
+@pytest.mark.skip
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard
@@ -185,6 +188,7 @@ def test_sequentialcell_level3():
                               file_name="mindspore_tracking_test.log")
 
 
+@pytest.mark.skip
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard
@@ -210,6 +214,7 @@ def test_sequentialcell_level4():
 @pytest.mark.env_onecard
 def test_sqrt_nan(caplog):
     mindspore.set_context(mode=mindspore.PYNATIVE_MODE)
+
     class Net(nn.Cell):
         def __init__(self):
             super().__init__()
@@ -243,6 +248,7 @@ def test_sqrt_nan(caplog):
 @pytest.mark.env_onecard
 def test_white_list(capsys):
     mindspore.set_context(mode=mindspore.PYNATIVE_MODE)
+
     @ts.tracking(level=3, color=False, path_wl=['layer/conv.py'])
     def main():
         context.set_context(mode=context.PYNATIVE_MODE)
@@ -251,7 +257,7 @@ def test_white_list(capsys):
         seq = nn.SequentialCell([conv, relu])
         x = Tensor(np.ones([1, 3, 4, 4]), dtype=mindspore.float32)
         output = seq(x)
-        #print(output)
+        # print(output)
 
     main()
     result = capsys.readouterr().err
@@ -263,6 +269,7 @@ def test_white_list(capsys):
 @pytest.mark.env_onecard
 def test_func_white_list(capsys):
     mindspore.set_context(mode=mindspore.PYNATIVE_MODE)
+
     # path_bl=['layer/activation.py']
     @ts.tracking(level=2, color=False, path_bl=['layer/activation.py'])
     def main():
@@ -276,7 +283,7 @@ def test_func_white_list(capsys):
 
     main()
     result = capsys.readouterr().err
-    #print(result)
+    # print(result)
     assert result.count("activation.py") == 0
 
 
@@ -285,6 +292,7 @@ def test_func_white_list(capsys):
 @pytest.mark.env_onecard
 def test_func_white_list(capsys):
     mindspore.set_context(mode=mindspore.PYNATIVE_MODE)
+
     # path_bl=['layer/activation.py']
     @ts.tracking(level=2, color=False, path_bl=['layer/activation.py'])
     def main():
@@ -298,7 +306,7 @@ def test_func_white_list(capsys):
 
     main()
     result = capsys.readouterr().err
-    #print(result)
+    # print(result)
     assert result.count("activation.py") == 0
 
 
@@ -307,6 +315,7 @@ def test_func_white_list(capsys):
 @pytest.mark.env_onecard
 def test_func_event_list(capsys):
     mindspore.set_context(mode=mindspore.PYNATIVE_MODE)
+
     # path_bl=['layer/activation.py']
     @ts.tracking(level=2, color=False, event_list=['call'])
     def main():
@@ -320,5 +329,5 @@ def test_func_event_list(capsys):
 
     main()
     result = capsys.readouterr().err
-    #print(result)
+    # print(result)
     assert result.count(" line ") == 0

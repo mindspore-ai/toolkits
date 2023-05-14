@@ -13,24 +13,12 @@
 # limitations under the License.
 # ============================================================================
 """compare tools"""
-import os
 import numpy as np
-from troubleshooter import log as logger
-from troubleshooter.common.util import validate_and_normalize_path, find_file
+import os
 from troubleshooter.common.format_msg import print_diff_result
+from troubleshooter.common.util import validate_and_normalize_path, find_file
 
-FRAMEWORK_TYPE = "ms"
-
-
-try:
-    import mindspore as ms
-except ModuleNotFoundError as e:
-    e_msg = e.msg
-    no_module_msg = "No module named 'mindspore'"
-    if e_msg == no_module_msg:
-        FRAMEWORK_TYPE = 'pt'
-    else:
-        raise e
+from troubleshooter import log as logger
 
 
 class DifferenceFinder:
@@ -70,7 +58,6 @@ class DifferenceFinder:
                                 "Please manually complete the mapping of file names")
             print("filename mapping list:" + str(name_map_list))
         return name_map_list
-
 
     def compare_npy_dir(self, name_map_list=None, **kwargs):
         """
