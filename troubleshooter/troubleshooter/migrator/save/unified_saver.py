@@ -12,13 +12,10 @@ class SaveTensorMsPt(ms.nn.Cell):
 
     Inputs:
         file (str): The name of the file to be stored.
-        data (Union(Tensor)): Supports data types of Tensor for both MindSpore and PyTorch.
-        auto_id (bool): Whether to enable automatic numbering. If set to True, an incremental number will be
-        added before the saved file name. If set to False, no numbering will be added to the file name.
-        suffix (str): The suffix of the saved file name.
+        data (Union(mindspore.Tensor, torch.tensor)): Supports data types of Tensor for both MindSpore and PyTorch.
 
     Outputs:
-        The output storage name is '{id}_name_{suffix}.npy'.
+        The output storage name is 'id_name.npy'.
     """
 
     def __init__(self):
@@ -49,16 +46,10 @@ class SaveTensorMsPt(ms.nn.Cell):
             path += file[i]
         return path, name
 
-    def construct(self, file, data, auto_id, suffix):
+    def construct(self, file, data):
         path, name = self.handle_path(file)
-        if auto_id:
-            np.save(f"{path}{int(self.cnt)}_{name}_{suffix}" if suffix else
-                    f"{path}{int(self.cnt)}_{name}", self.numpy(data))
-        else:
-            np.save(f"{file}_{suffix}" if suffix else file,
-                    self.numpy(data))
-        if auto_id:
-            self.cnt += 1
+        np.save(f"{path}{int(self.cnt)}_{name}", self.numpy(data))
+        self.cnt += 1
         return
 
 

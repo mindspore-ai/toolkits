@@ -11,14 +11,12 @@ from mindspore import nn, Tensor
 
 
 class NetWorkSave(nn.Cell):
-    def __init__(self, file, auto_id, suffix):
+    def __init__(self, file):
         super(NetWorkSave, self).__init__()
-        self.auto_id = auto_id
-        self.suffix = suffix
         self.file = file
 
     def construct(self, x):
-        ts.save(self.file, x, self.auto_id, self.suffix)
+        ts.save(self.file, x)
         return x
 
 
@@ -36,7 +34,7 @@ def test_ms_save(mode):
     ts.save.cnt.set_data(Tensor(0, ms.int32))
     x1 = Tensor(-0.5962, ms.float32)
     x2 = Tensor(0.4985, ms.float32)
-    net = NetWorkSave('/tmp/save/numpy', True, "ms")
+    net = NetWorkSave('/tmp/save/numpy_ms')
 
     try:
         shutil.rmtree("/tmp/save/")
@@ -66,15 +64,15 @@ def test_torch_save(mode):
     ts.save.cnt.set_data(Tensor(0, ms.int32))
     x1 = torch.tensor(-0.5962, dtype=torch.float32)
     x2 = torch.tensor(0.4985, dtype=torch.float32)
-    file = '/tmp/save/numpy'
+    file = '/tmp/save/numpy_torch'
     try:
         shutil.rmtree("/tmp/save/")
     except FileNotFoundError:
         pass
     os.makedirs("/tmp/save/")
 
-    ts.save(file, x1, True, "torch")
-    ts.save(file, x2, True, "torch")
+    ts.save(file, x1)
+    ts.save(file, x2)
     time.sleep(1)
 
     assert np.allclose(np.load("/tmp/save/0_numpy_torch.npy"),
