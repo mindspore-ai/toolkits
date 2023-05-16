@@ -78,13 +78,24 @@ def print_convert_result(result_list):
     print(x.get_string())
 
 
-def print_diff_result(result_list):
+def print_diff_result(result_list, title=None, field_names=None):
     x = PrettyTable()
-    x.title = 'The list of comparison results'
-    x.field_names = ["orig array name", "target array name",
-                     "Results of comparison", "(mean,max,min)"]
+    if title is None:
+        x.title = 'The list of comparison results'
+    else:
+        x.title = title
+
+    if field_names is None:
+        x.field_names = ["orig array name", "target array name",
+                         "results of comparison", "match ratio", "cosine similarity", "(mean, max, min)"]
+    else:
+        x.field_names = field_names
+
     for result in result_list:
-        x.add_row([result[0], result[1], result[2], result[3]])
+        ratio = "%.2f" % float(result[3] * 100)
+        cos_sim = "%.5f" % float(result[4])
+        min_max = ['%.6f' % r for r in result[5]]
+        x.add_row([result[0], result[1], result[2], ratio, cos_sim, min_max])
     print(x.get_string())
 
 
@@ -92,7 +103,7 @@ def print_net_infer_diff_result(result_list):
     x = PrettyTable()
     x.title = 'The list of comparison results'
     x.field_names = ["Pytorch data", "MindSpore data",
-                     "Results of comparison", "cosine similarity", "(mean, max, min)"]
+                     "results of comparison", "cosine similarity", "(mean, max, min)"]
     for result in result_list:
         x.add_row([result[0], result[1], result[2], result[3], result[4]])
     print(x.get_string())

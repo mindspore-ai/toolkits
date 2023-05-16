@@ -1,0 +1,5 @@
+pt data,ms data,results of comparison,match ratio,cosine similarity,"(mean, max, min)"
+test0-result_0,test0-a,True,1.0,0.9999999701976776,()
+test0-result_1,test0-b,True,1.0,1.0,()
+test1-result_0,test1-a,True,1.0,0.9999999701976776,()
+test1-result_1,test1-b,True,1.0,1.0000000596046448,()

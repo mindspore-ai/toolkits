@@ -5,17 +5,17 @@ import os
 import random
 import time
 import torch
-from troubleshooter.common.format_msg import print_net_infer_diff_result
-from troubleshooter.common.util import save_numpy_data, validate_and_normalize_path
-from troubleshooter.migrator.diff_handler import cal_similarity
-
 from troubleshooter import WeightMigrator
 from troubleshooter import log as logger
+from troubleshooter.migrator.diff_handler import cal_algorithm
+from troubleshooter.common.util import save_numpy_data, validate_and_normalize_path
+from troubleshooter.common.format_msg import print_diff_result
 
 MS_OUTPUT_PATH = "data/output/MindSpore"
 PT_OUTPUT_PATH = "data/output/PyTorch"
-RESULT_COLUMNS = ["Pytorch data", "MindSpore data",
-                  "Results of comparison", "cosine similarity", "(mean, max, min)"]
+TITLE = 'The comparison results of Net'
+FIELD_NAMES = ["pt data", "ms data",
+               "results of comparison", "match ratio", "cosine similarity", "(mean, max, min)"]
 
 
 class NetDifferenceFinder:
@@ -31,9 +31,17 @@ class NetDifferenceFinder:
         self.pt_org_pth = os.path.join(self.out_path, 'net_diff_finder_pt_org_pth.pth')
         self.conv_ckpt_name = os.path.join(self.out_path, 'net_diff_finder_conv_ckpt.ckpt')
         self.ms_org_ckpt = os.path.join(self.out_path, 'net_diff_finder_ms_org_ckpt.ckpt')
+        self.rtol = None
+        self.atol = None
+        self.equal_nan = None
 
-    def start_compare(self):
+
+    def compare(self, **kwargs):
         compare_results = []
+
+        self.rtol = kwargs.get('rtol', 1e-04)
+        self.atol = kwargs.get('atol', 1e-08)
+        self.equal_nan = kwargs.get('equal_nan', False)
 
         if self.fix_random_sed is not None:
             self._fix_random(self.fix_random_sed)
@@ -47,12 +55,13 @@ class NetDifferenceFinder:
             result_ms, result_pt = self.infer_net(
                 input_data, self.ms_net, self.pt_net, idx)
             self.check_output(result_ms, result_pt)
-            if idx != 0:
-                compare_results.append(['', '', '', '', ''])
+            #if idx != 0:
+            #    compare_results.append(['', '', '', '', ''])
             compare_results.extend(
                 self.compare_results(result_ms, result_pt, idx))
         self.save_results(compare_results)
-        print_net_infer_diff_result(compare_results)
+
+        print_diff_result(compare_results, title=TITLE, field_names=FIELD_NAMES)
 
     def get_input_data(self, input):
         input_data = []
@@ -98,8 +107,7 @@ class NetDifferenceFinder:
 
     def infer_net(self, input_data, ms_net, pt_net, idx):
         if self.print_result:
-            print(
-                "\n=================================Start inference net=================================")
+            print("\n=================================Start inference net=================================")
         start_pt = time.time()
         result_pt = self.run_pt_net(pt_net, input_data)
         end_pt = time.time()
@@ -152,14 +160,12 @@ class NetDifferenceFinder:
                 self.save_out_data(index, k_ms, k_pt, result_ms_, result_pt_)
                 result_pt_ = result_pt_.reshape(1, -1)
                 result_ms_ = result_ms_.reshape(1, -1)
-                result = self.compare_data(result_ms_, result_pt_, index)
-                result[0], result[1] = f"test{idx}-{k_ms}", f"test{idx}-{k_pt}"
-                result[3] = "%.5f" % float(result[3])
-                min_max = ['%.5f' % r for r in result[4]]
-                result[4] = min_max
-                compare_result.append(result)
+                result, rel_ratio, cosine_sim, diff_detail = cal_algorithm(result_ms_, result_pt_, self.rtol,
+                                                                           self.atol, self.equal_nan)
+                org_name, targ_name = f"test{idx}-{k_ms}", f"test{idx}-{k_pt}"
+                compare_result.append((org_name, targ_name,result, rel_ratio, cosine_sim, diff_detail))
             except Exception as e:
-                logger.info(e)
+                logger.error(e)
                 logger.user_warning("The returned result cannot be compared normally, "
                                     "the result index is " + str(index))
             index += 1
@@ -193,13 +199,6 @@ class NetDifferenceFinder:
         if self.print_result:
             print("Saved PyTorch output data at: %s" % pt_out_path)
 
-    def compare_data(self, result_ms, result_pt, index):
-        if self.print_result:
-            print(
-                "\n=========================Start Compare Out Data %s ===========================" % index)
-        sim_result = cal_similarity(result_ms, result_pt, index)
-        return sim_result
-
     def save_results(self, compare_results):
         if self.print_result:
             logger.info(
@@ -207,7 +206,7 @@ class NetDifferenceFinder:
         result_path = os.path.join(self.out_path, "compare_result.csv")
         with open(result_path, "w", encoding='utf-8') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(RESULT_COLUMNS)
+            writer.writerow(FIELD_NAMES)
             writer.writerows(compare_results)
             logger.info(
                 "The comparison result have been written to %s" % result_path)
