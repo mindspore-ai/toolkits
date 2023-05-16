@@ -250,7 +250,7 @@ diff_finder = ts.NetDifferenceFinder(
   out_path='troubleshooter/tests/diff_handler/results', 
   print_result=False,
 )
-diff_finder.start_compare()
+diff_finder.compare()
 ```
 
 ### 结果展示
