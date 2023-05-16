@@ -120,9 +120,9 @@ wm.compare_ckpt(ckpt_path=ms_path, print_result=1)
 ### 接口定义
 
 ```python
-ts.save(name:str, data:[mindspore.Tensor, torch.tensor])
+ts.save(file:str, data:[mindspore.Tensor, torch.tensor])
 ```
-- name: 文件路径，保存时会自动为文件添加编号，编号从0开始。
+- file: 文件路径，保存时会自动为文件添加编号，编号从0开始。当name为`None`或`''`时，文件名会自动设置为`tensor_(shape)`。
 - data: 数据，支持保存`mindspore.Tensor`和`pytorch.tensor`。
 ### 如何使用
 

@@ -1,13 +1,13 @@
-import os
-import time
-import shutil
-import pytest
-
-import troubleshooter as ts
-import numpy as np
-import torch
 import mindspore as ms
+import numpy as np
+import os
+import pytest
+import shutil
+import time
+import torch
 from mindspore import nn, Tensor
+
+from troubleshooter.migrator.save import unified_saver
 
 
 class NetWorkSave(nn.Cell):
@@ -16,7 +16,7 @@ class NetWorkSave(nn.Cell):
         self.file = file
 
     def construct(self, x):
-        ts.save(self.file, x)
+        unified_saver.save(self.file, x)
         return x
 
 
@@ -26,12 +26,12 @@ class NetWorkSave(nn.Cell):
 @pytest.mark.parametrize('mode', [ms.PYNATIVE_MODE, ms.GRAPH_MODE])
 def test_ms_save(mode):
     """
-    Feature: ts.save
+    Feature: unified_saver.save
     Description: Verify the result of save
     Expectation: success
     """
     ms.set_context(mode=mode, device_target="CPU")
-    ts.save.cnt.set_data(Tensor(0, ms.int32))
+    unified_saver.save.cnt.set_data(Tensor(0, ms.int32))
     x1 = Tensor(-0.5962, ms.float32)
     x2 = Tensor(0.4985, ms.float32)
     net = NetWorkSave('/tmp/save/numpy_ms')
@@ -44,24 +44,56 @@ def test_ms_save(mode):
 
     x1 = net(x1)
     x2 = net(x2)
-    time.sleep(1)
+    time.sleep(0.2)
     assert np.allclose(np.load("/tmp/save/0_numpy_ms.npy"),
                        x1.asnumpy())
     assert np.allclose(np.load("/tmp/save/1_numpy_ms.npy"),
                        x2.asnumpy())
 
+
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard
-@pytest.mark.parametrize('mode', [ms.PYNATIVE_MODE])
-def test_torch_save(mode):
+@pytest.mark.parametrize('mode', [ms.PYNATIVE_MODE, ms.GRAPH_MODE])
+def test_ms_save_none(mode):
     """
-    Feature: ts.save
+    Feature: unified_saver.save
     Description: Verify the result of save
     Expectation: success
     """
     ms.set_context(mode=mode, device_target="CPU")
-    ts.save.cnt.set_data(Tensor(0, ms.int32))
+    unified_saver.save.cnt.set_data(Tensor(0, ms.int32))
+    x1 = ms.ops.randn((4,))
+    x2 = ms.ops.randn((2, 3))
+    x3 = ms.ops.randn(tuple())
+    net = NetWorkSave(None)
+
+    x1 = net(x1)
+    x2 = net(x2)
+    x3 = net(x3)
+    time.sleep(0.2)
+    assert np.allclose(np.load("0_tensor_(4,).npy"),
+                       x1.asnumpy())
+    assert np.allclose(np.load("1_tensor_(2, 3).npy"),
+                       x2.asnumpy())
+    assert np.allclose(np.load("2_tensor_().npy"),
+                       x3.asnumpy())
+    os.remove("0_tensor_(4,).npy")
+    os.remove("1_tensor_(2, 3).npy")
+    os.remove("2_tensor_().npy")
+
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
+def test_torch_save():
+    """
+    Feature: unified_saver.save
+    Description: Verify the result of save
+    Expectation: success
+    """
+    ms.set_context(mode=ms.PYNATIVE_MODE)
+    unified_saver.save.cnt.set_data(Tensor(0, ms.int32))
     x1 = torch.tensor(-0.5962, dtype=torch.float32)
     x2 = torch.tensor(0.4985, dtype=torch.float32)
     file = '/tmp/save/numpy_torch'
@@ -71,15 +103,49 @@ def test_torch_save(mode):
         pass
     os.makedirs("/tmp/save/")
 
-    ts.save(file, x1)
-    ts.save(file, x2)
-    time.sleep(1)
+    unified_saver.save(file, x1)
+    unified_saver.save(file, x2)
+    time.sleep(0.2)
 
     assert np.allclose(np.load("/tmp/save/0_numpy_torch.npy"),
                        x1.cpu().detach().numpy())
 
     assert np.allclose(np.load("/tmp/save/1_numpy_torch.npy"),
                        x2.cpu().detach().numpy())
+
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
+def test_torch_save_none():
+    """
+    Feature: pt_saver.save
+    Description: Verify the result of save
+    Expectation: success
+    """
+    ms.set_context(mode=ms.PYNATIVE_MODE)
+    unified_saver.save.cnt.set_data(Tensor(0, ms.int32))
+    x1 = torch.randn(4)
+    x2 = torch.randn(2, 3)
+    x3 = torch.randn(tuple())
+    file = None
+
+    unified_saver.save(file, x1)
+    unified_saver.save(file, x2)
+    unified_saver.save(file, x3)
+    time.sleep(0.2)
+
+    assert np.allclose(np.load("0_tensor_(4,).npy"),
+                       x1.cpu().detach().numpy())
+
+    assert np.allclose(np.load("1_tensor_(2, 3).npy"),
+                       x2.cpu().detach().numpy())
+    assert np.allclose(np.load("2_tensor_().npy"),
+                       x3.cpu().detach().numpy())
+    os.remove("0_tensor_(4,).npy")
+    os.remove("1_tensor_(2, 3).npy")
+    os.remove("2_tensor_().npy")
+
 
 @pytest.mark.skip(reason="r2.0 not support")
 @pytest.mark.level0
@@ -88,12 +154,12 @@ def test_torch_save(mode):
 @pytest.mark.parametrize('mode', [ms.PYNATIVE_MODE, ms.GRAPH_MODE])
 def test_ms_save_multiple(mode):
     """
-    Feature: ts.save
+    Feature: unified_saver.save
     Description: Verify the result of save
     Expectation: success
     """
     ms.set_context(mode=mode, device_target="CPU")
-    ts.save.cnt.set_data(Tensor(0, ms.int32))
+    unified_saver.save.cnt.set_data(Tensor(0, ms.int32))
     x1 = Tensor(-0.5962, ms.float32)
     x2 = Tensor(0.4985, ms.float32)
     single_input = x1
@@ -112,7 +178,7 @@ def test_ms_save_multiple(mode):
     list_output = net(list_input)
     tuple_output = net(tuple_input)
     dict_output = net(dict_input)
-    time.sleep(1)
+    time.sleep(0.2)
     assert np.allclose(np.load("/tmp/save/0_numpy_ms.npy"),
                        single_output.asnumpy())
 
@@ -131,19 +197,18 @@ def test_ms_save_multiple(mode):
     assert np.allclose(np.load("/tmp/save/3_numpy_x2_ms.npy"),
                        dict_output["x2"].asnumpy())
 
+
 @pytest.mark.skip(reason="r2.0 not support")
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard
-@pytest.mark.parametrize('mode', [ms.PYNATIVE_MODE])
 def test_torch_save_multiple(mode):
     """
-    Feature: ts.save
+    Feature: unified_saver.save
     Description: Verify the result of save
     Expectation: success
     """
-    ms.set_context(mode=mode, device_target="CPU")
-    ts.save.cnt.set_data(Tensor(0, ms.int32))
+    unified_saver.save.cnt.set_data(Tensor(0, ms.int32))
     x1 = torch.tensor(-0.5962, dtype=torch.float32)
     x2 = torch.tensor(0.4985, dtype=torch.float32)
     single_input = x1
@@ -157,11 +222,11 @@ def test_torch_save_multiple(mode):
         pass
     os.makedirs("/tmp/save/")
 
-    ts.save(file, single_input, True, "torch")
-    ts.save(file, list_input, True, "torch")
-    ts.save(file, tuple_input, True, "torch")
-    ts.save(file, dict_input, True, "torch")
-    time.sleep(1)
+    unified_saver.save(file, single_input, True, "torch")
+    unified_saver.save(file, list_input, True, "torch")
+    unified_saver.save(file, tuple_input, True, "torch")
+    unified_saver.save(file, dict_input, True, "torch")
+    time.sleep(0.2)
 
     assert np.allclose(np.load("/tmp/save/0_numpy_torch.npy"),
                        single_input.cpu().detach().numpy())

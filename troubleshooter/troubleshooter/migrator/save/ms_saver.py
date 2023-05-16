@@ -44,7 +44,11 @@ class SaveTensorMs(ms.nn.Cell):
         return path, name
 
     def construct(self, file, data):
-        path, name = self.handle_path(file)
+        if file:
+            path, name = self.handle_path(file)
+        else:
+            path = ''
+            name = 'tensor_' + str(data.shape)
         np.save(f"{path}{int(self.cnt)}_{name}", self.numpy(data))
         self.cnt += 1
         return
