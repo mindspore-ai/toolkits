@@ -2,19 +2,22 @@ import mindspore as ms
 import torch
 from collections import OrderedDict
 from pprint import pprint
-from troubleshooter.common.format_msg import print_weight_compare_result, print_convert_result
+from troubleshooter.common.format_msg import print_weight_compare_result, print_convert_result ,print_diff_result
 from troubleshooter.migrator.mapping_relation.weight_mapping_lib import weight_name_map, weight_value_map
-
+from troubleshooter.migrator.diff_handler import cal_algorithm
 from troubleshooter import log as logger
 
 
 class WeightMigrator:
-    def __init__(self, pt_model=None, pth_file_path=None, pth_para_dict=None, ckpt_save_path=None):
+    def __init__(self, pt_model=None, pth_file_path=None, pth_para_dict=None, ckpt_save_path=None, **kwargs):
         self.weight_map = weight_name_map
         self.ckpt_path = ckpt_save_path
         self.pt_model = pt_model
         self.pt_para_dict = self._get_para_dict(pth_file_path, pth_para_dict)
         self.print_params_list = []
+        self.rtol = kwargs.get('rtol', 1e-04)
+        self.atol = kwargs.get('atol', 1e-08)
+        self.equal_nan = kwargs.get('equal_nan', False)
 
     def _get_para_dict(self, pth_file_path, pth_para_dict):
         if pth_para_dict:
@@ -159,19 +162,45 @@ class WeightMigrator:
                               "Please check whether the conversion result is correct. "
                               "The saved path is: %s", self.ckpt_path)
 
-    def compare_ckpt(self, ckpt_path=None, converted_ckpt_path=None, print_result=1):
+    def compare_ckpt(self, ckpt_path=None, converted_ckpt_path=None, print_result=1, **kwargs):
         name_map_list = []
+        value_map_list = []
+        title = 'The list of comparison values'
+        field_names = ["Parameter name of input ckpt", "Parameter name of converted ckpt",
+                       "results of comparison", "match ratio",
+                       "cosine similarity", "(mean, max, min)"]
+        field_names_pth = ["Parameter name of input ckpt", "Parameter name of pth",
+                       "results of comparison", "match ratio",
+                       "cosine similarity", "(mean, max, min)"]
+
+        self.compare_value = kwargs.get('compare_value', False)
+        self.show_pth_name = kwargs.get('show_pth_name', False)
+
         if converted_ckpt_path is None:
             ckpt_after_convert_path = self.ckpt_path
+        else:
+            ckpt_after_convert_path = converted_ckpt_path
+
         ckpt_dict = ms.load_checkpoint(ckpt_path)
         ckpt_after_conv_dict = ms.load_checkpoint(ckpt_after_convert_path)
+        name_map, _ = self.get_weight_map(full_name_map=True)
+        name_map =  dict(zip(name_map.values(),name_map.keys()))
 
         for ms_para_name, ms_para in ckpt_dict.items():
             ms_para_after_conv = ckpt_after_conv_dict.get(ms_para_name)
-
+            pth_name = ms_para_name
             if ms_para_after_conv is not None:
                 name_map_list.append((ms_para_name, ms_para_name, (ms_para.shape == ms_para_after_conv.shape),
                                       ms_para.shape, ms_para_after_conv.shape))
+                if self.compare_value:
+                    result, rel_ratio, cosine_sim, diff_detail =cal_algorithm(ms_para.value().asnumpy(),
+                                                                              ms_para_after_conv.value().asnumpy(),
+                                                                              self.rtol,
+                                                                              self.atol,
+                                                                              self.equal_nan)
+                    if self.show_pth_name:
+                        pth_name = name_map.get(ms_para_name)
+                    value_map_list.append((ms_para_name, pth_name, result, rel_ratio, cosine_sim, diff_detail))
                 ckpt_after_conv_dict.pop(ms_para_name)
             else:
                 name_map_list.append((ms_para_name, None, None, ms_para.shape, None))
@@ -179,3 +208,9 @@ class WeightMigrator:
         for name, ms_para in ckpt_after_conv_dict.items():
             name_map_list.append((None, name, None, None, ms_para.shape))
         print_weight_compare_result(name_map_list, print_type=print_result)
+
+        if self.show_pth_name:
+            print_diff_result(value_map_list, title, field_names_pth)
+        else:
+            print_diff_result(value_map_list, title, field_names)
+

@@ -89,7 +89,7 @@ class NetDifferenceFinder:
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.enabled = False
         # for mindspore
-        ms.set_seed(1)
+        ms.set_seed(seed)
 
     def _save_ckpt(self):
         torch.save(self.pt_net.state_dict(), self.pt_org_pth)
