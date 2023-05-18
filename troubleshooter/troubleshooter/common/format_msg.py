@@ -55,6 +55,12 @@ def _add_row(x, item, message, width=TABLE_WIDTH, break_long_words=False, break_
 
 
 def print_weight_compare_result(result_list, print_type=1):
+    # 0 Do not print
+    # Print All
+    # print False
+    if print_type == 0:
+        return
+
     x = PrettyTable()
     x.title = 'The list of comparison results'
     x.field_names = ["Parameter name of input ckpt", "Parameter name of converted ckpt", "Whether shape are equal",
@@ -62,7 +68,7 @@ def print_weight_compare_result(result_list, print_type=1):
     for result in result_list:
         if print_type == 1:
             x.add_row([result[0], result[1], result[2], result[3], result[4]])
-        elif result[2] is not True:
+        elif print_type == 2 and result[2] is not True:
             x.add_row([result[0], result[1], result[2], result[3], result[4]])
     print(x.get_string())
 
@@ -79,6 +85,9 @@ def print_convert_result(result_list):
 
 
 def print_diff_result(result_list, title=None, field_names=None):
+    if not result_list:
+        return
+
     x = PrettyTable()
     if title is None:
         x.title = 'The list of comparison results'
