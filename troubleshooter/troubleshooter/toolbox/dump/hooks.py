@@ -102,7 +102,7 @@ class DumpUtil(object):
             raise RuntimeError("get_dump_path: the file path is empty,"
                                " you must use set_dump_path to set a valid dump path!!!")
         else:
-            dir_path = os.path.realpath("./")
+            dir_path = os.path.realpath("/")
             dump_file_name = "scope_dump_{}_{}_{}.pkl".format(
                 DumpUtil.dump_switch_mode, DumpUtil.dump_switch_scope[0], get_time())
             DumpUtil.dump_path = os.path.join(dir_path, dump_file_name)
