@@ -12,3 +12,52 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
+import random
+import os
+import numpy as np
+
+FW_PT=True
+FW_MS=True
+
+
+try:
+    import torch
+except ModuleNotFoundError as e:
+    e_msg = e.msg
+    no_module_msg = "No module named 'torch'"
+    if e_msg != no_module_msg:
+        raise e
+    else:
+        FW_PT = False
+
+
+try:
+    import mindspore
+except ModuleNotFoundError as e:
+    e_msg = e.msg
+    no_module_msg = "No module named 'mindspore'"
+    if e_msg != no_module_msg:
+        raise e
+    else:
+        FW_MS = False
+
+
+def fix_random(seed):
+        random.seed(seed)
+        os.environ["PYTHONSEED"] = str(seed)
+        np.random.seed(seed)
+        if FW_PT:
+            torch.cuda.manual_seed(seed)
+            torch.cuda.manual_seed_all(seed)
+            torch.backends.cudnn.deterministic = True
+            torch.backends.cudnn.benchmark = True
+            torch.backends.cudnn.enabled = True
+            torch.manual_seed(seed)
+        if FW_MS:
+            mindspore.set_seed(1)
+
+
+def _load_ms_weight(model,file):
+    param = mindspore.load_checkpoint(file)
+    mindspore.load_param_into_net(model, param)
+

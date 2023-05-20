@@ -6,11 +6,45 @@ import troubleshooter as ts
 import torch.optim as optim
 from collections import OrderedDict
 from mindspore.common.initializer import Normal
-
+from troubleshooter.migrator.weight_migrator import compare_pth_and_ckpt
 
 class MyModule(nn.Module):
     def __init__(self, in_features, out_classes):
         super(MyModule, self).__init__()
+
+        self.features = nn.Sequential(
+            OrderedDict([
+                ('Linear_mm', nn.Linear(in_features, 64)),
+                ('bn_mm', nn.BatchNorm1d(64)),
+                ('relu_mm', nn.ReLU()),
+                ('Linear_mm', nn.Linear(64, out_classes))
+            ])
+        )
+
+    def forward(self, x):
+        x = self.features(x)
+        return x
+
+class MSNet(mindspore.nn.Cell):
+    def __init__(self, in_features, out_classes):
+        super(MSNet, self).__init__()
+
+        self.features = mindspore.nn.SequentialCell(
+            OrderedDict([
+                ('Linear_mm', mindspore.nn.Dense(in_features, 64, weight_init=Normal(0.02))),
+                ('bn_mm', mindspore.nn.BatchNorm1d(64)),
+                ('relu_mm', mindspore.nn.ReLU()),
+                ('Linear_mm', mindspore.nn.Dense(64, out_classes, weight_init=Normal(0.02)))
+            ])
+        )
+
+    def construct(self, x):
+        x = self.features(x)
+        return x
+
+class MyNet(nn.Module):
+    def __init__(self, in_features, out_classes):
+        super(MyNet, self).__init__()
 
         self.features = nn.Sequential(
             OrderedDict([
@@ -303,40 +337,6 @@ def test_conv1d_value_case(capsys):
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard
 def test_compare_ckpt_value_case(capsys):
-    class MSNet(mindspore.nn.Cell):
-        def __init__(self, in_features, out_classes):
-            super(MSNet, self).__init__()
-
-            self.features = mindspore.nn.SequentialCell(
-                OrderedDict([
-                    ('Linear_mm', mindspore.nn.Dense(in_features, 64, weight_init=Normal(0.02))),
-                    ('bn_mm', mindspore.nn.BatchNorm1d(64)),
-                    ('relu_mm', mindspore.nn.ReLU()),
-                    ('Linear_mm', mindspore.nn.Dense(64, out_classes, weight_init=Normal(0.02)))
-                ])
-            )
-
-        def construct(self, x):
-            x = self.features(x)
-            return x
-
-    class MyNet(nn.Module):
-        def __init__(self, in_features, out_classes):
-            super(MyNet, self).__init__()
-
-            self.features = nn.Sequential(
-                OrderedDict([
-                    ('Linear_mm', nn.Linear(in_features, 64)),
-                    ('bn_mm', nn.BatchNorm1d(64)),
-                    ('relu_mm', nn.ReLU()),
-                    ('Linear_mm', nn.Linear(64, out_classes))
-                ])
-            )
-
-        def forward(self, x):
-            x = self.features(x)
-            return x
-
     torch_net = MyNet(in_features=10, out_classes=2)
     ms_net = MSNet(in_features=10, out_classes=2)
     torch.save(torch_net.state_dict(), "/tmp/torch_net.pth")
@@ -348,7 +348,7 @@ def test_compare_ckpt_value_case(capsys):
     wm.compare_ckpt(ckpt_path=ckpt_path,
                     converted_ckpt_path='/tmp/convert_resnet.ckpt', compare_value=True)
     result = capsys.readouterr().out
-    key_result = 'features.Linear_mm.weight    |    features.Linear_mm.weight     |         False'
+    key_result = 'features.bn_mm.beta         |      features.bn_mm.beta       |           True'
     assert result.count(key_result) == 1
 
 
@@ -357,40 +357,6 @@ def test_compare_ckpt_value_case(capsys):
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard
 def test_compare_pth_value_case(capsys):
-    class MSNet(mindspore.nn.Cell):
-        def __init__(self, in_features, out_classes):
-            super(MSNet, self).__init__()
-
-            self.features = mindspore.nn.SequentialCell(
-                OrderedDict([
-                    ('Linear_mm', mindspore.nn.Dense(in_features, 64, weight_init=Normal(0.02))),
-                    ('bn_mm', mindspore.nn.BatchNorm1d(64)),
-                    ('relu_mm', mindspore.nn.ReLU()),
-                    ('Linear_mm', mindspore.nn.Dense(64, out_classes, weight_init=Normal(0.02)))
-                ])
-            )
-
-        def construct(self, x):
-            x = self.features(x)
-            return x
-
-    class MyNet(nn.Module):
-        def __init__(self, in_features, out_classes):
-            super(MyNet, self).__init__()
-
-            self.features = nn.Sequential(
-                OrderedDict([
-                    ('Linear_mm', nn.Linear(in_features, 64)),
-                    ('bn_mm', nn.BatchNorm1d(64)),
-                    ('relu_mm', nn.ReLU()),
-                    ('Linear_mm', nn.Linear(64, out_classes))
-                ])
-            )
-
-        def forward(self, x):
-            x = self.features(x)
-            return x
-
     torch_net = MyNet(in_features=10, out_classes=2)
     ms_net = MSNet(in_features=10, out_classes=2)
     torch.save(torch_net.state_dict(), "/tmp/torch_net.pth")
@@ -403,6 +369,22 @@ def test_compare_pth_value_case(capsys):
                     converted_ckpt_path='/tmp/convert_resnet.ckpt', compare_value=True, show_pth_name=True,
                     print_result=0)
     result = capsys.readouterr().out
-    key_result = 'features.bn_mm.moving_mean   | features.bn_mm.running_mean |          True'
+    key_result = 'features.bn_mm.weight    |      features.bn_mm.gamma      |          True'
+    assert result.count(key_result) == 1
+
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
+def test_compare_pth_value_case(capsys):
+    torch_net = MyNet(in_features=10, out_classes=2)
+    ms_net = MSNet(in_features=10, out_classes=2)
+    ckpt_path = "/tmp/test.ckpt"
+    pth_path = "/tmp/torch_net.pth"
+    torch.save(torch_net.state_dict(), pth_path)
+    mindspore.save_checkpoint(ms_net, ckpt_path)
+    compare_pth_and_ckpt(torch_net,pth_path,ckpt_path)
+    result = capsys.readouterr().out
+    key_result = 'features.bn_mm.weight    |      features.bn_mm.gamma      |          True'
     assert result.count(key_result) == 1
 

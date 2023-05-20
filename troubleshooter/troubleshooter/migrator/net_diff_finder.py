@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-
+"""compare tools"""
 import csv
 import mindspore as ms
 import numpy as np

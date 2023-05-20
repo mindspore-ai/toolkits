@@ -54,17 +54,26 @@ def _add_row(x, item, message, width=TABLE_WIDTH, break_long_words=False, break_
                              break_on_hyphens=break_on_hyphens)])
 
 
-def print_weight_compare_result(result_list, print_type=1):
+def print_weight_compare_result(result_list, print_type=1, **kwargs):
     # 0 Do not print
     # Print All
     # print False
     if print_type == 0:
         return
-
+    title = kwargs.get('title', None)
+    field_names = kwargs.get('field_names', None)
     x = PrettyTable()
-    x.title = 'The list of comparison results'
-    x.field_names = ["Parameter name of input ckpt", "Parameter name of converted ckpt", "Whether shape are equal",
-                     "Parameter shape of input ckpt", "Parameter shape of converted ckpt"]
+    if title is None:
+        x.title = 'The list of comparison results for shapes'
+    else:
+        x.title = title
+
+    if field_names is None:
+        x.field_names = ["Parameter name of converted ckpt", "Parameter name of input ckpt", "Whether shape are equal",
+                     "Parameter shape of converted ckpt", "Parameter shape of input ckpt"]
+    else:
+        x.field_names = field_names
+
     for result in result_list:
         if print_type == 1:
             x.add_row([result[0], result[1], result[2], result[3], result[4]])

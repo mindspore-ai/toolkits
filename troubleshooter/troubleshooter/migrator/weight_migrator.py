@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-
+import os
 import mindspore as ms
 import torch
 from collections import OrderedDict
@@ -21,6 +21,7 @@ from troubleshooter.common.format_msg import print_weight_compare_result, print_
 from troubleshooter.migrator.mapping_relation.weight_mapping_lib import weight_name_map, weight_value_map
 from troubleshooter.migrator.diff_handler import cal_algorithm
 from troubleshooter import log as logger
+from troubleshooter.common.util import validate_and_normalize_path
 
 
 class WeightMigrator:
@@ -177,16 +178,19 @@ class WeightMigrator:
                               "Please check whether the conversion result is correct. "
                               "The saved path is: %s", self.ckpt_path)
 
-    def compare_ckpt(self, ckpt_path=None, converted_ckpt_path=None, print_result=1, **kwargs):
+    def compare_ckpt(self, converted_ckpt_path=None, *, ckpt_path=None, print_result=1, **kwargs):
         name_map_list = []
         value_map_list = []
-        title = 'The list of comparison values'
-        field_names = ["Parameter name of input ckpt", "Parameter name of converted ckpt",
+        title = 'The list of comparison results for values'
+        field_names = ["Parameter name of converted ckpt", "Parameter name of input ckpt",
                        "results of comparison", "match ratio",
                        "cosine similarity", "(mean, max, min)"]
-        field_names_pth = ["Parameter name of input ckpt", "Parameter name of pth",
+        field_names_pth = ["Parameter name of pth", "Parameter name of input ckpt",
                        "results of comparison", "match ratio",
                        "cosine similarity", "(mean, max, min)"]
+        field_names_shape_pth=["Parameter name of pth", "Parameter name of input ckpt",
+                               "Whether shape are equal", "Parameter shape of converted ckpt",
+                               "Parameter shape of input ckpt"]
 
         self.compare_value = kwargs.get('compare_value', False)
         self.show_pth_name = kwargs.get('show_pth_name', False)
@@ -199,33 +203,48 @@ class WeightMigrator:
         ckpt_dict = ms.load_checkpoint(ckpt_path)
         ckpt_after_conv_dict = ms.load_checkpoint(ckpt_after_convert_path)
         name_map, _ = self.get_weight_map(full_name_map=True)
-        name_map =  dict(zip(name_map.values(),name_map.keys()))
+        name_map =  dict(zip(name_map.values(), name_map.keys()))
 
-        for ms_para_name, ms_para in ckpt_dict.items():
-            ms_para_after_conv = ckpt_after_conv_dict.get(ms_para_name)
-            pth_name = ms_para_name
-            if ms_para_after_conv is not None:
-                name_map_list.append((ms_para_name, ms_para_name, (ms_para.shape == ms_para_after_conv.shape),
-                                      ms_para.shape, ms_para_after_conv.shape))
+        for ms_para_name_after_conv, ms_para_after_conv in ckpt_after_conv_dict.items():
+            if self.show_pth_name:
+                pth_name = name_map.get(ms_para_name_after_conv)
+            else:
+                pth_name = ms_para_name_after_conv
+
+            ms_para = ckpt_dict.get(ms_para_name_after_conv)
+            ms_para_name = ms_para_name_after_conv
+
+            if ms_para is not None:
+                name_map_list.append((pth_name, ms_para_name, (ms_para.shape == ms_para_after_conv.shape),
+                                      ms_para_after_conv.shape, ms_para.shape))
                 if self.compare_value:
-                    result, rel_ratio, cosine_sim, diff_detail =cal_algorithm(ms_para.value().asnumpy(),
-                                                                              ms_para_after_conv.value().asnumpy(),
+                    result, rel_ratio, cosine_sim, diff_detail =cal_algorithm(ms_para_after_conv.value().asnumpy(),
+                                                                              ms_para.value().asnumpy(),
                                                                               self.rtol,
                                                                               self.atol,
                                                                               self.equal_nan)
-                    if self.show_pth_name:
-                        pth_name = name_map.get(ms_para_name)
-                    value_map_list.append((ms_para_name, pth_name, result, rel_ratio, cosine_sim, diff_detail))
-                ckpt_after_conv_dict.pop(ms_para_name)
+                    value_map_list.append((pth_name, ms_para_name, result, rel_ratio, cosine_sim, diff_detail))
+                ckpt_dict.pop(ms_para_name)
             else:
-                name_map_list.append((ms_para_name, None, None, ms_para.shape, None))
+                name_map_list.append((pth_name, None, None, ms_para_after_conv.shape, None))
 
-        for name, ms_para in ckpt_after_conv_dict.items():
+        for name, ms_para in ckpt_dict.items():
             name_map_list.append((None, name, None, None, ms_para.shape))
-        print_weight_compare_result(name_map_list, print_type=print_result)
 
         if self.show_pth_name:
+            print_weight_compare_result(name_map_list, print_type=print_result, field_names=field_names_shape_pth)
             print_diff_result(value_map_list, title, field_names_pth)
         else:
+            print_weight_compare_result(name_map_list, print_type=print_result)
             print_diff_result(value_map_list, title, field_names)
+
+
+def compare_pth_and_ckpt(pt_model, pth_file, ckpt_file, **kwargs):
+    temp_save_path = validate_and_normalize_path(kwargs.get('temp_save_path', './'))
+    tmp_ckpt_file = os.path.join(temp_save_path, "ts_tempfile_convert_ckpt.ckpt")
+    wm = WeightMigrator(pt_model=pt_model, pth_file_path=pth_file, ckpt_save_path=tmp_ckpt_file)
+    wm.convert(print_conv_info=False)
+    wm.compare_ckpt(ckpt_path=ckpt_file,
+                    converted_ckpt_path=tmp_ckpt_file, compare_value=True, show_pth_name=True,
+                    print_result=1)
 
