@@ -21,7 +21,7 @@ import os
 import yaml
 from mindspore import nn
 
-from troubleshooter.dump import cell as _cell
+from troubleshooter.toolbox.dump import cell as _cell
 
 cur_path = os.path.dirname(os.path.realpath(__file__))
 yaml_path = os.path.join(cur_path, "support_wrap_ops.yaml")
