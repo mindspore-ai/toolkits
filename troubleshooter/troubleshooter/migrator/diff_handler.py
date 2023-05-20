@@ -17,7 +17,6 @@ import numpy as np
 import os
 from troubleshooter.common.format_msg import print_diff_result
 from troubleshooter.common.util import validate_and_normalize_path, find_file
-
 from troubleshooter import log as logger
 
 
@@ -128,30 +127,3 @@ def cal_cosine_sim(a, b):
         sim = 0.5 + 0.5 * (num / denom)
     return sim
 
-
-def cal_similarity(ms_data, th_data, index, **kwargs):
-    result_list = []
-    rtol = kwargs.get('rtol', 1e-04)
-    atol = kwargs.get('atol', 1e-08)
-    equal_nan = kwargs.get('equal_nan', False)
-    if ms_data.shape == th_data.shape:
-        result = np.allclose(ms_data, th_data, rtol=rtol,
-                             atol=atol, equal_nan=equal_nan)
-        if not result:
-            value_diff = np.abs(ms_data - th_data)
-            value_mean = value_diff.mean()
-            value_max = value_diff.max()
-            value_min = value_diff.min()
-            diff_detail = value_mean, value_max, value_min
-        else:
-            diff_detail = ()
-
-        cosine_sim = cal_cosine_sim(ms_data, th_data)
-
-    else:
-        result = False
-        diff_detail = ("Shape is inconsistent", ms_data.shape, th_data.shape)
-
-    result_list = ['mindspore output {}'.format(
-        index), 'torch output {}'.format(index), result, cosine_sim, diff_detail]
-    return result_list

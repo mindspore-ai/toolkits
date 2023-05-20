@@ -34,4 +34,3 @@ def test_compare_npy_dir(capsys):
     assert result.count('True') == 4 and result.count(key_result) == 1
 
 
-
