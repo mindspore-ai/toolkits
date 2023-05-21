@@ -27,6 +27,7 @@ ops:
   - clip_by_value
   - ravel
   - reshape
+  - transpose
 
 tensor:
   - __add__

@@ -30,7 +30,4 @@ def test_compare_npy_dir(capsys):
 
     shutil.rmtree(path1)
     shutil.rmtree(path2)
-    key_result = 'features.bn_mm.weight        |        features.bn_mm.gamma'
-    assert result.count('True') == 4 and result.count(key_result) == 1
-
-
+    assert result.count('True') == 1

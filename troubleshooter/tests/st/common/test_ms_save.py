@@ -6,7 +6,7 @@ import shutil
 import time
 from mindspore import nn, Tensor
 
-from troubleshooter.migrator.save import ms_saver
+from troubleshooter.migrator.save import mindspore_saver
 
 
 class NetWorkSave(nn.Cell):
@@ -15,7 +15,7 @@ class NetWorkSave(nn.Cell):
         self.file = file
 
     def construct(self, x):
-        ms_saver.save(self.file, x)
+        mindspore_saver.save(self.file, x)
         return x
 
 
@@ -25,12 +25,12 @@ class NetWorkSave(nn.Cell):
 @pytest.mark.parametrize('mode', [ms.PYNATIVE_MODE, ms.GRAPH_MODE])
 def test_ms_save(mode):
     """
-    Feature: ms_saver.save
+    Feature: mindspore_saver.save
     Description: Verify the result of save
     Expectation: success
     """
     ms.set_context(mode=mode, device_target="CPU")
-    ms_saver.save.cnt.set_data(Tensor(0, ms.int32))
+    mindspore_saver.save.cnt.set_data(Tensor(0, ms.int32))
     x1 = Tensor(-0.5962, ms.float32)
     x2 = Tensor(0.4985, ms.float32)
     net = NetWorkSave('/tmp/save/numpy_ms')
@@ -56,12 +56,12 @@ def test_ms_save(mode):
 @pytest.mark.parametrize('mode', [ms.PYNATIVE_MODE, ms.GRAPH_MODE])
 def test_ms_save_none(mode):
     """
-    Feature: ms_saver.save
+    Feature: mindspore_saver.save
     Description: Verify the result of save
     Expectation: success
     """
     ms.set_context(mode=mode, device_target="CPU")
-    ms_saver.save.cnt.set_data(Tensor(0, ms.int32))
+    mindspore_saver.save.cnt.set_data(Tensor(0, ms.int32))
     x1 = ms.ops.randn((4,))
     x2 = ms.ops.randn((2, 3))
     x3 = ms.ops.randn(tuple())

@@ -13,9 +13,10 @@
 # limitations under the License.
 # ============================================================================
 """util functions"""
-import re
 import os
+import re
 import stat
+from collections import OrderedDict
 
 import numpy as np
 
@@ -133,3 +134,46 @@ def save_numpy_data(file_path, data):
     if not os.path.exists(os.path.dirname(file_path)):
         os.makedirs(os.path.dirname(file_path))
     np.save(file_path, data)
+
+
+def split_path_and_name(file, sep=os.sep):
+    if file[-1] == sep:
+        raise ValueError(f"For 'ts.save', the type of argument 'file' must be a valid filename, but got {file}")
+    path, name = "", ""
+    for c in file:
+        if c == sep:
+            path = path + name + sep
+            name = ""
+        else:
+            name += c
+    return path, name
+
+
+def remove_npy_extension(file_name):
+    has_extension = False
+    extension = ""
+    file_name_without_extension = ""
+
+    for char in file_name:
+        if char == ".":
+            file_name_without_extension += extension
+            has_extension = True
+            extension = "."
+        elif has_extension:
+            extension += char
+        else:
+            file_name_without_extension += char
+
+    if extension == ".npy":
+        return file_name_without_extension
+    else:
+        return file_name
+
+
+def iterate_items(data):
+    if isinstance(data, (dict, OrderedDict)):
+        return data.items()
+    elif isinstance(data, (list, tuple)):
+        return enumerate(data)
+    else:
+        raise TypeError("Unsupported data type")

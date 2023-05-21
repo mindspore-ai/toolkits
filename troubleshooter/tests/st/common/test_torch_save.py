@@ -5,7 +5,7 @@ import shutil
 import time
 import torch
 
-from troubleshooter.migrator.save import pt_saver
+from troubleshooter.migrator.save import torch_saver
 
 
 @pytest.mark.level0
@@ -17,7 +17,7 @@ def test_torch_save():
     Description: Verify the result of save
     Expectation: success
     """
-    pt_saver._g_save_cnt = 0
+    torch_saver._g_save_cnt = 0
     x1 = torch.tensor(-0.5962, dtype=torch.float32)
     x2 = torch.tensor(0.4985, dtype=torch.float32)
     file = '/tmp/save/numpy_torch'
@@ -27,8 +27,8 @@ def test_torch_save():
         pass
     os.makedirs("/tmp/save/")
 
-    pt_saver.save(file, x1)
-    pt_saver.save(file, x2)
+    torch_saver.save(file, x1)
+    torch_saver.save(file, x2)
     time.sleep(0.2)
 
     assert np.allclose(np.load("/tmp/save/0_numpy_torch.npy"),
@@ -47,15 +47,15 @@ def test_torch_save_none():
     Description: Verify the result of save
     Expectation: success
     """
-    pt_saver._g_save_cnt = 0
+    torch_saver._g_save_cnt = 0
     x1 = torch.randn(4)
     x2 = torch.randn(2, 3)
     x3 = torch.randn(tuple())
     file = None
 
-    pt_saver.save(file, x1)
-    pt_saver.save(file, x2)
-    pt_saver.save(file, x3)
+    torch_saver.save(file, x1)
+    torch_saver.save(file, x2)
+    torch_saver.save(file, x3)
     time.sleep(0.2)
 
     assert np.allclose(np.load("0_tensor_(4,).npy"),

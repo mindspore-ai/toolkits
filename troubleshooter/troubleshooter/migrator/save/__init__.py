@@ -23,9 +23,12 @@ __all__ = [
 
 if {"torch", "mindspore"}.issubset(FRAMEWORK_TYPE):
     from troubleshooter.migrator.save.unified_saver import save
+    from troubleshooter.migrator.save.unified_saver import _save
 elif {"torch"}.issubset(FRAMEWORK_TYPE):
-    from troubleshooter.migrator.save.pt_saver import save
+    from troubleshooter.migrator.save.torch_saver import save
+    from troubleshooter.migrator.save.torch_saver import _save
 elif {"mindspore"}.issubset(FRAMEWORK_TYPE):
-    from troubleshooter.migrator.save.ms_saver import save
+    from troubleshooter.migrator.save.mindspore_saver import save
+    from troubleshooter.migrator.save.mindspore_saver import _save
 else:
     from troubleshooter.common.framework_detection import save

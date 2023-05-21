@@ -19,6 +19,16 @@ class NetWorkSave(nn.Cell):
         unified_saver.save(self.file, x)
         return x
 
+class NetWorkSaveMulti(nn.Cell):
+    def __init__(self, file, auto_id, suffix):
+        super(NetWorkSaveMulti, self).__init__()
+        self.file = file
+        self.auto_id = auto_id
+        self.suffix = suffix
+
+    def construct(self, x):
+        unified_saver._save(self.file, x, auto_id=True, suffix="ms")
+        return x
 
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
@@ -147,7 +157,6 @@ def test_torch_save_none():
     os.remove("2_tensor_().npy")
 
 
-@pytest.mark.skip(reason="r2.0 not support")
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard
@@ -159,14 +168,14 @@ def test_ms_save_multiple(mode):
     Expectation: success
     """
     ms.set_context(mode=mode, device_target="CPU")
-    unified_saver.save.cnt.set_data(Tensor(0, ms.int32))
+    unified_saver._save.cnt.set_data(Tensor(0, ms.int32))
     x1 = Tensor(-0.5962, ms.float32)
     x2 = Tensor(0.4985, ms.float32)
     single_input = x1
     list_input = [x1, x2]
     tuple_input = (x2, x1)
     dict_input = {"x1": x1, "x2": x2}
-    net = NetWorkSave('/tmp/save/numpy', True, "ms")
+    net = NetWorkSaveMulti('/tmp/save/numpy.npy', True, "ms")
 
     try:
         shutil.rmtree("/tmp/save/")
@@ -198,17 +207,18 @@ def test_ms_save_multiple(mode):
                        dict_output["x2"].asnumpy())
 
 
-@pytest.mark.skip(reason="r2.0 not support")
+
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard
-def test_torch_save_multiple(mode):
+def test_torch_save_multiple():
     """
     Feature: unified_saver.save
     Description: Verify the result of save
     Expectation: success
     """
-    unified_saver.save.cnt.set_data(Tensor(0, ms.int32))
+    ms.set_context(mode=ms.PYNATIVE_MODE)
+    unified_saver._save.cnt.set_data(Tensor(0, ms.int32))
     x1 = torch.tensor(-0.5962, dtype=torch.float32)
     x2 = torch.tensor(0.4985, dtype=torch.float32)
     single_input = x1
@@ -222,10 +232,10 @@ def test_torch_save_multiple(mode):
         pass
     os.makedirs("/tmp/save/")
 
-    unified_saver.save(file, single_input, True, "torch")
-    unified_saver.save(file, list_input, True, "torch")
-    unified_saver.save(file, tuple_input, True, "torch")
-    unified_saver.save(file, dict_input, True, "torch")
+    unified_saver._save(file, single_input, True, "torch")
+    unified_saver._save(file, list_input, True, "torch")
+    unified_saver._save(file, tuple_input, True, "torch")
+    unified_saver._save(file, dict_input, True, "torch")
     time.sleep(0.2)
 
     assert np.allclose(np.load("/tmp/save/0_numpy_torch.npy"),
