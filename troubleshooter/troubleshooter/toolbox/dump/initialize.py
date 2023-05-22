@@ -34,7 +34,7 @@ def register_hook(net, hook, **kwargs):
     print_info_log("The {} hook function is successfully mounted to the model.".format(hook_name))
 
     initialize_hook(hook)
-    for name, cell in net.name_cells().items():
+    for _, cell in net.cells_and_names():
         if hasattr(cell, 'hook_name'):
             prefix_nn_name_ = "NN_" + str(cell.hook_name[5:]) + "_"
             cell.register_forward_hook(hook(prefix_nn_name_ + "{}_" + "forward", forward=True))

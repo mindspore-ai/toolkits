@@ -770,8 +770,6 @@ tensor:
   - sum
 
 nn:
-  - CellList
-  - SequentialCell
   - Conv1d
   - Conv1dTranspose
   - Conv2d
