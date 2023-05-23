@@ -15,106 +15,42 @@
 
 from __future__ import absolute_import
 
-from collections import OrderedDict
-
 import mindspore as ms
-import numpy as np
-from troubleshooter.common.util import iterate_items, remove_npy_extension, split_path_and_name
+from troubleshooter.migrator.save.base_saver import SaveTensorBase
 
 
-class SaveTensorMs(ms.nn.Cell):
-    """
-    The SaveNet class is used to build a unified data storage interface that supports PyTorch and MindSpore
-    PYNATIVE_MODE as well as GRAPH_MODE, but currently does not support MindSpore GRAPH_MODE.
-
-    Inputs:
-        file (str): The name of the file to be stored.
-        data (Union(mindspore.Tensor, torch.tensor)): Supports data types of Tensor for both MindSpore and PyTorch.
-
-    Outputs:
-        The output storage name is 'id_name.npy'.
-    """
-
+class _SaveTensorMindspore(ms.nn.Cell, SaveTensorBase):
     def __init__(self):
-        super(SaveTensorMs, self).__init__()
-        self.cnt = ms.Parameter(ms.Tensor(0, ms.int32), name="cnt", requires_grad=False)
+        super().__init__()
+        self._cnt = ms.Parameter(ms.Tensor(0, ms.int32), name="_cnt", requires_grad=False)
 
-    def numpy(self, data):
+    def _clear_cnt(self):
+        self._cnt.set_data(0)
+
+    def _numpy(self, data):
         if isinstance(data, ms.Tensor):
             return data.asnumpy()
         else:
             raise TypeError(f"For 'ts.save', the type of argument 'data' must be mindspore.Tensor or torch.tensor, " \
                             f"but got {type(data)}")
 
-    def construct(self, file, data):
-        if file:
-            path, name = split_path_and_name(file)
-            name = remove_npy_extension(name)
-        else:
-            path, name = "", "tensor_" + str(tuple(data.shape))
-        np.save(f"{path}{int(self.cnt)}_{name}", self.numpy(data))
-        self.cnt += 1
-        return
-
-
-save = SaveTensorMs()
-
-
-class _SaveTensorMs(ms.nn.Cell):
-    """
-    The SaveNet class is used to build a unified data storage interface that supports PyTorch and MindSpore
-    PYNATIVE_MODE as well as GRAPH_MODE, but currently does not support MindSpore GRAPH_MODE.
-
-    Inputs:
-        file (str): The name of the file to be stored.
-        data (Union(Tensor, list[Tensor], Tuple[Tensor], dict[str, Tensor])): Supports data types of Tensor,
-          list[Tensor], tuple(Tensor), and dict[str, Tensor] for both MindSpore and PyTorch. When the input is
-          a list or tuple of Tensor, the file name will be numbered according to the index of the Tensor.
-          When the input is a dictionary of Tensor, the corresponding key will be added to the file name.
-        auto_id (bool): Whether to enable automatic numbering. If set to True, an incremental number will be
-          added before the saved file name. If set to False, no numbering will be added to the file name.
-        suffix (str): The suffix of the saved file name.
-
-    Outputs:
-        The output storage name is '{id}_name_{idx/key}_{suffix}.npy'.
-    """
-
-    def __init__(self):
-        super(_SaveTensorMs, self).__init__()
-        self.cnt = ms.Parameter(ms.Tensor(0, ms.int32), name="cnt", requires_grad=False)
-
-    def numpy(self, data):
+    def _shape(self, data):
         if isinstance(data, ms.Tensor):
-            return data.asnumpy()
+            return data.shape
         else:
             raise TypeError(f"For 'ts.save', the type of argument 'data' must be mindspore.Tensor or torch.tensor, " \
                             f"but got {type(data)}")
+
+    def _sync(self):
+        print()
 
     def construct(self, file, data, auto_id=True, suffix=None):
-        if file:
-            path, name = split_path_and_name(file)
-            name = remove_npy_extension(name)
-        else:
-            path, name = "", "tensor_" + str(data.shape)
-        self.cnt = ms.ops.depend(self.cnt, name)
-        if isinstance(data, (list, tuple, dict, OrderedDict)):
-            for key, val in iterate_items(data):
-                if auto_id:
-                    np.save(f"{path}{int(self.cnt)}_{name}_{key}_{suffix}" if suffix else
-                            f"{path}{int(self.cnt)}_{name}_{key}", self.numpy(val))
-                else:
-                    np.save(f"{path}{name}_{key}_{suffix}" if suffix else
-                            f"{path}{name}_{key}", self.numpy(val))
-        else:
-            if auto_id:
-                np.save(f"{path}{int(self.cnt)}_{name}_{suffix}" if suffix else
-                        f"{path}{int(self.cnt)}_{name}", self.numpy(data))
-            else:
-                np.save(f"{path}{name}_{suffix}" if suffix else file,
-                        self.numpy(data))
+        path, name = self._handle_path(file)
+        self._sync()
+        self._save_tensors(path, name, data, auto_id, suffix)
         if auto_id:
-            self.cnt += 1
+            self._cnt += 1
         return None
 
 
-_save = _SaveTensorMs()
+save = _SaveTensorMindspore()

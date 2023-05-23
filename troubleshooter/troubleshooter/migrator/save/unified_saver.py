@@ -17,36 +17,10 @@ from __future__ import absolute_import
 
 import mindspore as ms
 import torch
-from troubleshooter.migrator.save.mindspore_saver import SaveTensorMs, _SaveTensorMs
+from troubleshooter.migrator.save.mindspore_saver import _SaveTensorMindspore
 
 
-class SaveTensorMsPt(SaveTensorMs):
-    """
-    The SaveNet class is used to build a unified data storage interface that supports PyTorch and MindSpore
-    PYNATIVE_MODE as well as GRAPH_MODE, but currently does not support MindSpore GRAPH_MODE.
-
-    Inputs:
-        file (str): The name of the file to be stored.
-        data (Union(mindspore.Tensor, torch.tensor)): Supports data types of Tensor for both MindSpore and PyTorch.
-
-    Outputs:
-        The output storage name is 'id_name.npy'.
-    """
-
-    def numpy(self, data):
-        if isinstance(data, ms.Tensor):
-            return data.asnumpy()
-        elif torch.is_tensor(data):
-            return data.cpu().detach().numpy()
-        else:
-            raise TypeError(f"For 'ts.save', the type of argument 'data' must be mindspore.Tensor or torch.tensor, " \
-                            f"but got {type(data)}")
-
-
-save = SaveTensorMsPt()
-
-
-class _SaveTensorMsPt(_SaveTensorMs):
+class _SaveTensorMsPt(_SaveTensorMindspore):
     """
     The SaveNet class is used to build a unified data storage interface that supports PyTorch and MindSpore
     PYNATIVE_MODE as well as GRAPH_MODE, but currently does not support MindSpore GRAPH_MODE.
@@ -65,7 +39,7 @@ class _SaveTensorMsPt(_SaveTensorMs):
         The output storage name is '{id}_name_{idx/key}_{suffix}.npy'.
     """
 
-    def numpy(self, data):
+    def _numpy(self, data):
         if isinstance(data, ms.Tensor):
             return data.asnumpy()
         elif torch.is_tensor(data):
@@ -74,5 +48,14 @@ class _SaveTensorMsPt(_SaveTensorMs):
             raise TypeError(f"For 'ts.save', the type of argument 'data' must be mindspore.Tensor or torch.tensor, " \
                             f"but got {type(data)}")
 
+    def _shape(self, data):
+        if isinstance(data, ms.Tensor):
+            return data.shape
+        elif torch.is_tensor(data):
+            return tuple(data.shape)
+        else:
+            raise TypeError(f"For 'ts.save', the type of argument 'data' must be mindspore.Tensor or torch.tensor, " \
+                            f"but got {type(data)}")
 
-_save = _SaveTensorMsPt()
+
+save = _SaveTensorMsPt()
