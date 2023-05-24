@@ -20,122 +20,106 @@ from troubleshooter.common.util import validate_and_normalize_path, find_file
 from troubleshooter import log as logger
 
 
-class DifferenceFinder:
+def get_filename_map_list(orig_dir, target_dir):
+    name_map_list = []
+    orig_name_list = find_file(orig_dir)
+    target_name_list = find_file(target_dir)
+    none_flag = False
 
-    def __init__(self, orig_dir, target_dir):
-        self.orig_dir = orig_dir
-        self.target_dir = target_dir
+    if not (orig_name_list and target_name_list):
+        logger.user_error("The comparison file is not found in the directory. Please \
+            check whether the directory is correct")
+        exit(1)
 
-    def get_filename_map_list(self):
-        name_map_list = []
-        orig_name_list = find_file(self.orig_dir)
-        #orig_name_list.sort()
-        #orig_name_list = sorted(orig_name_list, key=lambda x: os.path.getctime(os.path.join(file_path, x)))
-        target_name_list = find_file(self.target_dir)
-        none_flag = False
-
-        if not (orig_name_list and target_name_list):
-            logger.user_error("The comparison file is not found in the directory. Please \
-                check whether the directory is correct")
-            exit(1)
-
-        for name in orig_name_list:
-            if name in target_name_list:
-                name_map_list.append((name, name))
-                target_name_list.remove(name)
-            else:
-                name_map_list.append((name, None))
-                none_flag = True
-
-        if target_name_list:
-            target_name_list.sort()
-            for name in target_name_list:
-                name_map_list.append((None, name))
+    for name in orig_name_list:
+        if name in target_name_list:
+            name_map_list.append((name, name))
+            target_name_list.remove(name)
+        else:
+            name_map_list.append((name, None))
             none_flag = True
 
-        if none_flag:
-            logger.user_warning("The files in the original directory and the target directory cannot be fully mapped. "
-                                "Please manually complete the mapping of file names")
-            print("filename mapping list:" + str(name_map_list))
-        return name_map_list
+    if target_name_list:
+        target_name_list.sort()
+        for name in target_name_list:
+            name_map_list.append((None, name))
+        none_flag = True
 
-    def compare_npy_dir(self, name_map_list=None, **kwargs):
-        """
-        """
-        if name_map_list is None:
-            name_map_list = self.get_filename_map_list()
-
-        rtol = kwargs.get('rtol', 1e-04)
-        atol = kwargs.get('atol', 1e-08)
-        equal_nan = kwargs.get('equal_nan', False)
-
-        result_list = []
-        normal_orig_dir = validate_and_normalize_path(self.orig_dir)
-        normal_target_dir = validate_and_normalize_path(self.target_dir)
-
-        for name_map in name_map_list:
-            orig_name = name_map[0]
-            target_name = name_map[1]
-
-            if orig_name is None or target_name is None:
-                result = False
-                diff_detail = ()
-                result_list.append(
-                    (orig_name, target_name, result, diff_detail))
-                continue
-
-            orig_file = os.path.join(normal_orig_dir, orig_name)
-            target_file = os.path.join(normal_target_dir, target_name)
-
-            if not os.path.isfile(orig_file) or not os.path.isfile(target_file):
-                continue
-
-            orig_value = np.load(orig_file)
-            target_value = np.load(target_file)
-            result, rel_ratio, cosine_sim, diff_detail = cal_algorithm(orig_value, target_value, rtol, atol, equal_nan)
-            result_list.append((orig_name, target_name, result, rel_ratio, cosine_sim, diff_detail))
-        logger.user_attention("The compare directory information:\n The orig dir: %s \n The target dir: %s",
-                              self.orig_dir, self.target_dir)
-        print_diff_result(result_list)
-
-    def _sort_list(self,lst):
-        def key_func(s):
-            name = os.path.splitext(s)[0]
-            parts = name.split('_')
-            return int(parts[0]),int(parts[-1])
-        lst.sort(key=key_func)
-        return lst
+    if none_flag:
+        logger.user_warning("The files in the original directory and the target directory cannot be fully mapped. "
+                            "Please manually complete the mapping of file names")
+        print("filename mapping list:" + str(name_map_list))
+    return name_map_list
 
 
-    def get_grad_filename_map_list(self,orig_dir, target_dir):
-        name_map_list = []
-        orig_name_list = find_file(orig_dir)
-        target_name_list = find_file(target_dir)
+def compare_npy_dir(orig_dir, target_dir, *, name_map_list=None, **kwargs):
+    """
+    """
+    if name_map_list is None:
+        name_map_list = get_filename_map_list(orig_dir, target_dir)
 
-        none_flag = False
-        if not (orig_name_list and target_name_list):
-            logger.user_error("The comparison file is not found in the directory. Please \
-                check whether the directory is correct")
-            exit(1)
+    rtol = kwargs.get('rtol', 1e-04)
+    atol = kwargs.get('atol', 1e-08)
+    equal_nan = kwargs.get('equal_nan', False)
 
-        orig_name_list = self._sort_list(orig_name_list)
-        target_name_list = self._sort_list(target_name_list)
+    result_list = []
+    normal_orig_dir = validate_and_normalize_path(orig_dir)
+    normal_target_dir = validate_and_normalize_path(target_dir)
 
-        if(len(orig_name_list) != len(target_name_list)):
-            logger.user_warning("The number of files is not equal. Some files can not be mapped. "
-                                "Number of files in the original directory is %d, "
-                                "Number of files in the target directory is %d",
-                                len(orig_name_list),len(target_name_list))
+    for name_map in name_map_list:
+        orig_name = name_map[0]
+        target_name = name_map[1]
 
-        for grad_orig, grad_target in zip(orig_name_list, target_name_list):
-             name_map_list.append((grad_orig, grad_target))
+        if orig_name is None or target_name is None:
+            result = False
+            diff_detail = ()
+            result_list.append(
+                (orig_name, target_name, result, diff_detail))
+            continue
 
-        return name_map_list
+        orig_file = os.path.join(normal_orig_dir, orig_name)
+        target_file = os.path.join(normal_target_dir, target_name)
 
-    def compare_grads_dir(self, orig_dir, target_dir ,*, name_map_list=None, **kwargs):
-        if name_map_list is None:
-            name_map_list = self.get_grad_filename_map_list(orig_dir, target_dir)
-        self.compare_npy_dir(name_map_list=name_map_list, **kwargs)
+        if not os.path.isfile(orig_file) or not os.path.isfile(target_file):
+            continue
+
+        orig_value = np.load(orig_file)
+        target_value = np.load(target_file)
+        result, rel_ratio, cosine_sim, diff_detail = cal_algorithm(orig_value, target_value, rtol, atol, equal_nan)
+        result_list.append((orig_name, target_name, result, rel_ratio, cosine_sim, diff_detail))
+    logger.user_attention("The compare directory information:\n The orig dir: %s \n The target dir: %s",
+                          orig_dir, target_dir)
+    print_diff_result(result_list)
+
+
+
+def get_list_filename_map_list(orig_dir, target_dir):
+    name_map_list = []
+    orig_name_list = find_file(orig_dir)
+    target_name_list = find_file(target_dir)
+    if not (orig_name_list and target_name_list):
+        logger.user_error("The comparison file is not found in the directory. Please \
+            check whether the directory is correct")
+        exit(1)
+    orig_name_list = _sort_list(orig_name_list)
+    target_name_list = _sort_list(target_name_list)
+    if (len(orig_name_list) != len(target_name_list)):
+        logger.user_warning("The number of files is not equal. Some files can not be mapped. "
+                            "Number of files in the original directory is %d, "
+                            "Number of files in the target directory is %d",
+                            len(orig_name_list), len(target_name_list))
+    for grad_orig, grad_target in zip(orig_name_list, target_name_list):
+        name_map_list.append((grad_orig, grad_target))
+    return name_map_list
+
+
+def compare_list_npy_dir(orig_dir, target_dir, *, name_map_list=None, **kwargs):
+    if name_map_list is None:
+        name_map_list = get_list_filename_map_list(orig_dir, target_dir)
+    compare_npy_dir(name_map_list=name_map_list, **kwargs)
+
+
+compare_grads = compare_list_npy_dir
 
 
 def cal_algorithm(orig_value, target_value, rtol, atol, equal_nan):
@@ -169,3 +153,12 @@ def cal_cosine_sim(a, b):
         sim = 0.5 + 0.5 * (num / denom)
     return sim
 
+
+def _sort_list(lst):
+    def key_func(s):
+        name = os.path.splitext(s)[0]
+        parts = name.split('_')
+        return int(parts[0]), int(parts[-1])
+
+    lst.sort(key=key_func)
+    return lst

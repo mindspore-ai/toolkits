@@ -24,8 +24,7 @@ def test_compare_npy_dir(capsys):
     np.save('/tmp/troubleshooter_tb/data1.npy',data1)
     np.save('/tmp/troubleshooter_tb/data2.npy',data1)
 
-    diff = ts.DifferenceFinder(path1, path2)
-    diff.compare_npy_dir()
+    ts.diff_handler.compare_npy_dir(path1, path2)
     result = capsys.readouterr().out
 
     shutil.rmtree(path1)

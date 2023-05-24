@@ -19,10 +19,9 @@ from troubleshooter import FRAMEWORK_TYPE
 
 __all__ = [
     'save',
-    'DifferenceFinder',
-    'diff_finder'
+    'diff_handler'
 ]
 
 from troubleshooter.migrator.save import save
-from troubleshooter.migrator.diff_handler import DifferenceFinder as diff_finder
-from troubleshooter.migrator.diff_handler import DifferenceFinder
+from troubleshooter.migrator import diff_handler
+
