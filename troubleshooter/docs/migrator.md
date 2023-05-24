@@ -206,9 +206,8 @@ import troubleshooter as ts
 
 ta = "/mnt/d/06_project/troubleshooter/troubleshooter/tests/diff_handler/ta"
 tb = "/mnt/d/06_project/troubleshooter/troubleshooter/tests/diff_handler/tb"
-dif = ts.DifferenceFinder(ta, tb)
 # 比较ta与tb目录下名称可以映射的npy文件的值
-dif.compare_npy_dir()
+ts.diff_handler.compare_npy_dir(ta, tb)
 ```
 
 ### 如何使用2-两个目录下名称不能完全映射，需要手工调整
@@ -218,11 +217,12 @@ import troubleshooter as ts
 
 ta = "/mnt/d/06_project/troubleshooter/troubleshooter/tests/diff_handler/ta"
 tb = "/mnt/d/06_project/troubleshooter/troubleshooter/tests/diff_handler/tb"
-dif = ts.DifferenceFinder(ta, tb)
 # 可以通过如下接口获取名称映射列表，对npy文件名称映射进行调整
-name_list = dif.get_filename_map_list()
+name_list = ts.diff_handler.get_filename_map_list(ta, tb)
+# 通过自定定义一个函数进行list的修改，例如：custom_fun(name_list)
+name_list = custom_fun(name_list)
 # 将调整后的名称传入比较接口
-dif.compare_npy_dir(name_map_list=name_list)
+ts.diff_handler.compare_npy_dir(name_map_list=name_list)
 ```
 
 ## 应用场景5：比较mindspore和pytorch网络输出是否一致
