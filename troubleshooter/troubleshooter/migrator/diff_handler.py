@@ -29,7 +29,8 @@ class DifferenceFinder:
     def get_filename_map_list(self):
         name_map_list = []
         orig_name_list = find_file(self.orig_dir)
-        orig_name_list.sort()
+        #orig_name_list.sort()
+        #orig_name_list = sorted(orig_name_list, key=lambda x: os.path.getctime(os.path.join(file_path, x)))
         target_name_list = find_file(self.target_dir)
         none_flag = False
 
@@ -71,6 +72,7 @@ class DifferenceFinder:
         result_list = []
         normal_orig_dir = validate_and_normalize_path(self.orig_dir)
         normal_target_dir = validate_and_normalize_path(self.target_dir)
+
         for name_map in name_map_list:
             orig_name = name_map[0]
             target_name = name_map[1]
@@ -96,6 +98,45 @@ class DifferenceFinder:
                               self.orig_dir, self.target_dir)
         print_diff_result(result_list)
 
+    def _sort_list(self,lst):
+        def key_func(s):
+            name = os.path.splitext(s)[0]
+            parts = name.split('_')
+            return int(parts[0]),int(parts[-1])
+        lst.sort(key=key_func)
+        return lst
+
+
+    def get_grad_filename_map_list(self,orig_dir, target_dir):
+        name_map_list = []
+        orig_name_list = find_file(orig_dir)
+        target_name_list = find_file(target_dir)
+
+        none_flag = False
+        if not (orig_name_list and target_name_list):
+            logger.user_error("The comparison file is not found in the directory. Please \
+                check whether the directory is correct")
+            exit(1)
+
+        orig_name_list = self._sort_list(orig_name_list)
+        target_name_list = self._sort_list(target_name_list)
+
+        if(len(orig_name_list) != len(target_name_list)):
+            logger.user_warning("The number of files is not equal. Some files can not be mapped. "
+                                "Number of files in the original directory is %d, "
+                                "Number of files in the target directory is %d",
+                                len(orig_name_list),len(target_name_list))
+
+        for grad_orig, grad_target in zip(orig_name_list, target_name_list):
+             name_map_list.append((grad_orig, grad_target))
+
+        return name_map_list
+
+    def compare_grads_dir(self, orig_dir, target_dir ,*, name_map_list=None, **kwargs):
+        if name_map_list is None:
+            name_map_list = self.get_grad_filename_map_list(orig_dir, target_dir)
+        self.compare_npy_dir(name_map_list=name_map_list, **kwargs)
+
 
 def cal_algorithm(orig_value, target_value, rtol, atol, equal_nan):
     if orig_value.shape == target_value.shape:
@@ -112,9 +153,10 @@ def cal_algorithm(orig_value, target_value, rtol, atol, equal_nan):
         rel_ratio = np.isclose(orig_value, target_value, rtol=rtol, atol=atol,
                                equal_nan=equal_nan).sum()/np.size(orig_value)
     else:
-        result = False
-        diff_detail = ("Shape is inconsistent",
-                       orig_value.shape, target_value.shape)
+        result = "Shape is inconsistent"
+        rel_ratio = 0
+        cosine_sim = 0
+        diff_detail = ()
 
     return result, rel_ratio, cosine_sim, diff_detail
 
