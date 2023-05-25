@@ -162,3 +162,4 @@ def _sort_list(lst):
 
     lst.sort(key=key_func)
     return lst
+

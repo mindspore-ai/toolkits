@@ -233,41 +233,25 @@ ts.diff_handler.compare_npy_dir(name_map_list=name_list)
 
 | 参数         | 类型                      | 说明                                                         |
 | ------------ | ------------------------- | ------------------------------------------------------------ |
-| ms_net       | mindspore.nn.Cell         | mindspore模型实例                                            |
-| pt_net       | torch.nn.Module           | torch模型实例                                                |
-| input_data   | Union(list[Iterable[np.array]], list[Iterable[str]]) | 模型的输入。支持多输入，每个输入使用一个list。当list中为array时，将会依序使用其中的array作为模型的输入，每个array形状与模型输入形状相同，以图像分类任务为例，输入形状为[batch_size, num_channel, w, h]；当为str时，将会加载相应位置的npy文件作为模型输入。 对于单输入情况，用户需要传入[[input1, input2, ...]] 或者 [['input1.npy', 'input2.npy', ...]]；对于多输入，用户应当传入[[input1_1, input1_2, ...], [input2_1, input2_2, ...]]或者[['input1_1.npy', 'input1_2.npy', ...], ['input2_1.npy', 'input2_2.npy', ...]]|
-| out_path     | str                       | 结果保存的文件夹，例如，'troubleshooter/results'            |
-| print_result | bool                      | 是否打印输出结果，以及中间过程                               |
+| ms_net       | `mindspore.nn.Cell`         | mindspore模型实例                                            |
+| pt_net       | `torch.nn.Module`           | torch模型实例                                                |
+| input_data   | 单输入：`Union(tuple[torch.tensor], tuple[mindspore.Tensor], tuple[numpy.ndarray], tuple[str])`；多输入：`list[Union(tuple[torch.tensor], tuple[mindspore.Tensor], tuple[numpy.ndarray], tuple[str])]`|模型输入。模型输入支持`torch.Tensor`, `mindspore.Tensor`, `np.ndarray`以及`str`，每个`tuple`中包含一个模型输入；当用户想要同时验证多组数据时，请使用一个列表存放所有输入。|
+|auto_input_data|单输入：`tuple[tuple[numpy.shape, numpy.dtype]]`；多输入：`{'input': tuple[tuple[numpy.shape, numpy.dtype]], 'num':int}`|默认为`None`，为了方便用户快速验证。用户可以不输入`input_data`，而是输入`auto_input_data`，`auto_input_data`每一个元素为模型输入的`shape`，如果需要使用多次测试，可以传入一个字典，字典的键为`'input'`和`'num'`，分别表示每次的输入以及输入个数|
 
 ### 如何使用
 
 可以参考troubleshooter/tests/diff_handler/test_netdifffinder.py中的使用方法，或者下面的使用方法：
 
 ```python
-# 构造输入，这里假设测试用例有两个，分别为input1，input2；
-input1 = [np.random.randn(1, 12).astype(np.float32), np.random.randn(1, 13).astype(np.float32)]
-input2 = [np.random.randn(1, 12).astype(np.float32), np.random.randn(1, 13).astype(np.float32)]
-# 实例化mindspore模型以及torch模型
-ms_net = MSNet()
-pt_net = TorchNet()
-diff_finder = ts.NetDifferenceFinder(
-  ms_net=ms_net,
-  pt_net=pt_net,
-  inputs=[input1, input2],
-  out_path='troubleshooter/tests/diff_handler/results', 
-  print_result=False,
-)
-diff_finder.compare()
+    pt_net = ConstTorch()
+    ms_net = ConstMS()
+    diff_finder = ts.NetDifferenceFinder(
+        pt_net=pt_net,
+        ms_net=ms_net,
+        auto_input=(((1, 12), np.float32), ))
+    diff_finder.compare()
 ```
-
-### 结果展示
-
-命令：
-
-```python
-python troubleshooter/tests/diff_handler/test_netdifffinder.py
-```
-
 输出结果：
 
 ![网络输出对比结果展示](images/outputcompare.png)
+

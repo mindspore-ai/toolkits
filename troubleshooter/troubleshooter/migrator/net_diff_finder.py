@@ -32,13 +32,13 @@ TITLE = 'The comparison results of Net'
 FIELD_NAMES = ["pt data", "ms data",
                "results of comparison", "match ratio", "cosine similarity", "(mean, max, min)"]
 
-
 class NetDifferenceFinder:
 
-    def __init__(self, pt_net, ms_net, inputs, **kwargs):
+    def __init__(self, pt_net, ms_net, inputs=None, auto_input=None, **kwargs):
         self.ms_net = ms_net
         self.pt_net = pt_net
         self.inputs = inputs
+        self.auto_input = auto_input
         self.print_result = kwargs.get('print_result', True)
         self.auto_conv_ckpt = kwargs.get('auto_conv_ckpt', True)
         self.fix_random_sed = kwargs.get('fix_random_sed', 16)
@@ -50,44 +50,72 @@ class NetDifferenceFinder:
         self.atol = None
         self.equal_nan = None
 
-
+    def build_auto_input(self):
+        self.inputs = list()
+        if self.auto_input:
+            if isinstance(self.auto_input, tuple):
+                for item in self.auto_input:
+                    assert isinstance(item[0], tuple), "The shape of input data must be tuple"
+                    self.inputs.append(np.random.randn(*item[0]).astype(item[1]))
+                self.inputs = tuple(self.inputs)
+            elif isinstance(self.auto_input, dict):
+                assert 'input' in self.auto_input.keys(), "The keys of auto_input must contain 'input'"
+                assert 'num' in self.auto_input.keys(), "The keys of auto_input must contain 'num'"
+                tmp = []
+                for item in self.auto_input['input']:
+                    assert isinstance(item[0], tuple), "The shape of input data must be tuple"
+                    tmp.append(np.random.randn(*item[0]).astype(item[1]))
+                tmp = tuple(tmp)
+                self.inputs = [tmp] * self.auto_input['num']
+            else:
+                logger.user_error(
+                    'Unknow auto_input type {}'.format(type(self.auto_input)))
+                exit(1)
+    
+    def convert_data_format(self):
+        inputs = []
+        if isinstance(self.inputs, tuple):
+            inputs.append(self.inputs)
+        elif isinstance(self.inputs, list):
+            inputs = self.inputs
+        self.inputs = inputs
+        
     def compare(self, **kwargs):
+        if self.auto_input:
+            self.build_auto_input()
+        self.convert_data_format()
         compare_results = []
-
         self.rtol = kwargs.get('rtol', 1e-04)
         self.atol = kwargs.get('atol', 1e-08)
         self.equal_nan = kwargs.get('equal_nan', False)
-
         if self.fix_random_sed is not None:
             self._fix_random(self.fix_random_sed)
-
         if self.auto_conv_ckpt:
             self._conv_compare_ckpt();
             self._load_conve_ckpt();
-
         for idx, input in enumerate(self.inputs):
             input_data = self.get_input_data(input)
             result_ms, result_pt = self.infer_net(
                 input_data, self.ms_net, self.pt_net, idx)
             self.check_output(result_ms, result_pt)
-            #if idx != 0:
-            #    compare_results.append(['', '', '', '', ''])
             compare_results.extend(
                 self.compare_results(result_ms, result_pt, idx))
         self.save_results(compare_results)
-
+        
         print_diff_result(compare_results, title=TITLE, field_names=FIELD_NAMES)
 
     def get_input_data(self, input):
         input_data = []
-        if isinstance(input, dict):
-            input_data = list(input.values())
-        else:
+        if isinstance(input, tuple): # for multiple inputs
             for data in input:
                 if isinstance(data, str):
                     input_data.append(np.load(data))
                 elif isinstance(data, np.ndarray):
                     input_data.append(data)
+                elif isinstance(data, torch.Tensor):
+                    input_data.append(data.numpy())
+                elif isinstance(data, ms.Tensor):
+                    input_data.append(data.asnumpy())
                 else:
                     logger.user_error(
                         'Unknow input data type {}'.format(type(data)))
@@ -132,13 +160,17 @@ class NetDifferenceFinder:
         result_ms = self.run_ms_net(ms_net, input_data)
         end_ms = time.time()
         print(f"In test case {idx}, the MindSpore net inference completed cost %.5f seconds." % (
-                end_ms - start_ms))
-        if isinstance(result_ms, (tuple, list, ms.Tensor)):
+            end_ms - start_ms))
+        if isinstance(result_ms, (tuple, list)):
             result_ms = {f"result_{idx}": result for idx,
-            result in enumerate(result_ms)}
-        if isinstance(result_pt, (tuple, list)) or torch.is_tensor(result_pt):
+                         result in enumerate(result_ms)}
+        elif isinstance(result_ms, ms.Tensor):
+            result_ms = {"result": result_ms}
+        if isinstance(result_pt, (tuple, list)):
             result_pt = {f"result_{idx}": result for idx,
-            result in enumerate(result_pt)}
+                         result in enumerate(result_pt)}
+        elif torch.is_tensor(result_pt):
+            result_pt = {"result": result_pt}
         return result_ms, result_pt
 
     def run_pt_net(self, pt_net, input_data_list):
@@ -175,6 +207,10 @@ class NetDifferenceFinder:
                 self.save_out_data(index, k_ms, k_pt, result_ms_, result_pt_)
                 result_pt_ = result_pt_.reshape(1, -1)
                 result_ms_ = result_ms_.reshape(1, -1)
+                OUTPUT_TYPE_ERROR = "The type of output is not as expected, \
+                    the type of output should be numpy.ndarray or torch.Tensor or mindspore.Tensor." 
+                assert isinstance(result_ms_, np.ndarray), OUTPUT_TYPE_ERROR
+                assert isinstance(result_pt_, np.ndarray), OUTPUT_TYPE_ERROR
                 result, rel_ratio, cosine_sim, diff_detail = cal_algorithm(result_ms_, result_pt_, self.rtol,
                                                                            self.atol, self.equal_nan)
                 org_name, targ_name = f"test{idx}-{k_ms}", f"test{idx}-{k_pt}"
