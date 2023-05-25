@@ -54,10 +54,31 @@ def fix_random(seed):
             torch.backends.cudnn.enabled = True
             torch.manual_seed(seed)
         if FW_MS:
-            mindspore.set_seed(1)
+            mindspore.set_seed(seed)
 
 
-def _load_ms_weight(model,file):
+def get_pt_grads(model):
+    grads_dict = {}
+    i=0
+    for name ,params in model.named_parmeters():
+        name = name + '-' + str(i)
+        grads_dict.update({name:params.grad})
+        i += 1
+    return grads_dict
+
+
+def load_ms_weight2net(model,file):
     param = mindspore.load_checkpoint(file)
     mindspore.load_param_into_net(model, param)
+
+def _object_load(file):
+    import pickle
+    with open(file,'rb') as f:
+        obj = pickle.load(f)
+    return obj
+
+def _object_dump(obj, file):
+    import pickle
+    with open(file,'wb') as f:
+        pickle.dump(obj,f)
 
