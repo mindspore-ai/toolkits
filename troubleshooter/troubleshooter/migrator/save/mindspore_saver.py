@@ -41,16 +41,8 @@ class _SaveTensorMindspore(ms.nn.Cell, SaveTensorBase):
             raise TypeError(f"For 'ts.save', the type of argument 'data' must be mindspore.Tensor or torch.tensor, " \
                             f"but got {type(data)}")
 
-    def _sync(self):
-        print()
-
     def construct(self, file, data, auto_id=True, suffix=None):
-        path, name = self._handle_path(file)
-        self._sync()
-        self._save_tensors(path, name, data, auto_id, suffix)
-        if auto_id:
-            self._cnt += 1
-        return None
+        return self._save(file, data, auto_id, suffix)
 
 
 save = _SaveTensorMindspore()

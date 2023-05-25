@@ -80,3 +80,10 @@ class SaveTensorBase:
         else:
             path, name = "", ""
         return path, name
+
+    def _save(self, file, data, auto_id=True, suffix=None):
+        path, name = self._handle_path(file)
+        self._save_tensors(path, name, data, auto_id, suffix)
+        if auto_id:
+            self._cnt += 1
+        return None

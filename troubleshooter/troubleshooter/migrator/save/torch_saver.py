@@ -40,11 +40,7 @@ class _SaveTensorTroch(SaveTensorBase):
                             f"but got {type(data)}")
 
     def __call__(self, file, data, auto_id=True, suffix=None):
-        path, name = self._handle_path(file)
-        self._save_tensors(path, name, data, auto_id, suffix)
-        if auto_id:
-            self._cnt += 1
-        return None
+        return self._save(file, data, auto_id, suffix)
 
 
 save = _SaveTensorTroch()
