@@ -152,16 +152,27 @@ def none_and_isfile_check(file_name, name_str):
 
 def all_none_or_isfile_check(file_name, file_name_str, obj, obj_str):
     if file_name is not None:
-        isfile_check(file_name,file_name_str)
+        isfile_check(file_name, file_name_str)
     elif file_name is None and obj is None:
         raise ValueError("The parameters '{0}' or '{1}' must be set to one".format(file_name_str, obj_str))
 
-def dir_exist_check(file_path,name_str):
+def dir_exist_check(file_path, name_str):
     if file_path is not None:
         file_dir, _ = os.path.split(validate_and_normalize_path(file_path))
         if not os.path.exists(file_dir):
             raise ValueError("The parameter '{0}' error,"
                              "The dir '{1}' does not exist. Please create the path first.".format(name_str, file_dir))
+
+
+
+def none_and_isdir_check(file_dir, name_str):
+    if file_dir is None:
+        raise ValueError("The parameter '{0}' cannot be None.".format(name_str))
+    else:
+        if not os.path.isdir(file_dir) or not os.path.exists(file_dir):
+            raise ValueError("The parameter '{0}' error,"
+                             "'{1}' is not a dir or the dir does not exist.".format(name_str, file_dir))
+
 
 def type_check(param, name_str, param_type):
     if param and not isinstance(param, param_type):

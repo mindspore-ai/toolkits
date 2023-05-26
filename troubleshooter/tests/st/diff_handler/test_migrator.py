@@ -449,8 +449,8 @@ def test_compare_pth_value_case(capsys):
     mindspore.save_checkpoint(ms_net, ckpt_path)
     map_file_path = "/tmp/torch_net_map.json"
     ts.weight_migrator.get_weight_map(pt_model=torch_net, weight_map_save_path=map_file_path, print_map=True)
-    ts.weight_migrator.compare_pt_and_ms_parameter(weight_map_path=map_file_path,
-                                                   pt_file_path=pth_path, ms_file_path=ckpt_path)
+    ts.weight_migrator.compare_pth_and_ckpt(weight_map_path=map_file_path,
+                                            pt_file_path=pth_path, ms_file_path=ckpt_path)
 
     result = capsys.readouterr().out
     key_result = 'features.bn_mm.weight        |        features.bn_mm.gamma        |              True'

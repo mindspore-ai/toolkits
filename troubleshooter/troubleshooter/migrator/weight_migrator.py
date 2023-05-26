@@ -270,7 +270,7 @@ def compare_ms_ckpt(orig_file_path=None, target_file_path=None, **kwargs):
         print_diff_result(value_map_list, title, field_names)
 
 
-def compare_pt_and_ms_parameter(weight_map_path=None, pt_file_path=None, ms_file_path=None, **kwargs):
+def compare_pth_and_ckpt(weight_map_path=None, pt_file_path=None, ms_file_path=None, **kwargs):
     temp_save_path = validate_and_normalize_path(kwargs.get('temp_save_path', './'))
     timestamp = time.time()
     formatted_time = time.strftime('%Y%m%d-%H%M%S', time.localtime(timestamp))
