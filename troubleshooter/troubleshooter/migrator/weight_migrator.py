@@ -26,6 +26,13 @@ from troubleshooter import log as logger
 from troubleshooter.common.util import isfile_check, validate_and_normalize_path,\
     none_and_isfile_check, all_none_or_isfile_check, dir_exist_check, type_check, clear_tmp_file
 
+__all__ = [
+    "get_weight_map",
+    "convert_weight",
+    "compare_ms_ckpt",
+    "compare_pth_and_ckpt",
+]
+
 
 def _get_para_dict(pth_file_path):
     pt_object = torch.load(pth_file_path, map_location='cpu')
@@ -91,15 +98,12 @@ def _custorm_weight_name_prefix(weight_name_map, prefix=None):
         return weight_name_map
 
 
-def get_weight_map(pt_model=None, weight_map_save_path=None, **kwargs):
-    weight_name_prefix = kwargs.get('weight_name_prefix', None)
-    custom_name_func = kwargs.get('custom_name_func', None)
-    print_map = kwargs.get('print_map', False)
+def get_weight_map(pt_model=None, weight_map_save_path=None, weight_name_prefix=None, custom_name_func=None, print_map=False, **kwargs):
     res_weight_name_map = {}
     res_weight_value_map = {}
     full_weight_name_map = {}
 
-    if not isinstance(pt_model,torch.nn.Module):
+    if not isinstance(pt_model, torch.nn.Module):
         raise TypeError("The parameter 'pt_model' must be torch.nn.Module")
 
     if custom_name_func and not callable(custom_name_func):

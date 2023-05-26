@@ -25,14 +25,6 @@ and use @snooping(...) to print the running result information of echo line code
 from __future__ import absolute_import
 from troubleshooter.common import FRAMEWORK_TYPE
 from troubleshooter import common, migrator, proposer, tracker
-from troubleshooter.migrator import *
+from troubleshooter.migrator import save
 from troubleshooter.proposer import ProposalAction as proposal
 from troubleshooter.tracker import Tracker as tracking
-
-if {"torch", "mindspore"}.issubset(FRAMEWORK_TYPE):    
-    from troubleshooter.migrator import weight_migrator
-    from troubleshooter.migrator.net_diff_finder import NetDifferenceFinder
-else:
-    from troubleshooter.common.framework_detection import weight_migrator
-    from troubleshooter.common.framework_detection import WeightMigrator
-    from troubleshooter.common.framework_detection import NetDifferenceFinder

@@ -11,36 +11,47 @@
 ```python
 import troubleshooter as ts
 
-# pytroch的resnet50网络
-net = resnet50(num_classes=10).cuda() if use_cuda else resnet50(num_classes=10)
-pth_path="/mnt/d/06_project/m/resnet_pytorch_res/resnet_pytroch_res/resnet.pth"
+torch_net = resnet50(num_classes=10)
+pth_path="./resnet.pth"
 
-# pt_model：pytorch网络名称
-# pth_file_path：要转换的pth文件路径
-# 注意：支持模型（例如：torch.save(torch_net, "torch_net.pth") ）和参数（例如：torch.save(torch_net.state_dict(), "torch_net.pth")
-#      两种形式保存后的pth文件的自动加载，如果保存的pth文件内容经过定制，不能进行自动加载，可使用"pth_para_dict"直接传入加载并解析后的
-#      权重参数字典
-# pth_para_dict: 直接传入权重参数字典，当配置此项时pth_file_path参数将失效
-# ckpt_save_path：保存MindSpore的ckpt的路径与文件名称
-wm = ts.WeightMigrator(pt_model=net, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
-# 调用转换接口
-wm.convert()
+"""
+pt_model：pytorch网络实例。支持模型（例如：torch.save(torch_net, "torch_net.pth") ）和
+参数（例如：torch.save(torch_net.state_dict(), "torch_net.pth"), 两种形式保存后的pth文件
+的自动加载。如果保存的pth文件内容经过定制，不能进行自动加载，可使用"pth_para_dict"直接传入加载
+并解析后的权重参数字典；
+weight_map_save_path：转换后的权重映射表路径；
+print_map: 是否打印映射表。
+"""
+ts.migrator.get_weight_map(pt_model=torch_net,
+                           weight_map_save_path="/tmp/torch_net_map.json",
+                           print_map=True)
+"""
+weight_map_path: get_weight_map生成的权重映射表路径；
+pt_file_path: pytorch的pth文件路径；
+ms_file_save_path: 转换后的MindSpore的ckpt文件路径。
+"""
+ts.migrator.convert_weight(weight_map_path="/tmp/torch_net_map.json",
+                           pt_file_path="/tmp/torch_net.pth",
+                           ms_file_save_path='/tmp/convert_resnet.ckpt')
 ```
 ### 如何使用2-网络结构有一定差异，需要定制权重名称前缀
 
 ```python
 import troubleshooter as ts
 
-# pytroch的resnet50网络
-net = resnet50(num_classes=10).cuda() if use_cuda else resnet50(num_classes=10)
-pth_path="/mnt/d/06_project/m/resnet_pytorch_res/resnet_pytroch_res/resnet.pth"
+# pytorch的resnet50网络
+torch_net = resnet50(num_classes=10)
+pth_path="./resnet.pth"
 
-# pt_model：pytorch网络名称
-# pth_file_path：要转换的pth文件路径
-# ckpt_save_path：保存MindSpore的ckpt的路径与文件名称
-wm = ts.WeightMigrator(pt_model=net, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
+# weight_name_prefix：需要添加的权重前缀
+ts.migrator.get_weight_map(pt_model=torch_net,
+                           weight_map_save_path="/tmp/torch_net_map.json",
+                           weight_name_prefix='uvp',
+                           print_map=True)
 # 调用转换接口
-wm.convert(weight_name_prefix="uvp", print_conv_info=True)
+ts.migrator.convert_weight(weight_map_path="/tmp/torch_net_map.json",
+                           pt_file_path="/tmp/torch_net.pth",
+                           ms_file_save_path='/tmp/convert_resnet.ckpt')
 ```
 
 ### 如何使用3-网络结构有一定差异，需要对权重名称做复杂的定制转换
@@ -59,28 +70,24 @@ def custorm_weight_name(weight_name_map):
         custorm_name_map[key] = str(value)
     return custorm_name_map
 
-# pytroch的resnet50网络
-net = resnet50(num_classes=10).cuda() if use_cuda else resnet50(num_classes=10)
-pth_path="/mnt/d/06_project/m/resnet_pytorch_res/resnet_pytroch_res/resnet.pth"
+# pytorch的resnet50网络
+torch_net = resnet50(num_classes=10)
+pth_path="./resnet.pth"
 
-# pt_model：pytorch网络名称
-# pth_file_path：要转换的pth文件路径
-# ckpt_save_path：保存MindSpore的ckpt的路径与文件名称
-wm = ts.WeightMigrator(pt_model=net, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
+"""
+custom_name_func: 可封装定制函数，例如：custorm_weight_name，完成映射关系的定制
+"""
+ts.migrator.get_weight_map(pt_model=torch_net,
+                           weight_map_save_path="/tmp/torch_net_map.json",
+                           custom_name_func=custorm_weight_name,
+                           print_map=True)
 
-# 用户获得根据默认规则转换后的map，get_weight_map返回两个map，一个是name map用于名称转换，一个是value map用于值转换，此例子只有
-# name map full_name_map:get_weight_map默认只返回自动转换的权重名称映射字典，配置为True则会返回所有权重名称映射字典，便于
-# 用户进行批量名称定制print_map：打印映射的map
-name_map, value_map = wm.get_weight_map(full_name_map=True, print_map=True)
+# 调用转换接口
+ts.migrator.convert_weight(weight_map_path="/tmp/torch_net_map.json",
+                           pt_file_path="/tmp/torch_net.pth",
+                           ms_file_save_path='/tmp/convert_resnet.ckpt')
 
-# 用户可封装定制函数，例如：custorm_weight_name，然后通过修改w_map内容，完成映射关系的定制
-w_map = custorm_weight_name(name_map)
-
-# 将定制好的map传入转换接口
-# weight_name_map：传入定制后的map，以定制后的map进行权重名称转换
-wm.convert(weight_name_map=w_map)
-
-# 执行结果：根据定制所有参数名称增加一个层custorm ，执行后举例: features.Linear_mm.weight 参数名称将转换为 
+# 执行结果：根据定制所有参数名称增加一个层custorm ，执行后举例: features.Linear_mm.weight 参数名称将转换为
 # features.custorm.Linear_mm.weight
 ```
 
@@ -95,23 +102,16 @@ wm.convert(weight_name_map=w_map)
 ```python
 import troubleshooter as ts
 
-# pytroch的resnet50网络
-net = resnet50(num_classes=10).cuda() if use_cuda else resnet50(num_classes=10)
-pth_path="/mnt/d/06_project/m/resnet_pytorch_res/resnet_pytroch_res/resnet.pth"
+weight_map_path = "./torch_net_map.json"
+pth_path = "./resnet.pth"
+ms_path = "./resnet.ckpt"
 
-# pt_model：pytorch网络名称
-# pth_file_path：要转换的pth文件路径
-# ckpt_save_path：保存MindSpore的ckpt的路径与文件名称
-wm = ts.WeightMigrator(pt_model=net, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
-# print_conv_info：为False则不打印转换结果
-wm.convert(print_conv_info=False)
-
-ms_path = "/mnt/d/06_project/m/docs-r1.9/docs-r1.9/docs/mindspore/source_zh_cn/migration_guide/code/resnet_convert/resnet_ms/resnet.ckpt"
-# ckpt_path：用户编写网络保存的ckpt文件路径
-# print_result：1 打印所有比对结果  2仅打印比对不上的结果
-# converted_ckpt_path：使用工具转换后的ckpt文件路径，在调用wm.convert后直接调用此接口，则不需要配置此参数。单独调用wm.compare_ckpt，
-# 则需要配置此参数。
-wm.compare_ckpt(ckpt_path=ms_path, print_result=1)
+"""
+weight_map_path: get_weight_map生成的权重映射表路径；
+pt_file_path: pytorch的pth文件路径；
+ms_file_path: 用户编写网络保存的ckpt文件路径。
+"""
+ts.migrator.compare_pth_and_ckpt(weight_map_path, pth_path, ms_path)
 ```
 
 ## 应用场景3：保存tensor
@@ -167,6 +167,14 @@ out1 = net(x1)
 
 out2 = net(x2)
 # /tmp/save/1_ms_tensor.npy
+
+out3 = net([x1, x2])
+# /tmp/save/2_ms_tensor_0.npy
+# /tmp/save/2_ms_tensor_1.npy
+
+out4 = net({"x1": x1, "x2":x2})
+# /tmp/save/3_ms_tensor_x1.npy
+# /tmp/save/3_ms_tensor_x2.npy
 ```
 
 **支持pytorch**
@@ -177,8 +185,8 @@ import shutil
 
 import troubleshooter as ts
 import torch
-x1 = torch.tensor(-0.5962, dtype=torch.float32)
-x2 = torch.tensor(0.4985, dtype=torch.float32)
+x1 = torch.tensor([-0.5962, 0.3123], dtype=torch.float32)
+x2 = torch.tensor([[0.4985],[0.4323]], dtype=torch.float32)
 
 try:
     shutil.rmtree("/tmp/save/")
@@ -192,6 +200,9 @@ ts.save(file, x1)
 # /tmp/save/0_torch_tensor.npy
 ts.save(file, x2)
 # /tmp/save/1_torch_tensor.npy
+ts.save(None, {"x1":x1, "x2":x2}, suffix="torch")
+# ./2_tensor_(2,)_x1_torch.npy
+# ./2_tensor_(2, 1)_x2_torch.npy
 ```
 
 ## 应用场景4：比较两组tensor值(npy文件)是否相等
@@ -207,7 +218,7 @@ import troubleshooter as ts
 ta = "/mnt/d/06_project/troubleshooter/troubleshooter/tests/diff_handler/ta"
 tb = "/mnt/d/06_project/troubleshooter/troubleshooter/tests/diff_handler/tb"
 # 比较ta与tb目录下名称可以映射的npy文件的值
-ts.diff_handler.compare_npy_dir(ta, tb)
+ts.migrator.compare_npy_dir(ta, tb)
 ```
 
 ### 如何使用2-两个目录下名称不能完全映射，需要手工调整
@@ -218,11 +229,11 @@ import troubleshooter as ts
 ta = "/mnt/d/06_project/troubleshooter/troubleshooter/tests/diff_handler/ta"
 tb = "/mnt/d/06_project/troubleshooter/troubleshooter/tests/diff_handler/tb"
 # 可以通过如下接口获取名称映射列表，对npy文件名称映射进行调整
-name_list = ts.diff_handler.get_filename_map_list(ta, tb)
+name_list = ts.migrator.get_filename_map_list(ta, tb)
 # 通过自定定义一个函数进行list的修改，例如：custom_fun(name_list)
 name_list = custom_fun(name_list)
 # 将调整后的名称传入比较接口
-ts.diff_handler.compare_npy_dir(name_map_list=name_list)
+ts.migrator.compare_npy_dir(name_map_list=name_list)
 ```
 
 ## 应用场景5：比较mindspore和pytorch网络输出是否一致
@@ -245,7 +256,7 @@ ts.diff_handler.compare_npy_dir(name_map_list=name_list)
 ```python
     pt_net = ConstTorch()
     ms_net = ConstMS()
-    diff_finder = ts.NetDifferenceFinder(
+    diff_finder = ts.migrator.NetDifferenceFinder(
         pt_net=pt_net,
         ms_net=ms_net,
         auto_input=(((1, 12), np.float32), ))

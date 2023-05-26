@@ -19,6 +19,14 @@ from troubleshooter.common.format_msg import print_diff_result
 from troubleshooter.common.util import validate_and_normalize_path, find_file, none_and_isdir_check
 from troubleshooter import log as logger
 
+__all__ = [
+    "get_filename_map_list",
+    "compare_npy_dir",
+    "get_list_filename_map_list",
+    "compare_list_npy_dir",
+    "cal_algorithm",
+    "cal_cosine_sim"
+]
 
 def get_filename_map_list(orig_dir, target_dir):
     name_map_list = []

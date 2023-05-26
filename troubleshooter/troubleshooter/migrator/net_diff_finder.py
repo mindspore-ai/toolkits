@@ -31,6 +31,10 @@ PT_OUTPUT_PATH = "data/output/PyTorch"
 TITLE = 'The comparison results of Net'
 FIELD_NAMES = ["pt data", "ms data",
                "results of comparison", "match ratio", "cosine similarity", "(mean, max, min)"]
+__all__ = [
+    "NetDifferenceFinder",
+]
+
 
 class NetDifferenceFinder:
 
