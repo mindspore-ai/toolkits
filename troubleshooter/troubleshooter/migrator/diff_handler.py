@@ -16,7 +16,7 @@
 import numpy as np
 import os
 from troubleshooter.common.format_msg import print_diff_result
-from troubleshooter.common.util import validate_and_normalize_path, find_file
+from troubleshooter.common.util import validate_and_normalize_path, find_file, none_and_isdir_check
 from troubleshooter import log as logger
 
 
@@ -53,8 +53,8 @@ def get_filename_map_list(orig_dir, target_dir):
 
 
 def compare_npy_dir(orig_dir, target_dir, *, name_map_list=None, **kwargs):
-    """
-    """
+    none_and_isdir_check(orig_dir, 'orig_dir')
+    none_and_isdir_check(target_dir, 'target_dir')
     if name_map_list is None:
         name_map_list = get_filename_map_list(orig_dir, target_dir)
 
@@ -92,7 +92,6 @@ def compare_npy_dir(orig_dir, target_dir, *, name_map_list=None, **kwargs):
     print_diff_result(result_list)
 
 
-
 def get_list_filename_map_list(orig_dir, target_dir):
     name_map_list = []
     orig_name_list = find_file(orig_dir)
@@ -114,6 +113,8 @@ def get_list_filename_map_list(orig_dir, target_dir):
 
 
 def compare_list_npy_dir(orig_dir, target_dir, *, name_map_list=None, **kwargs):
+    none_and_isdir_check(orig_dir, 'orig_dir')
+    none_and_isdir_check(target_dir, 'target_dir')
     if name_map_list is None:
         name_map_list = get_list_filename_map_list(orig_dir, target_dir)
     compare_npy_dir(name_map_list=name_map_list, **kwargs)

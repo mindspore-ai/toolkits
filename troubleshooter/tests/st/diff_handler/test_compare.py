@@ -7,15 +7,14 @@ import troubleshooter as ts
 def test_compare_npy_dir(capsys):
     data1 = np.random.rand(1, 3, 2).astype(np.float32)
     data2 = np.random.rand(1, 3, 2).astype(np.float32)
-
     path1 = "/tmp/troubleshooter_ta/"
     path2 = "/tmp/troubleshooter_tb/"
-    isexists  =os.path.exists(path1)
-    if not isexists:
+    is_exists = os.path.exists(path1)
+    if not is_exists:
         os.makedirs(path1)
 
-    isexists = os.path.exists(path2)
-    if not isexists:
+    is_exists = os.path.exists(path2)
+    if not is_exists:
         os.makedirs(path2)
 
     np.save('/tmp/troubleshooter_ta/data1.npy',data1)
