@@ -30,10 +30,9 @@ from troubleshooter.proposer import ProposalAction as proposal
 from troubleshooter.tracker import Tracker as tracking
 
 if {"torch", "mindspore"}.issubset(FRAMEWORK_TYPE):    
-    from troubleshooter.migrator.weight_migrator import WeightMigrator as weight_migrator
-    from troubleshooter.migrator.weight_migrator import WeightMigrator
+    from troubleshooter.migrator import weight_migrator
     from troubleshooter.migrator.net_diff_finder import NetDifferenceFinder
 else:
-    from troubleshooter.common.framework_detection import WeightMigrator as weight_migrator
+    from troubleshooter.common.framework_detection import weight_migrator
     from troubleshooter.common.framework_detection import WeightMigrator
     from troubleshooter.common.framework_detection import NetDifferenceFinder

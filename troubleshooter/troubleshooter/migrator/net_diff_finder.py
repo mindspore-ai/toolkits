@@ -20,7 +20,7 @@ import os
 import random
 import time
 import torch
-from troubleshooter import WeightMigrator
+from troubleshooter.migrator import weight_migrator
 from troubleshooter import log as logger
 from troubleshooter.migrator.diff_handler import cal_algorithm
 from troubleshooter.common.util import save_numpy_data, validate_and_normalize_path
@@ -140,9 +140,14 @@ class NetDifferenceFinder:
 
     def _conv_compare_ckpt(self):
         self._save_ckpt()
-        wm = WeightMigrator(pt_model=self.pt_net, pth_file_path=self.pt_org_pth, ckpt_save_path=self.conv_ckpt_name)
-        wm.convert()
-        wm.compare_ckpt(ckpt_path=self.ms_org_ckpt)
+
+        weight_map = weight_migrator.get_weight_map(pt_model=self.pt_net, print_map=True)
+        weight_migrator.convert_weight(weight_map=weight_map, pt_file_path=self.pt_org_pth,
+                                       ms_file_save_path=self.conv_ckpt_name, print_level=0)
+        weight_migrator.compare_ms_ckpt(orig_file_path=self.conv_ckpt_name,
+                                        target_file_path=self.ms_org_ckpt,
+                                        compare_value=True,
+                                        weight_map=weight_map)
 
     def _load_conve_ckpt(self):
         param_dict = ms.load_checkpoint(self.conv_ckpt_name)
