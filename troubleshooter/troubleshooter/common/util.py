@@ -134,3 +134,40 @@ def save_numpy_data(file_path, data):
     if not os.path.exists(os.path.dirname(file_path)):
         os.makedirs(os.path.dirname(file_path))
     np.save(file_path, data)
+
+def isfile_check(file_name, name_str):
+    if file_name is not None:
+        file_name = validate_and_normalize_path(file_name)
+        if not os.path.isfile(file_name):
+           raise ValueError("The parameter '{0}' must be a file".format(name_str))
+
+
+def none_and_isfile_check(file_name, name_str):
+    if file_name is None:
+        raise ValueError("The parameter '{0}' cannot be None.".format(name_str))
+    else:
+        file_name = validate_and_normalize_path(file_name)
+        if not os.path.isfile(file_name):
+           raise ValueError("The parameter '{0}' must be a file".format(name_str))
+
+def all_none_or_isfile_check(file_name, file_name_str, obj, obj_str):
+    if file_name is not None:
+        isfile_check(file_name,file_name_str)
+    elif file_name is None and obj is None:
+        raise ValueError("The parameters '{0}' or '{1}' must be set to one".format(file_name_str, obj_str))
+
+def dir_exist_check(file_path,name_str):
+    if file_path is not None:
+        file_dir, _ = os.path.split(validate_and_normalize_path(file_path))
+        if not os.path.exists(file_dir):
+            raise ValueError("The parameter '{0}' error,"
+                             "The dir '{1}' does not exist. Please create the path first.".format(name_str, file_dir))
+
+def type_check(param, name_str, param_type):
+    if param and not isinstance(param, param_type):
+        raise TypeError("The parameter '{0}' must be bool".format(name_str))
+
+def clear_tmp_file(file):
+    if file:
+        os.remove(file)
+

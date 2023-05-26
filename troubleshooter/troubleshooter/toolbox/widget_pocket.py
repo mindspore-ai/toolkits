@@ -15,6 +15,7 @@
 import random
 import os
 import numpy as np
+from troubleshooter.common.util import validate_and_normalize_path
 
 FW_PT=True
 FW_MS=True
@@ -68,17 +69,33 @@ def get_pt_grads(model):
 
 
 def load_ms_weight2net(model,file):
+    file = validate_and_normalize_path(file)
     param = mindspore.load_checkpoint(file)
     mindspore.load_param_into_net(model, param)
 
-def _object_load(file):
+def _object_p_load(file):
     import pickle
+    file = validate_and_normalize_path(file)
     with open(file,'rb') as f:
         obj = pickle.load(f)
     return obj
 
-def _object_dump(obj, file):
+def _object_p_dump(obj, file):
     import pickle
+    file = validate_and_normalize_path(file)
     with open(file,'wb') as f:
         pickle.dump(obj,f)
+
+def object_load(file):
+    import json
+    file = validate_and_normalize_path(file)
+    with open(file,'r') as f:
+        obj = json.load(f)
+    return obj
+
+def object_dump(obj, file):
+    import json
+    file = validate_and_normalize_path(file)
+    with open(file,'w') as f:
+        json.dump(obj,f)
 

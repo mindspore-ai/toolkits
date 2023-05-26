@@ -69,8 +69,8 @@ def print_weight_compare_result(result_list, print_type=1, **kwargs):
         x.title = title
 
     if field_names is None:
-        x.field_names = ["Parameter name of converted ckpt", "Parameter name of input ckpt", "Whether shape are equal",
-                     "Parameter shape of converted ckpt", "Parameter shape of input ckpt"]
+        x.field_names = ["Parameter name of original ckpt", "Parameter name of target ckpt", "Whether shape are equal",
+                     "Parameter shape of original ckpt", "Parameter shape of target ckpt"]
     else:
         x.field_names = field_names
 
@@ -85,8 +85,9 @@ def print_weight_compare_result(result_list, print_type=1, **kwargs):
 def print_convert_result(result_list):
     x = PrettyTable()
     x.title = 'The list of conversion result'
-    x.field_names = ["Parameter name of pth", "Parameter name of converted ckpt", "Whether the name is converted",
-                     "Whether the weight value is converted", "Parameter shape of pth", "Parameter shape of ckpt"]
+    x.field_names = ["Parameter name of torch", "Parameter name of MindSpore", "Whether the name is converted",
+                     "Whether the weight value is converted", "Parameter shape of torch",
+                     "Parameter shape of MindSpore"]
     for result in result_list:
         x.add_row([result[0], result[1], result[2],
                   result[3], result[4], result[5]])

@@ -13,7 +13,7 @@
 # limitations under the License.
 # ============================================================================
 __all__ = [
-    'pocket'
+    'widget'
 ]
 
-from troubleshooter.toolbox import widget_pocket as pocket
+from troubleshooter.toolbox import widget_pocket as widget
