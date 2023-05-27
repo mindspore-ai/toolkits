@@ -104,8 +104,9 @@ def find_file(dir, suffix=".npy"):
             continue
         for file in files:
             file_name, suffix_name = os.path.splitext(file)
-            if suffix_name == suffix:
+            if suffix_name == suffix and root_path == normal_dir:
                 file_list.append(file)
+    file_list = sorted(file_list, key=lambda x: os.path.getctime(os.path.join(normal_dir, x)))
     return file_list
 
 

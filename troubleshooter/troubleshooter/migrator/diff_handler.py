@@ -24,6 +24,7 @@ __all__ = [
     "compare_npy_dir",
     "get_list_filename_map_list",
     "compare_list_npy_dir",
+    "compare_grads",
     "cal_algorithm",
     "cal_cosine_sim"
 ]
@@ -80,9 +81,11 @@ def compare_npy_dir(orig_dir, target_dir, *, name_map_list=None, **kwargs):
 
         if orig_name is None or target_name is None:
             result = False
+            rel_ratio = 0
+            cosine_sim = 0
             diff_detail = ()
             result_list.append(
-                (orig_name, target_name, result, diff_detail))
+                (orig_name, target_name, result, rel_ratio, cosine_sim,diff_detail))
             continue
 
         orig_file = os.path.join(normal_orig_dir, orig_name)
@@ -125,7 +128,7 @@ def compare_list_npy_dir(orig_dir, target_dir, *, name_map_list=None, **kwargs):
     none_and_isdir_check(target_dir, 'target_dir')
     if name_map_list is None:
         name_map_list = get_list_filename_map_list(orig_dir, target_dir)
-    compare_npy_dir(name_map_list=name_map_list, **kwargs)
+    compare_npy_dir(orig_dir, target_dir, name_map_list=name_map_list, **kwargs)
 
 
 compare_grads = compare_list_npy_dir
