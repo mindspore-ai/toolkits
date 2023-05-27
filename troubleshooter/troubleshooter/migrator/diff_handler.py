@@ -24,7 +24,7 @@ __all__ = [
     "compare_npy_dir",
     "get_list_filename_map_list",
     "compare_list_npy_dir",
-    "compare_grads",
+    "compare_grads_dir",
     "cal_algorithm",
     "cal_cosine_sim"
 ]
@@ -131,7 +131,7 @@ def compare_list_npy_dir(orig_dir, target_dir, *, name_map_list=None, **kwargs):
     compare_npy_dir(orig_dir, target_dir, name_map_list=name_map_list, **kwargs)
 
 
-compare_grads = compare_list_npy_dir
+compare_grads_dir = compare_list_npy_dir
 
 
 def cal_algorithm(orig_value, target_value, rtol, atol, equal_nan):
