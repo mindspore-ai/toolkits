@@ -17,6 +17,14 @@ import os
 import numpy as np
 from troubleshooter.common.util import validate_and_normalize_path
 
+__all__ = [
+    "fix_random",
+    "get_pt_grads",
+    "load_ms_weight2net",
+    "object_load",
+    "object_dump",
+]
+
 FW_PT=True
 FW_MS=True
 
@@ -61,8 +69,8 @@ def fix_random(seed):
 def get_pt_grads(model):
     grads_dict = {}
     i=0
-    for name ,params in model.named_parmeters():
-        name = name + '-' + str(i)
+    for name ,params in model.named_parameters():
+        name = name + '_' + str(i)
         grads_dict.update({name:params.grad})
         i += 1
     return grads_dict

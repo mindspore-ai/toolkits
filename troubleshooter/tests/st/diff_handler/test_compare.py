@@ -29,3 +29,4 @@ def test_compare_npy_dir(capsys):
     shutil.rmtree(path1)
     shutil.rmtree(path2)
     assert result.count('True') == 1
+

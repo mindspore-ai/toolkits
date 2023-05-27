@@ -12,8 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-__all__ = [
-    'widget'
-]
-
 from troubleshooter.toolbox import widget_pocket as widget
+__all__ = ["widget",]
