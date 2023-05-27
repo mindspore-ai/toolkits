@@ -281,14 +281,16 @@ def compare_pth_and_ckpt(weight_map_path=None, pt_file_path=None, ms_file_path=N
     temp_name = formatted_time + "_ts_temp_file.ckpt"
     tmp_ckpt_file = os.path.join(temp_save_path, temp_name)
     print_level = kwargs.get('print_level', 1)
+    print_conv_info = kwargs.get('print_conv_info', False)
+
 
     none_and_isfile_check(weight_map_path, 'weight_map_path')
     none_and_isfile_check(pt_file_path, 'pt_file_path')
     none_and_isfile_check(ms_file_path, 'ms_file_path')
 
     convert_weight(weight_map_path=weight_map_path, pt_file_path=pt_file_path, ms_file_save_path=tmp_ckpt_file,
-                                  print_level=print_level)
+                                  print_conv_info=print_conv_info)
     compare_ms_ckpt(orig_file_path=tmp_ckpt_file, target_file_path=ms_file_path,
-                    compare_value=True, weight_map_path=weight_map_path)
+                    compare_value=True, weight_map_path=weight_map_path, print_level=print_level)
     clear_tmp_file(tmp_ckpt_file)
 
