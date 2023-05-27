@@ -4,6 +4,7 @@
 import mindspore
 import numpy as np
 import pytest
+import os
 # Download data from open datasets
 from download import download
 from mindspore import nn, ops, context, Tensor
@@ -130,7 +131,9 @@ def test_tacking_for_function_code_2_0_level():
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard
 def test_sequentialcell_level1():
-    @ts.tracking(level=1, output="/tmp/mindspore_tracking_test.log")
+    file_name = "mindspore_tracking_sequentialcell_level1_test.log"
+    output_path = os.path.join("/tmp", file_name)
+    @ts.tracking(level=1, output=output_path)
     def main():
         context.set_context(mode=context.PYNATIVE_MODE)
         conv = nn.Conv2d(3, 2, 3, pad_mode='valid', weight_init="ones")
@@ -140,10 +143,10 @@ def test_sequentialcell_level1():
         output = seq(x)
         print(output)
 
-    delete_file("/tmp/", file_name="mindspore_tracking_test.log")
+    delete_file("/tmp/", file_name=file_name)
     main()
     assert file_and_key_match("/tmp/", "cell = Conv2d<input_channels=3, output_channels=2,",
-                              file_name="mindspore_tracking_test.log")
+                              file_name=file_name)
 
 
 @pytest.mark.skip

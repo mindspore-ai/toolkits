@@ -4,11 +4,8 @@ import torch.nn as t_nn
 import torch
 import mindspore as ms
 import troubleshooter as ts
-import sys
-import re
 import numpy as np
 import pytest
-sys.path.append('troubleshooter')
 
 
 class TorchNet(t_nn.Module):

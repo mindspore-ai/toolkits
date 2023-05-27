@@ -1,0 +1,3 @@
+PySnooper >= 1.1.0
+prettytable >= 3.0.0
+download                   # for st test

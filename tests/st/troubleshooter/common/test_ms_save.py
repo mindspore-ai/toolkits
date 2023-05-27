@@ -40,13 +40,14 @@ def test_ms_save(mode, saver):
     list_input = [x1, x2]
     tuple_input = (x2, x1)
     dict_input = {"x1": x1, "x2": x2}
-    net = NetWorkSave(saver, '/tmp/save/numpy', suffix="ms")
+    path = f"/tmp/ms_{mode}_{saver.__name__}/"
+    net = NetWorkSave(saver, os.path.join(path, 'numpy'), suffix="ms")
 
     try:
-        shutil.rmtree("/tmp/save/")
+        shutil.rmtree(path)
     except FileNotFoundError:
         pass
-    os.makedirs("/tmp/save/")
+    os.makedirs(path)
 
     net(single_input, True)
     net(list_input, True)
@@ -54,28 +55,31 @@ def test_ms_save(mode, saver):
     net(dict_input, True)
     time.sleep(0.1)
 
-    assert np.allclose(np.load("/tmp/save/0_numpy_ms.npy"),
+    assert np.allclose(np.load(os.path.join(path, "0_numpy_ms.npy")),
                        single_input.asnumpy())
 
-    assert np.allclose(np.load("/tmp/save/1_numpy_0_ms.npy"),
+    assert np.allclose(np.load(os.path.join(path, "1_numpy_0_ms.npy")),
                        list_input[0].asnumpy())
-    assert np.allclose(np.load("/tmp/save/1_numpy_1_ms.npy"),
+    assert np.allclose(np.load(os.path.join(path, "1_numpy_1_ms.npy")),
                        list_input[1].asnumpy())
 
-    assert np.allclose(np.load("/tmp/save/2_numpy_0_ms.npy"),
+    assert np.allclose(np.load(os.path.join(path, "2_numpy_0_ms.npy")),
                        tuple_input[0].asnumpy())
-    assert np.allclose(np.load("/tmp/save/2_numpy_1_ms.npy"),
+    assert np.allclose(np.load(os.path.join(path, "2_numpy_1_ms.npy")),
                        tuple_input[1].asnumpy())
 
-    assert np.allclose(np.load("/tmp/save/3_numpy_x1_ms.npy"),
+    assert np.allclose(np.load(os.path.join(path, "3_numpy_x1_ms.npy")),
                        dict_input["x1"].asnumpy())
-    assert np.allclose(np.load("/tmp/save/3_numpy_x2_ms.npy"),
+    assert np.allclose(np.load(os.path.join(path, "3_numpy_x2_ms.npy")),
                        dict_input["x2"].asnumpy())
-
+    try:
+        shutil.rmtree(path)
+    except FileNotFoundError:
+        pass
 
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
-@pytest.mark.env_onecard
+@pytest.mark.env_single
 @pytest.mark.parametrize('mode', [ms.PYNATIVE_MODE, ms.GRAPH_MODE])
 @pytest.mark.parametrize('saver', [unified_saver, mindspore_saver])
 def test_ms_save_none(mode, saver):

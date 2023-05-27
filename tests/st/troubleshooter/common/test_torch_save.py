@@ -27,12 +27,13 @@ def test_torch_save(saver):
     list_input = [x1, x2]
     tuple_input = (x2, x1)
     dict_input = {"x1": x1, "x2": x2}
-    file = '/tmp/save/numpy'
+    path = f"/tmp/pt_{saver.__name__}"
+    file = os.path.join(path, "numpy")
     try:
-        shutil.rmtree("/tmp/save/")
+        shutil.rmtree(path)
     except FileNotFoundError:
         pass
-    os.makedirs("/tmp/save/")
+    os.makedirs(path)
 
     saver.save(file, single_input, True, "torch")
     saver.save(file, list_input, True, "torch")
@@ -40,28 +41,28 @@ def test_torch_save(saver):
     saver.save(file, dict_input, True, "torch")
     time.sleep(0.2)
 
-    assert np.allclose(np.load("/tmp/save/0_numpy_torch.npy"),
+    assert np.allclose(np.load(os.path.join(path, "0_numpy_torch.npy")),
                        single_input.cpu().detach().numpy())
 
-    assert np.allclose(np.load("/tmp/save/1_numpy_0_torch.npy"),
+    assert np.allclose(np.load(os.path.join(path, "1_numpy_0_torch.npy")),
                        list_input[0].cpu().detach().numpy())
-    assert np.allclose(np.load("/tmp/save/1_numpy_1_torch.npy"),
+    assert np.allclose(np.load(os.path.join(path, "1_numpy_1_torch.npy")),
                        list_input[1].cpu().detach().numpy())
 
-    assert np.allclose(np.load("/tmp/save/2_numpy_0_torch.npy"),
+    assert np.allclose(np.load(os.path.join(path, "2_numpy_0_torch.npy")),
                        tuple_input[0].cpu().detach().numpy())
-    assert np.allclose(np.load("/tmp/save/2_numpy_1_torch.npy"),
+    assert np.allclose(np.load(os.path.join(path, "2_numpy_1_torch.npy")),
                        tuple_input[1].cpu().detach().numpy())
 
-    assert np.allclose(np.load("/tmp/save/3_numpy_x1_torch.npy"),
+    assert np.allclose(np.load(os.path.join(path, "3_numpy_x1_torch.npy")),
                        dict_input["x1"].cpu().detach().numpy())
-    assert np.allclose(np.load("/tmp/save/3_numpy_x2_torch.npy"),
+    assert np.allclose(np.load(os.path.join(path, "3_numpy_x2_torch.npy")),
                        dict_input["x2"].cpu().detach().numpy())
 
 
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
-@pytest.mark.env_onecard
+@pytest.mark.env_single
 @pytest.mark.parametrize('saver', [torch_saver, unified_saver])
 def test_torch_save_none(saver):
     """
