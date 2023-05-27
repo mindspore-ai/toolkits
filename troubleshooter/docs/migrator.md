@@ -15,10 +15,7 @@ torch_net = resnet50(num_classes=10)
 pth_path="./resnet.pth"
 
 """
-pt_model：pytorch网络实例。支持模型（例如：torch.save(torch_net, "torch_net.pth") ）和
-参数（例如：torch.save(torch_net.state_dict(), "torch_net.pth"), 两种形式保存后的pth文件
-的自动加载。如果保存的pth文件内容经过定制，不能进行自动加载，可使用"pth_para_dict"直接传入加载
-并解析后的权重参数字典；
+pt_model：pytorch网络实例；
 weight_map_save_path：转换后的权重映射表路径；
 print_map: 是否打印映射表。
 """
@@ -27,7 +24,9 @@ ts.migrator.get_weight_map(pt_model=torch_net,
                            print_map=True)
 """
 weight_map_path: get_weight_map生成的权重映射表路径；
-pt_file_path: pytorch的pth文件路径；
+pt_file_path: pytorch的pth文件路径。支持模型（例如：torch.save(torch_net, "torch_net.pth") ）和
+参数（例如：torch.save(torch_net.state_dict(), "torch_net.pth"), 两种形式pth文件的自动加载。
+如果保存的pth文件内容经过定制，不能进行自动加载，可使用"pth_para_dict"直接传入加载并解析后的权重参数字典；
 ms_file_save_path: 转换后的MindSpore的ckpt文件路径。
 """
 ts.migrator.convert_weight(weight_map_path="/tmp/torch_net_map.json",
