@@ -507,3 +507,81 @@ def test_compare_pth_value_case(capsys):
     os.remove(map_file_path)
     os.remove(pth_path)
     assert match is not None
+
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
+def test_compare_grads(capsys):
+    ms_path = '/tmp/ts_ms_test_grads/'
+    pt_path='/tmp/ts_pt_test_grads/'
+    if not os.path.exists(ms_path):
+        os.makedirs(ms_path)
+    if not os.path.exists(pt_path):
+        os.makedirs(pt_path)
+    import troubleshooter as ts
+    import torch
+    import torch.nn as nn
+    import torch.optim as optim
+    class Net_PT(nn.Module):
+        def __init__(self):
+            super(Net_PT, self).__init__()
+            self.fc1 = nn.Linear(2, 10)
+            self.fc2 = nn.Linear(10, 1)
+
+        def forward(self, x):
+            x = torch.relu(self.fc1(x))
+            x = torch.sigmoid(self.fc2(x))
+            return x
+    net_pt = Net_PT()
+    criterion = nn.BCELoss()
+    optimizer = optim.SGD(net_pt.parameters(), lr=0.1)
+
+    inputs = torch.tensor([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=torch.float32)
+    labels = torch.tensor([[0], [1], [1], [0]], dtype=torch.float32)
+    optimizer.zero_grad()
+    outputs = net_pt(inputs)
+    loss = criterion(outputs, labels)
+    loss.backward()
+    optimizer.step()
+    ts.save(pt_path+"grads.npy", ts.widget.get_pt_grads(net_pt))
+    import mindspore.nn as nn
+    from mindspore import Tensor
+    import mindspore.common.dtype as mstype
+
+    class Net_MS(nn.Cell):
+        def __init__(self):
+            super(Net_MS, self).__init__()
+            self.fc1 = nn.Dense(2, 10)
+            self.fc2 = nn.Dense(10, 1)
+            self.relu = nn.ReLU()
+            self.sigmoid = nn.Sigmoid()
+        def construct(self, x):
+            x = self.relu(self.fc1(x))
+            x = self.sigmoid(self.fc2(x))
+            return x
+
+    net_ms = Net_MS()
+    loss_fn = nn.BCELoss()
+    optimizer = nn.Momentum(net_ms.trainable_params(), learning_rate=0.1, momentum=0.9)
+
+    inputs = Tensor([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=mstype.float32)
+    labels = Tensor([[0], [1], [1], [0]], dtype=mstype.float32)
+    def forward_fn(data,label):
+        logits = net_ms(data)
+        loss = loss_fn(logits,label)
+        return loss, logits
+    grad_fn = mindspore.value_and_grad(forward_fn,None,optimizer.parameters,has_aux=True)
+    def train_one_step(data,label):
+        (loss,_),grads = grad_fn(data,label)
+        optimizer(grads)
+        ts.save(ms_path+"grads.npy", grads)
+        return loss
+    train_one_step(inputs, labels)
+    ts.migrator.compare_grads_dir(pt_path, ms_path)
+    result = capsys.readouterr().out
+    key_result = '0_grads_fc2.bias_3.npy  |   1_grads_3.npy   |         False'
+    shutil.rmtree(ms_path)
+    shutil.rmtree(pt_path)
+    assert result.count(key_result) == 1
+
