@@ -56,12 +56,11 @@ def test_model(capsys):
               np.random.randn(1, 13).astype(np.float32))
     ms_net = MSNet()
     pt_net = TorchNet()
-    diff_finder = ts.NetDifferenceFinder(
+    diff_finder = ts.migrator.NetDifferenceFinder(
         pt_net=pt_net,
-        ms_net=ms_net,
-        inputs=[input1, input2],
+        ms_net=ms_net
     )
-    diff_finder.compare()
+    diff_finder.compare(inputs=[input1, input2])
     out, err = capsys.readouterr()
     key_result = 'test0-result_0 | test0-a |          True         |    100.00   |      1.00000'
     assert out.count(key_result) == 1
@@ -77,12 +76,11 @@ def test_th_tensor(capsys):
               torch.randn([1, 13], dtype=torch.float32))
     ms_net = MSNet()
     pt_net = TorchNet()
-    diff_finder = ts.NetDifferenceFinder(
+    diff_finder = ts.migrator.NetDifferenceFinder(
         pt_net=pt_net,
-        ms_net=ms_net,
-        inputs=[input1, input2],
+        ms_net=ms_net
     )
-    diff_finder.compare()
+    diff_finder.compare(inputs=[input1, input2])
     out, err = capsys.readouterr()
     key_result = 'test0-result_0 | test0-a |          True         |    100.00   |      1.00000'
     assert out.count(key_result) == 1
@@ -98,12 +96,11 @@ def test_ms_tensor(capsys):
             ms.Tensor(np.random.randn(1, 13).astype(np.float32)))
     ms_net = MSNet()
     pt_net = TorchNet()
-    diff_finder = ts.NetDifferenceFinder(
+    diff_finder = ts.migrator.NetDifferenceFinder(
         pt_net=pt_net,
-        ms_net=ms_net,
-        inputs=[input1, input2],
+        ms_net=ms_net
     )
-    diff_finder.compare()
+    diff_finder.compare(inputs=[input1, input2])
     out, err = capsys.readouterr()
     key_result = 'test0-result_0 | test0-a |          True         |    100.00   |      1.00000'
     assert out.count(key_result) == 1
@@ -115,16 +112,12 @@ def test_ms_tensor(capsys):
 def test_single_input(capsys):
     ms_net = MSNet()
     pt_net = TorchNet()
-    diff_finder = ts.NetDifferenceFinder(
+    diff_finder = ts.migrator.NetDifferenceFinder(
         pt_net=pt_net,
-        ms_net=ms_net,
-        inputs=(np.ones([2, 12]).astype(np.float32), np.ones([2, 13]).astype(np.float32)),
-        auto_conv_ckpt=False
-    )
-    diff_finder.compare()
+        ms_net=ms_net)
+    diff_finder.compare(inputs=(np.ones([2, 12]).astype(np.float32), np.ones([2, 13]).astype(np.float32)))
     out, err = capsys.readouterr()
-    print(out)
-    key_result = "|     0.00    |      0.51057      | ['0.447508', '0.996762', '0.002890'] |"
+    key_result = "|          True         |    100.00   |      1.00000      |"
     assert out.count(key_result)
 
 @pytest.mark.skip
@@ -134,11 +127,10 @@ def test_single_input(capsys):
 def test_single_autoinput(capsys):
     pt_net = TorchNet()
     ms_net = MSNet()
-    diff_finder = ts.NetDifferenceFinder(
+    diff_finder = ts.migrator.NetDifferenceFinder(
         pt_net=pt_net,
-        ms_net=ms_net,
-        auto_input=(((1, 12), np.float32), ((1, 13), np.float32)))
-    diff_finder.compare()
+        ms_net=ms_net)
+    diff_finder.compare(auto_inputs=(((1, 12), np.float32), ((1, 13), np.float32)))
     out, err = capsys.readouterr()
     key_result = '| test0-result_0 | test0-a |          True         |    100.00   |'
     assert out.count(key_result)
@@ -150,13 +142,11 @@ def test_single_autoinput(capsys):
 def test_autoinput(capsys):
     pt_net = TorchNet()
     ms_net = MSNet()
-    diff_finder = ts.NetDifferenceFinder(
+    diff_finder = ts.migrator.NetDifferenceFinder(
         pt_net=pt_net,
-        ms_net=ms_net,
-        auto_input={'input': (((1, 12), np.float32), ((1, 13), np.float32)), 
-                    'num': 2}
-        )
-    diff_finder.compare()
+        ms_net=ms_net)
+    diff_finder.compare(auto_inputs={'input': (((1, 12), np.float32), ((1, 13), np.float32)), 
+                    'num': 2})
     out, err = capsys.readouterr()
     key_result = '| test0-result_0 | test0-a |          True         |    100.00   |      1.00000      |'
     assert out.count(key_result)
@@ -168,11 +158,27 @@ def test_autoinput(capsys):
 def test_diff(capsys):
     pt_net = ConstTorch()
     ms_net = ConstMS()
-    diff_finder = ts.NetDifferenceFinder(
+    diff_finder = ts.migrator.NetDifferenceFinder(
         pt_net=pt_net,
-        ms_net=ms_net,
-        auto_input=(((1, 12), np.float32), ))
-    diff_finder.compare()
+        ms_net=ms_net)
+    diff_finder.compare(auto_inputs=(((1, 12), np.float32), ))
     out, err = capsys.readouterr()
     key_result = '| test0-result | test0-result |         False         |     0.00    |'
     assert out.count(key_result)
+
+@pytest.mark.skip
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
+def test_load_weight_file(capsys):
+    pt_net = ConstTorch()
+    ms_net = ConstMS()
+    diff_finder = ts.migrator.NetDifferenceFinder(
+        pt_net=pt_net,
+        ms_net=ms_net, 
+        pt_path='net_diff_finder_pt_org_pth.pth',
+        ms_path='net_diff_finder_ms_org_ckpt.ckpt')
+    diff_finder.compare(auto_inputs=(((1, 12), np.float32), ))
+    out, err = capsys.readouterr()
+    key_result = '| test0-result | test0-result |         False         |     0.00    |'
+    assert out.count(key_result)    

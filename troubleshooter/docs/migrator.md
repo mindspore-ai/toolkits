@@ -241,26 +241,43 @@ ts.migrator.compare_npy_dir(name_map_list=name_list)
 
 ### 接口参数
 
-| 参数         | 类型                      | 说明                                                         |
-| ------------ | ------------------------- | ------------------------------------------------------------ |
-| ms_net       | `mindspore.nn.Cell`         | mindspore模型实例                                            |
-| pt_net       | `torch.nn.Module`           | torch模型实例                                                |
-| input_data   | 单输入：`Union(tuple[torch.tensor], tuple[mindspore.Tensor], tuple[numpy.ndarray], tuple[str])`；多输入：`list[Union(tuple[torch.tensor], tuple[mindspore.Tensor], tuple[numpy.ndarray], tuple[str])]`|模型输入。模型输入支持`torch.Tensor`, `mindspore.Tensor`, `np.ndarray`以及`str`，每个`tuple`中包含一个模型输入；当用户想要同时验证多组数据时，请使用一个列表存放所有输入。|
-|auto_input_data|单输入：`tuple[tuple[numpy.shape, numpy.dtype]]`；多输入：`{'input': tuple[tuple[numpy.shape, numpy.dtype]], 'num':int}`|默认为`None`，为了方便用户快速验证。用户可以不输入`input_data`，而是输入`auto_input_data`，`auto_input_data`每一个元素为模型输入的`shape`，如果需要使用多次测试，可以传入一个字典，字典的键为`'input'`和`'num'`，分别表示每次的输入以及输入个数|
+1. \_\_init\_\_(pt_net, ms_net, print_result=True, pt_path=None, 
+       ms_path=None, auto_conv_ckpt=True, fix_random_seed=16,)
+
+| 参数            | 类型                | 说明                                                         |
+| --------------- | ------------------- | ------------------------------------------------------------ |
+| pt_net          | `torch.nn.Module`   | torch模型实例                                                |
+| ms_net          | `mindspore.nn.Cell` | mindspore模型实例                                            |
+| print_result    | `bool`              | 是否打印比较的中间结果                                       |
+| pt_path         | `str`               | torch模型参数文件路径                                        |
+| ms_path         | `str`               | mindspore模型参数文件路径                                    |
+| auto_conv_ckpt  | `bool`              | 是否自动将torch模型的参数加载到mindspore模型中，仅当pt_path和ms_path都为None时为True |
+| fix_random_seed | `int`               | 随机数种子                                                   |
+
+2. compare(inputs=None, auto_inputs=None, rtol=1e-04, atol=1e-08, equal_nan=False)
+
+| 参数            | 类型                                                         | 说明                                                         |
+| --------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| input_data      | 单输入：`Union(tuple[torch.tensor], tuple[mindspore.Tensor], tuple[numpy.ndarray], tuple[str])`；多输入：`list[Union(tuple[torch.tensor], tuple[mindspore.Tensor], tuple[numpy.ndarray], tuple[str])]` | 模型输入。模型输入支持`torch.Tensor`, `mindspore.Tensor`, `np.ndarray`以及`str`，每个`tuple`中包含一个模型输入；当用户想要同时验证多组数据时，请使用一个列表存放所有输入。 |
+| auto_input_data | 单输入：`tuple[tuple[numpy.shape, numpy.dtype]]`；多输入：`{'input': tuple[tuple[numpy.shape, numpy.dtype]], 'num':int}` | 默认为`None`，为了方便用户快速验证。用户可以不输入`input_data`，而是输入`auto_input_data`，`auto_input_data`每一个元素为模型输入的`shape`，如果需要使用多次测试，可以传入一个字典，字典的键为`'input'`和`'num'`，分别表示每次的输入以及输入个数 |
+| rtol            | `float`                                                      | 相对容差（relative tolerance）是指两个数值之间的相对误差不能超过rtol。默认值为1e-4 |
+| atol            | `float`                                                      | 绝对容差（absolute tolerance）是指两个数值之间的绝对误差不能超过atol。默认值为1e-8 |
+| equal_nan       | `bool`                                                       | 是否将NaN视为相等。默认值为False                             |
+
 
 ### 如何使用
 
 可以参考troubleshooter/tests/diff_handler/test_netdifffinder.py中的使用方法，或者下面的使用方法：
 
 ```python
-    pt_net = ConstTorch()
-    ms_net = ConstMS()
-    diff_finder = ts.migrator.NetDifferenceFinder(
-        pt_net=pt_net,
-        ms_net=ms_net,
-        auto_input=(((1, 12), np.float32), ))
-    diff_finder.compare()
+pt_net = ConstTorch()
+ms_net = ConstMS()
+diff_finder = ts.migrator.NetDifferenceFinder(
+    pt_net=pt_net,
+    ms_net=ms_net)
+diff_finder.compare(auto_inputs=(((1, 12), np.float32), ))
 ```
+
 输出结果：
 
 ![网络输出对比结果展示](images/outputcompare.png)
