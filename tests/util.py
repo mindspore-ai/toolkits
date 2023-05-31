@@ -38,3 +38,7 @@ def file_and_key_match(path, key, file_name="mindspore_failure_analysis_report.l
         result = True
     return result
 
+
+def check_delimited_list(string, items, delimiter='|'):
+    pattern = r"\b" + fr"[ \t]*{re.escape(delimiter)}[ \t]*\b".join(map(re.escape, items))
+    return bool(re.search(pattern, string))

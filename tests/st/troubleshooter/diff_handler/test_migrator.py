@@ -1,15 +1,15 @@
 import os
-import re
 import shutil
 from collections import OrderedDict
+import troubleshooter as ts
 
-import mindspore
 import pytest
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import troubleshooter as ts
+import mindspore
 from mindspore.common.initializer import Normal
+from tests.util import check_delimited_list
 
 
 class MyModule(nn.Module):
@@ -85,11 +85,11 @@ def test_ordereddict_sequential_case(capsys):
                                ms_file_save_path=ms_path)
 
     result = capsys.readouterr().out
-    key_result = 'features.bn_mm.weight        |        features.bn_mm.gamma'
+    key_result = ['features.bn_mm.weight', 'features.bn_mm.gamma']
     os.remove(torch_path)
     os.remove(map_file_path)
     os.remove(ms_path)
-    assert result.count('True') == 4 and result.count(key_result) == 1
+    assert result.count('True') == 4 and check_delimited_list(result, key_result)
 
 
 @pytest.mark.level0
@@ -109,11 +109,11 @@ def test_save_model_pth_case(capsys):
                                pt_file_path=pth_path,
                                ms_file_save_path=ms_file_path)
     result = capsys.readouterr().out
-    key_result = 'features.bn_mm.weight        |        features.bn_mm.gamma'
+    key_result = ['features.bn_mm.weight', 'features.bn_mm.gamma']
     os.remove(map_file_path)
     os.remove(pth_path)
     os.remove(ms_file_path)
-    assert result.count('True') == 4 and result.count(key_result) == 1
+    assert result.count('True') == 4 and check_delimited_list(result, key_result)
 
 
 @pytest.mark.level0
@@ -215,11 +215,11 @@ def test_modulelist_sequential_case(capsys):
                                pt_file_path=pth_path,
                                ms_file_save_path=ms_file_path)
     result = capsys.readouterr().out
-    key_result = 'features.0.weight    |      features.0.weight'
+    key_result = ['features.0.weight', 'features.0.weight']
     os.remove(map_file_path)
     os.remove(pth_path)
     os.remove(ms_file_path)
-    assert result.count('False') == 20 and result.count(key_result) == 1
+    assert result.count('False') == 20 and check_delimited_list(result, key_result)
 
 
 @pytest.mark.level0
@@ -266,11 +266,11 @@ def test_save_model_pth_and_input_dict_case(capsys):
                                pt_param_dict=pd,
                                ms_file_save_path=ms_file_path)
     result = capsys.readouterr().out
-    key_result = 'features.bn_mm.weight        |        features.bn_mm.gamma'
+    key_result = ["features.bn_mm.weight", "features.bn_mm.gamma"]
     os.remove(map_file_path)
     os.remove(pth_path)
     os.remove(ms_file_path)
-    assert result.count('True') == 4 and result.count(key_result) == 1
+    assert result.count('True') == 4 and check_delimited_list(result, key_result)
 
 
 @pytest.mark.level0
@@ -365,11 +365,11 @@ def test_custorm_weight_case(capsys):
                                pt_file_path=pth_path,
                                ms_file_save_path=ms_file_path)
     result = capsys.readouterr().out
-    key_result = 'features.bn_mm.weight        |        features.custorm.bn_mm.gamma'
+    key_result = ['features.bn_mm.weight', 'features.custorm.bn_mm.gamma']
     os.remove(map_file_path)
     os.remove(pth_path)
     os.remove(ms_file_path)
-    assert result.count('.custorm.') == 7 and result.count(key_result) == 1
+    assert result.count('.custorm.') == 7 and check_delimited_list(result, key_result)
 
 
 @pytest.mark.level0
@@ -444,12 +444,12 @@ def test_compare_ckpt_value_case(capsys):
                                 target_file_path=ckpt_path,
                                 compare_value=True)
     result = capsys.readouterr().out
-    key_result = 'features.bn_mm.beta         |      features.bn_mm.beta       |           True'
+    key_result = ['features.bn_mm.beta', 'features.bn_mm.beta', 'True']
     os.remove(ckpt_path)
     os.remove(pth_path)
     os.remove(ms_file_path)
     os.remove(map_file_path)
-    assert result.count(key_result) == 1
+    assert check_delimited_list(result, key_result)
 
 
 @pytest.mark.level0
@@ -480,8 +480,8 @@ def test_compare_show_pth_name_case(capsys):
     os.remove(ms_file_path)
     os.remove(map_file_path)
     result = capsys.readouterr().out
-    key_result = 'features.bn_mm.weight        |        features.bn_mm.gamma        |              True'
-    assert result.count(key_result) == 1
+    key_result = ['features.bn_mm.weight', 'features.bn_mm.gamma', 'True']
+    assert check_delimited_list(result, key_result)
 
 
 @pytest.mark.level0
@@ -502,12 +502,11 @@ def test_compare_pth_value_case(capsys):
                                      ms_file_path=ckpt_path)
 
     result = capsys.readouterr().out
-    pattern = r"features\.bn_mm\.weight[ \t]+\|[ \t]+features\.bn_mm\.gamma[ \t]+\|[ \t]+True"
-    match = re.search(pattern, result)
+    key_result = ["features.bn_mm.weight", "features.bn_mm.gamma", "True"]
     os.remove(ckpt_path)
     os.remove(map_file_path)
     os.remove(pth_path)
-    assert match is not None
+    assert check_delimited_list(result, key_result)
 
 
 @pytest.mark.level0
@@ -515,7 +514,7 @@ def test_compare_pth_value_case(capsys):
 @pytest.mark.env_onecard
 def test_compare_grads(capsys):
     ms_path = '/tmp/ts_ms_test_grads/'
-    pt_path='/tmp/ts_pt_test_grads/'
+    pt_path = '/tmp/ts_pt_test_grads/'
     if not os.path.exists(ms_path):
         os.makedirs(ms_path)
     if not os.path.exists(pt_path):
@@ -524,6 +523,7 @@ def test_compare_grads(capsys):
     import torch
     import torch.nn as nn
     import torch.optim as optim
+    ts.save._clear_cnt()
     class Net_PT(nn.Module):
         def __init__(self):
             super(Net_PT, self).__init__()
@@ -534,6 +534,7 @@ def test_compare_grads(capsys):
             x = torch.relu(self.fc1(x))
             x = torch.sigmoid(self.fc2(x))
             return x
+
     net_pt = Net_PT()
     criterion = nn.BCELoss()
     optimizer = optim.SGD(net_pt.parameters(), lr=0.1)
@@ -545,7 +546,7 @@ def test_compare_grads(capsys):
     loss = criterion(outputs, labels)
     loss.backward()
     optimizer.step()
-    ts.save(pt_path+"grads.npy", ts.widget.get_pt_grads(net_pt))
+    ts.save(pt_path + "grads.npy", ts.widget.get_pt_grads(net_pt))
     import mindspore.nn as nn
     from mindspore import Tensor
     import mindspore.common.dtype as mstype
@@ -557,6 +558,7 @@ def test_compare_grads(capsys):
             self.fc2 = nn.Dense(10, 1)
             self.relu = nn.ReLU()
             self.sigmoid = nn.Sigmoid()
+
         def construct(self, x):
             x = self.relu(self.fc1(x))
             x = self.sigmoid(self.fc2(x))
@@ -568,21 +570,24 @@ def test_compare_grads(capsys):
 
     inputs = Tensor([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=mstype.float32)
     labels = Tensor([[0], [1], [1], [0]], dtype=mstype.float32)
-    def forward_fn(data,label):
+
+    def forward_fn(data, label):
         logits = net_ms(data)
-        loss = loss_fn(logits,label)
+        loss = loss_fn(logits, label)
         return loss, logits
-    grad_fn = mindspore.value_and_grad(forward_fn,None,optimizer.parameters,has_aux=True)
-    def train_one_step(data,label):
-        (loss,_),grads = grad_fn(data,label)
+
+    grad_fn = mindspore.value_and_grad(forward_fn, None, optimizer.parameters, has_aux=True)
+
+    def train_one_step(data, label):
+        (loss, _), grads = grad_fn(data, label)
         optimizer(grads)
-        ts.save(ms_path+"grads.npy", grads)
+        ts.save(ms_path + "grads.npy", grads)
         return loss
+
     train_one_step(inputs, labels)
     ts.migrator.compare_grads_dir(pt_path, ms_path)
     result = capsys.readouterr().out
-    key_result = '0_grads_fc2.bias_3.npy  |   1_grads_3.npy   |         False'
-    shutil.rmtree(ms_path)
-    shutil.rmtree(pt_path)
-    assert result.count(key_result) == 1
-
+    key_result = ['0_grads_fc2.bias_3.npy', '1_grads_3.npy', 'False']
+    # shutil.rmtree(ms_path)
+    # shutil.rmtree(pt_path)
+    assert check_delimited_list(result, key_result)

@@ -1,12 +1,11 @@
 import pytest
-import mindspore.nn as m_nn
+import troubleshooter as ts
 import torch.nn as t_nn
 import torch
 import mindspore as ms
-import troubleshooter as ts
+import mindspore.nn as m_nn
 import numpy as np
-import pytest
-
+from tests.util import check_delimited_list
 
 class TorchNet(t_nn.Module):
     def __init__(self) -> None:
@@ -62,8 +61,8 @@ def test_model(capsys):
     )
     diff_finder.compare(inputs=[input1, input2])
     out, err = capsys.readouterr()
-    key_result = 'test0-result_0 | test0-a |          True         |    100.00   |      1.00000'
-    assert out.count(key_result) == 1
+    key_result = ['test0-result_0', 'test0-a', 'True', '100.00', '1.00000']
+    assert check_delimited_list(out, key_result)
 
 @pytest.mark.skip
 @pytest.mark.level0
@@ -82,8 +81,8 @@ def test_th_tensor(capsys):
     )
     diff_finder.compare(inputs=[input1, input2])
     out, err = capsys.readouterr()
-    key_result = 'test0-result_0 | test0-a |          True         |    100.00   |      1.00000'
-    assert out.count(key_result) == 1
+    key_result = ['test0-result_0', 'test0-a', 'True', '100.00', '1.00000']
+    assert check_delimited_list(out, key_result)
 
 @pytest.mark.skip
 @pytest.mark.level0
@@ -102,8 +101,8 @@ def test_ms_tensor(capsys):
     )
     diff_finder.compare(inputs=[input1, input2])
     out, err = capsys.readouterr()
-    key_result = 'test0-result_0 | test0-a |          True         |    100.00   |      1.00000'
-    assert out.count(key_result) == 1
+    key_result = ['test0-result_0', 'test0-a', 'True', '100.00', '1.00000']
+    assert check_delimited_list(out, key_result)
 
 @pytest.mark.skip
 @pytest.mark.level0
@@ -117,8 +116,8 @@ def test_single_input(capsys):
         ms_net=ms_net)
     diff_finder.compare(inputs=(np.ones([2, 12]).astype(np.float32), np.ones([2, 13]).astype(np.float32)))
     out, err = capsys.readouterr()
-    key_result = "|          True         |    100.00   |      1.00000      |"
-    assert out.count(key_result)
+    key_result = ['True', '100.00', '1.00000']
+    assert check_delimited_list(out, key_result)
 
 @pytest.mark.skip
 @pytest.mark.level0
@@ -132,8 +131,8 @@ def test_single_autoinput(capsys):
         ms_net=ms_net)
     diff_finder.compare(auto_inputs=(((1, 12), np.float32), ((1, 13), np.float32)))
     out, err = capsys.readouterr()
-    key_result = '| test0-result_0 | test0-a |          True         |    100.00   |'
-    assert out.count(key_result)
+    key_result = ['test0-result_0', 'test0-a', 'True', '100.00']
+    assert check_delimited_list(out, key_result)
 
 @pytest.mark.skip
 @pytest.mark.level0
@@ -148,8 +147,8 @@ def test_autoinput(capsys):
     diff_finder.compare(auto_inputs={'input': (((1, 12), np.float32), ((1, 13), np.float32)), 
                     'num': 2})
     out, err = capsys.readouterr()
-    key_result = '| test0-result_0 | test0-a |          True         |    100.00   |      1.00000      |'
-    assert out.count(key_result)
+    key_result = ['test0-result_0', 'test0-a', 'True', '100.00', '1.00000']
+    assert check_delimited_list(out, key_result)
 
 @pytest.mark.skip
 @pytest.mark.level0
@@ -163,8 +162,8 @@ def test_diff(capsys):
         ms_net=ms_net)
     diff_finder.compare(auto_inputs=(((1, 12), np.float32), ))
     out, err = capsys.readouterr()
-    key_result = '| test0-result | test0-result |         False         |     0.00    |'
-    assert out.count(key_result)
+    key_result = ['test0-result', 'test0-result', 'False', '0.00']
+    assert check_delimited_list(out, key_result)
 
 @pytest.mark.skip
 @pytest.mark.level0
@@ -180,5 +179,5 @@ def test_load_weight_file(capsys):
         ms_path='net_diff_finder_ms_org_ckpt.ckpt')
     diff_finder.compare(auto_inputs=(((1, 12), np.float32), ))
     out, err = capsys.readouterr()
-    key_result = '| test0-result | test0-result |         False         |     0.00    |'
-    assert out.count(key_result)    
+    key_result = ['test0-result', 'test0-result', 'False', '0.00']
+    assert check_delimited_list(out, key_result)
