@@ -421,6 +421,48 @@ def test_conv1d_value_case(capsys):
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard
+def test_batchnorm3d_value_case():
+    class MSNet(mindspore.nn.Cell):
+        def __init__(self):
+            super(MSNet, self).__init__()
+            self.bn3d = mindspore.nn.BatchNorm3d(num_features=3)
+
+        def construct(self, A):
+            return self.bn3d(A)
+
+    class torchNet(torch.nn.Module):
+        def __init__(self):
+            super(torchNet, self).__init__()
+            self.bn3d = torch.nn.BatchNorm3d(num_features=3)
+            
+
+        def forward(self, A):
+            return self.bn3d(A)
+
+    pth_path = "/tmp/torch_bn3d_value_net.pth"
+    ms_file_path = '/tmp/convert_bn3d_value_resnet.ckpt'
+    map_file_path = "/tmp/torch_bn3d_value_net_map.json"
+    torch_net = torchNet()
+    ms_net = MSNet()
+    # save model
+    torch.save(torch_net.state_dict(), pth_path)
+    ts.migrator.get_weight_map(pt_model=torch_net,
+                               weight_map_save_path=map_file_path,
+                               print_map=True)
+    ts.migrator.convert_weight(weight_map_path=map_file_path,
+                               pt_file_path=pth_path,
+                               ms_file_save_path=ms_file_path)
+    param_dict = mindspore.load_checkpoint(ms_file_path)
+    res = mindspore.load_param_into_net(ms_net, param_dict)
+    os.remove(map_file_path)
+    os.remove(pth_path)
+    os.remove(ms_file_path)
+    assert not res[0]
+
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_compare_ckpt_value_case(capsys):
     ckpt_path = "/tmp/compare_test.ckpt"
     pth_path = "/tmp/torch_compare_net.pth"
@@ -591,3 +633,4 @@ def test_compare_grads(capsys):
     # shutil.rmtree(ms_path)
     # shutil.rmtree(pt_path)
     assert check_delimited_list(result, key_result)
+

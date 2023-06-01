@@ -16,7 +16,7 @@
 
 weight_name_map = {"torch.nn.BatchNorm1d":{'weight': 'gamma', 'bias': 'beta', 'running_mean': 'moving_mean' , 'running_var': 'moving_variance'},
     "torch.nn.BatchNorm2d":{'weight':'gamma', 'bias':'beta', 'running_mean':'moving_mean' ,'running_var':'moving_variance'},
-    "torch.nn.BatchNorm3d":{'weight':'gamma', 'bias':'beta', 'running_mean':'moving_mean' ,'running_var':'moving_variance'},
+    "torch.nn.BatchNorm3d":{'weight':'bn2d.gamma', 'bias':'bn2d.beta', 'running_mean':'bn2d.moving_mean' ,'running_var':'bn2d.moving_variance'},
     "torch.nn.Embedding":{'weight':'embedding_table'},
     "torch.nn.GroupNorm":{'weight':'gamma', 'bias': 'beta'},
     "torch.nn.LayerNorm":{'weight': 'gamma', 'bias': 'beta'},

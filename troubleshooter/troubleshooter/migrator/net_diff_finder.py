@@ -138,8 +138,8 @@ class NetDifferenceFinder:
         if self.fix_random_seed is not None:
             self._fix_random(self.fix_random_seed)
         if self.auto_conv_ckpt:
-            self._conv_compare_ckpt();
-            self._load_conve_ckpt();
+            self._conv_compare_ckpt()
+            self._load_conve_ckpt()
         elif self.pt_path and self.ms_path:
             self.pt_net.load_state_dict(torch.load(self.pt_path))
             ms.load_param_into_net(self.ms_net, 
