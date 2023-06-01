@@ -282,3 +282,17 @@ diff_finder.compare(auto_inputs=(((1, 12), np.float32), ))
 
 ![网络输出对比结果展示](images/outputcompare.png)
 
+对于mindspore和pytorch模型不在同一个项目中的情况，无法直接比较网络输出，可以使用sys.path.append()来把模型所在的项目加入系统路径，然后实例化模型比较。例如：
+```python
+import sys
+sys.path.append("path to your mindspore model define project")
+sys.path.append("path to your pytorch model define project")
+from xxx import TorchNet
+from xxx import MSNet
+pt_net = TorchNet()
+ms_net = MSNet()
+diff_finder = ts.migrator.NetDifferenceFinder(
+    pt_net=pt_net,
+    ms_net=ms_net)
+diff_finder.compare(auto_inputs=(((1, 12), np.float32), ))
+```
