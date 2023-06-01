@@ -14,6 +14,7 @@
 # ============================================================================
 
 """detect framework"""
+from troubleshooter import log as logger
 
 __all__ = ["FRAMEWORK_TYPE"]
 
@@ -33,6 +34,19 @@ def _detect_framework():
         no_module_msg = "No module named 'torch'"
         if e_msg != no_module_msg:
             raise e
+    except OSError as e:
+        e_msg = str(e)
+        if "libgomp" in e_msg:
+            logger.info(e_msg)
+            logger.info("In the environment where both torch and mindspore coexist, "
+                        "if mindspore is imported before torch, "
+                        "causing torch to fail to locate the libgomp.so file, "
+                        "you can try setting the LD_PRELOAD environment variable like "
+                        f"'export LD_PRELOAD={e_msg.split(':')[0]}' before running the program to resolve this issue."
+                        )
+        else:
+            raise e
+
     try:
         import mindspore
 

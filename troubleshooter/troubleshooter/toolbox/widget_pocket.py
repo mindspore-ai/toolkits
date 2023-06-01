@@ -16,6 +16,7 @@ import random
 import os
 import numpy as np
 from troubleshooter.common.util import validate_and_normalize_path
+from troubleshooter import FRAMEWORK_TYPE
 
 __all__ = [
     "fix_random",
@@ -25,45 +26,25 @@ __all__ = [
     "object_dump",
 ]
 
-FW_PT=True
-FW_MS=True
-
-
-try:
+if "torch" in FRAMEWORK_TYPE:
     import torch
-except ModuleNotFoundError as e:
-    e_msg = e.msg
-    no_module_msg = "No module named 'torch'"
-    if e_msg != no_module_msg:
-        raise e
-    else:
-        FW_PT = False
 
-
-try:
+if "mindspore" in FRAMEWORK_TYPE:
     import mindspore
-except ModuleNotFoundError as e:
-    e_msg = e.msg
-    no_module_msg = "No module named 'mindspore'"
-    if e_msg != no_module_msg:
-        raise e
-    else:
-        FW_MS = False
-
 
 def fix_random(seed):
-        random.seed(seed)
-        os.environ["PYTHONSEED"] = str(seed)
-        np.random.seed(seed)
-        if FW_PT:
-            torch.cuda.manual_seed(seed)
-            torch.cuda.manual_seed_all(seed)
-            torch.backends.cudnn.deterministic = True
-            torch.backends.cudnn.benchmark = True
-            torch.backends.cudnn.enabled = True
-            torch.manual_seed(seed)
-        if FW_MS:
-            mindspore.set_seed(seed)
+    random.seed(seed)
+    os.environ["PYTHONSEED"] = str(seed)
+    np.random.seed(seed)
+    if "torch" in FRAMEWORK_TYPE:
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = True
+        torch.backends.cudnn.enabled = True
+        torch.manual_seed(seed)
+    if "mindspore" in FRAMEWORK_TYPE:
+        mindspore.set_seed(seed)
 
 
 def get_pt_grads(model):
