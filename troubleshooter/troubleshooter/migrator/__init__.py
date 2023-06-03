@@ -17,7 +17,7 @@ from __future__ import absolute_import
 
 from troubleshooter import FRAMEWORK_TYPE
 from troubleshooter.migrator import diff_handler
-from troubleshooter.migrator.save import *
+from troubleshooter.migrator.save import save
 from troubleshooter.migrator.diff_handler import *
 
 __all__ = ["save",]

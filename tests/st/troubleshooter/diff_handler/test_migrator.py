@@ -2,6 +2,7 @@ import os
 import shutil
 from collections import OrderedDict
 import troubleshooter as ts
+from troubleshooter.migrator.save import _ts_save_cnt
 
 import pytest
 import torch
@@ -565,7 +566,7 @@ def test_compare_grads(capsys):
     import torch
     import torch.nn as nn
     import torch.optim as optim
-    ts.save._clear_cnt()
+    _ts_save_cnt.reset()
     class Net_PT(nn.Module):
         def __init__(self):
             super(Net_PT, self).__init__()
