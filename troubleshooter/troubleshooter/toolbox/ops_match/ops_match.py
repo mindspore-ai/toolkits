@@ -1,21 +1,21 @@
+import functools
 import json
 import re
 from typing import Any
 
 import numpy as np
-
 from download_api_map import get_ops_dict
 
 
 def print_apis_map(apis_map):
     for pt, ms in apis_map:
         if len(pt) > len(ms):
-            ms += [''] * (len(pt) - len(ms))
+            ms += [""] * (len(pt) - len(ms))
         elif len(pt) < len(ms):
-            pt += [''] * (len(ms) - len(pt))
+            pt += [""] * (len(ms) - len(pt))
         for pt_ops, ms_ops in zip(pt, ms):
-            print(pt_ops, '\t', ms_ops)
-        print('---------------------------------------------------------')
+            print(pt_ops, "\t", ms_ops)
+        print("---------------------------------------------------------")
 
 
 def load_pkl(path: str):
@@ -31,27 +31,30 @@ def load_pkl(path: str):
 
 class GetUniIO:
     def __init__(self) -> None:
-        self.pt_io_dict = {"mindspore.nn.Conv2d": ([], [])}
+        # 前面是输入映射，后面是输出映射
+        self.pt_io_dict = {
+            ('Functional','batch_norm'): ([0], [0]),
+                           }
 
     def __call__(self, ops_list) -> Any:
         for ops in ops_list:
-            if ops.uni_name in self.pt_io_dict:
-                if len(self.pt_io_dict[ops.uni_name][0]) != 0:
+            if (ops.dump_type,ops.ops_name) in self.pt_io_dict:
+                if len(self.pt_io_dict[(ops.dump_type,ops.ops_name)][0]) != 0:
                     forward_input_shape = []
                     forward_input_type = []
                     forward_input_summery = []
-                    for i in self.pt_io_dict[ops.uni_name][0]:
+                    for i in self.pt_io_dict[(ops.dump_type,ops.ops_name)][0]:
                         forward_input_shape.append(ops.forward_input_shape[i])
                         forward_input_type.append(ops.forward_input_type[i])
                         forward_input_summery.append(ops.forward_input_summery[i])
                     ops.forward_input_shape = forward_input_shape
                     ops.forward_input_type = forward_input_type
                     ops.forward_input_summery = forward_input_summery
-                if len(self.pt_io_dict[ops.uni_name][1]) != 0:
+                if len(self.pt_io_dict[(ops.dump_type,ops.ops_name)][1]) != 0:
                     forward_output_shape = []
                     forward_output_type = []
                     forward_output_summery = []
-                    for i in self.pt_io_dict[ops.uni_name][1]:
+                    for i in self.pt_io_dict[(ops.dump_type,ops.ops_name)][1]:
                         forward_output_shape.append(ops.forward_output_shape[i])
                         forward_output_type.append(ops.forward_output_type[i])
                         forward_output_summery.append(ops.forward_output_summery[i])
@@ -64,16 +67,25 @@ class GetUniIO:
 class GetUniName:
     def __init__(self) -> None:
         pt_dict, ms_dict = self._get_ops_dict()
-        self.uni_name_map = {'pytorch': pt_dict, 'mindspore': ms_dict}
+        self.uni_name_map = {"pytorch": pt_dict, "mindspore": ms_dict}
 
     def _get_ops_dict(self):
         ops_dict = get_ops_dict()
         ms_dict = {}
         pt_dict = {}
         for k, v in ops_dict.items():
-            pt_ops_name, ms_ops_name = k.split('.')[-1], v.split('.')[-1]
-            ms_dict.update({ms_ops_name: v})
-            pt_dict.update({pt_ops_name: v})
+            pt_ops = k.split(".")[-2:]
+            ms_ops = v.split(".")[-2:]
+
+            if ms_ops[0] not in ["nn", "ops", "Tensor"]:
+                continue
+            if pt_ops[0] not in ["torch", "functional", "Tensor", "Module", "nn"]:
+                continue
+
+            pt_ops_name, ms_ops_name = pt_ops[-1], ms_ops[-1]
+            pt_ops_type, ms_ops_type = pt_ops[0].lower(), ms_ops[0].lower()
+            ms_dict.update({(ms_ops_type, ms_ops_name): f"{ms_ops_type}_{ms_ops_name}"})
+            pt_dict.update({(pt_ops_type, pt_ops_name): f"{ms_ops_type}_{ms_ops_name}"})
         return pt_dict, ms_dict
 
     def __call__(self, framework: str, dump_type: str, name: str):
@@ -81,9 +93,9 @@ class GetUniName:
             "pytorch",
             "mindspore",
         ], "framework should be pytorch or mindspore."
-        if name in self.uni_name_map[framework]:
-            return self.uni_name_map[framework][name]
-        return name
+        if (dump_type.lower(), name) in self.uni_name_map[framework]:
+            return self.uni_name_map[framework][(dump_type.lower(), name)]
+        return f'{dump_type.lower()}_{name}'
 
 
 class OPSDump:
@@ -174,7 +186,7 @@ class OPSDump:
                         self.forward_output_shape[data_id] = tuple(data_shape)
                         self.forward_output_summery[data_id] = np.array(data_summery)
             else:
-                raise NotImplementedError('backward not implemented.')
+                raise NotImplementedError("backward not implemented.")
         else:
             return False
         return True
@@ -188,7 +200,9 @@ class OPSList:
     def Construct(self, pkl_path: str) -> Any:
         pkl = load_pkl(pkl_path)
         for l in pkl:
-            self._read_line(l)
+            ret = self._read_line(l)
+            if not ret:
+                break
 
     def _read_line(self, line):
         prefix, dump_step, _, data_type, data_shape, data_summery = line
@@ -247,10 +261,17 @@ class OPSList:
                         data_summery,
                     )
 
+            # 忽略backward及其后面的内容
+            elif direction == "backward":
+                return False
+        return True
+
 
 class OPSInter:
     def __init__(
         self,
+        output_ops_name,
+        input_ops_name,
         forward_output_shape,
         forward_output_type,
         forward_output_summery,
@@ -259,14 +280,17 @@ class OPSInter:
         forward_input_summery,
         index=[],
     ):
+        self.output_ops_name = output_ops_name
+        self.input_ops_name = input_ops_name
         self.forward_input_shape = forward_input_shape
         self.forward_output_shape = forward_output_shape
         self.forward_input_type = forward_input_type
         self.forward_output_type = forward_output_type
         self.forward_input_summery = forward_input_summery
         self.forward_output_summery = forward_output_summery
-        
+
         self.inter_list_index = index
+
     def __repr__(self) -> str:
         return f"{self.forward_output_shape}_{self.forward_input_shape}"
 
@@ -279,13 +303,12 @@ class OPSInter:
                     return False
             return True
 
-        return (
-            _eq_list(self.forward_input_shape, __value.forward_input_shape)
-            and _eq_list(self.forward_output_shape, __value.forward_output_shape)
-        )
+        return _eq_list(
+            self.forward_input_shape, __value.forward_input_shape
+        ) and _eq_list(self.forward_output_shape, __value.forward_output_shape)
 
 
-class APIsAlterMatch:
+class APIsInterMatch:
     def __init__(self) -> None:
         pass
 
@@ -312,6 +335,8 @@ class APIsAlterMatch:
     def _get_vertex(self, pt_list, ms_list):
         pt_inter = [
             OPSInter(
+                "",
+                pt_list[0].ops_name,
                 [],
                 [],
                 [],
@@ -324,6 +349,8 @@ class APIsAlterMatch:
         for i in range(len(pt_list) - 1):
             pt_inter.append(
                 OPSInter(
+                    pt_list[i].ops_name,
+                    pt_list[i + 1].ops_name,
                     pt_list[i].forward_output_shape,
                     pt_list[i].forward_output_type,
                     pt_list[i].forward_output_summery,
@@ -335,6 +362,8 @@ class APIsAlterMatch:
             )
         pt_inter.append(
             OPSInter(
+                pt_list[-1].ops_name,
+                "",
                 pt_list[-1].forward_output_shape,
                 pt_list[-1].forward_output_type,
                 pt_list[-1].forward_output_summery,
@@ -346,6 +375,8 @@ class APIsAlterMatch:
         )
         ms_inter = [
             OPSInter(
+                "",
+                ms_list[0].ops_name,
                 [],
                 [],
                 [],
@@ -358,6 +389,8 @@ class APIsAlterMatch:
         for i in range(len(ms_list) - 1):
             ms_inter.append(
                 OPSInter(
+                    ms_list[i].ops_name,
+                    ms_list[i + 1].ops_name,
                     ms_list[i].forward_output_shape,
                     ms_list[i].forward_output_type,
                     ms_list[i].forward_output_summery,
@@ -369,6 +402,8 @@ class APIsAlterMatch:
             )
         ms_inter.append(
             OPSInter(
+                ms_list[-1].ops_name,
+                "",
                 ms_list[-1].forward_output_shape,
                 ms_list[-1].forward_output_type,
                 ms_list[-1].forward_output_summery,
@@ -379,6 +414,99 @@ class APIsAlterMatch:
             )
         )
         return pt_inter, ms_inter
+
+    def _ops_summery_sim(self, pt_inter, ms_inter,err_threshold):
+        input_summery_diff = np.abs(
+            np.array(
+                [
+                    i - j
+                    for i, j in zip(
+                        pt_inter.forward_input_summery,
+                        ms_inter.forward_input_summery,
+                    )
+                ]
+            )
+        )
+        input_summery_sum = np.array(
+            [
+                np.abs(i) + np.abs(j)
+                for i, j in zip(
+                    pt_inter.forward_input_summery,
+                    ms_inter.forward_input_summery,
+                )
+            ]
+        )
+        output_summery_diff = np.abs(
+            np.array(
+                [
+                    i - j
+                    for i, j in zip(
+                        pt_inter.forward_output_summery,
+                        ms_inter.forward_output_summery,
+                    )
+                ]
+            )
+        )
+        output_summery_sum = np.array(
+            [
+                np.abs(i) + np.abs(j)
+                for i, j in zip(
+                    pt_inter.forward_output_summery,
+                    ms_inter.forward_output_summery,
+                )
+            ]
+        )
+        if (
+            np.any(input_summery_diff / (input_summery_sum + 1e-6))
+            <= err_threshold
+            and np.any(
+                output_summery_diff / (output_summery_sum + 1e-6)
+            )
+            <= err_threshold
+        ):
+            dist = (
+                np.arctan(
+                    np.linalg.norm(input_summery_diff)
+                    + np.linalg.norm(output_summery_diff)
+                )
+                * 2
+                / np.pi
+            )
+        else:
+            dist = 1
+        return dist
+
+    def _ops_name_sim(self, pt_inter, ms_inter):
+        def _min_distance(word1: str, word2: str) -> int:
+            @functools.lru_cache(None)
+            def helper(i, j):
+                if i == len(word1) or j == len(word2):
+                    return len(word1) - i + len(word2) - j
+                if word1[i] == word2[j]:
+                    return helper(i + 1, j + 1)
+                else:
+                    inserted = helper(i, j + 1)
+                    deleted = helper(i + 1, j)
+                    replaced = helper(i + 1, j + 1)
+                    return min(inserted, deleted, replaced) + 1
+
+            return helper(0, 0)
+
+        input_dist = (
+            float(_min_distance(pt_inter.input_ops_name, ms_inter.input_ops_name))
+            / max(len(pt_inter.input_ops_name), len(ms_inter.input_ops_name))
+            if len(pt_inter.input_ops_name) != 0 or len(ms_inter.input_ops_name) != 0
+            else 1.
+        )
+        output_dist = (
+            float(_min_distance(pt_inter.output_ops_name, ms_inter.output_ops_name))
+            / max(len(pt_inter.output_ops_name), len(ms_inter.output_ops_name))
+            if len(pt_inter.output_ops_name) != 0 or len(ms_inter.output_ops_name) != 0
+            else 1.
+        )
+        # input_dist = 1. if input_dist > 0.5 else input_dist
+        # output_dist = 1. if output_dist > 0.5 else output_dist
+        return (input_dist + output_dist) / 2
 
     def _inter_match(self, pt_inter, ms_inter, err_threshold):
         dp = [[0 for _ in range(len(ms_inter) + 1)] for _ in range(len(pt_inter) + 1)]
@@ -392,63 +520,16 @@ class APIsAlterMatch:
             for j in range(1, len(ms_inter) + 1):
                 dist = 1
                 if pt_inter[i - 1] == ms_inter[j - 1]:
-                    input_summery_diff = np.abs(
-                        np.array(
-                            [
-                                i - j
-                                for i, j in zip(
-                                    pt_inter[i - 1].forward_input_summery,
-                                    ms_inter[j - 1].forward_input_summery,
-                                )
-                            ]
-                        )
-                    )
-                    input_summery_sum = np.array(
-                        [
-                            np.abs(i) + np.abs(j)
-                            for i, j in zip(
-                                pt_inter[i - 1].forward_input_summery,
-                                ms_inter[j - 1].forward_input_summery,
-                            )
-                        ]
-                    )
-                    output_summery_diff = np.abs(
-                        np.array(
-                            [
-                                i - j
-                                for i, j in zip(
-                                    pt_inter[i - 1].forward_output_summery,
-                                    ms_inter[j - 1].forward_output_summery,
-                                )
-                            ]
-                        )
-                    )
-                    output_summery_sum = np.array(
-                        [
-                            np.abs(i) + np.abs(j)
-                            for i, j in zip(
-                                pt_inter[i - 1].forward_output_summery,
-                                ms_inter[j - 1].forward_output_summery,
-                            )
-                        ]
-                    )
-                    if (
-                        np.any(input_summery_diff / (input_summery_sum + 1e-6))
-                        <= err_threshold
-                        and np.any(output_summery_diff / (output_summery_sum + 1e-6))
-                        <= err_threshold
-                    ):
-                        dist = (
-                            np.arctan(
-                                np.linalg.norm(input_summery_diff)
-                                + np.linalg.norm(output_summery_diff)
-                            )
-                            * 2
-                            / np.pi
-                        )
+                    if err_threshold < 1:
+                        dist = self._ops_summery_sim(pt_inter[i - 1], ms_inter[j - 1], err_threshold)
                     else:
-                        dist = 1
-                match_dist = (dp[i - 1][j - 1] + dist, 2 if dist == 1 else 1)
+                        dist = 0
+
+                    if dist < 1:
+                        name_dist = self._ops_name_sim(pt_inter[i - 1], ms_inter[j - 1])
+                        dist = (dist + name_dist) / 20                
+                
+                match_dist = (dp[i - 1][j - 1] + dist, 1 if dist < 1 else 2)
                 unmatch_i_dist = (dp[i - 1][j] + 1, 3)
                 unmatch_j_dist = (dp[i][j - 1] + 1, 4)
                 path_min = min(
@@ -497,7 +578,7 @@ class FlowMatch:
             if len(i[0]) == 0 or len(i[1]) == 0:
                 unmatch_split.append(i)
                 continue
-            apis_match_fun = APIsAlterMatch()
+            apis_match_fun = APIsInterMatch()
             unmatch_split.append(apis_match_fun(*i, err_threshold=err_threshold))
         match = [([i[0]], [i[1]]) for i in match]
         if (

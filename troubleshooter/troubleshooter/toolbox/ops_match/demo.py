@@ -3,7 +3,7 @@ from ops_match import *
 pt_list = OPSList("pytorch")
 ms_list = OPSList("mindspore")
 
-model = 'shuffle'
+model = 'mobilenet'
 pt_list.Construct(f"demo_net/{model}_pt.pkl")
 GetUniIO()(pt_list.ops_list)
 ms_list.Construct(f"demo_net/{model}_ms.pkl")
