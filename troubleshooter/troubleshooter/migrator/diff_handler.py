@@ -162,7 +162,7 @@ def cal_cosine_sim(a, b):
     num = np.dot(a, b)
     denom = np.linalg.norm(a) * np.linalg.norm(b)
     if not denom == 0.:
-        sim = 0.5 + 0.5 * (num / denom)
+        sim = num / denom
     return sim
 
 
