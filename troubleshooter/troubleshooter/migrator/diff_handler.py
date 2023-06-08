@@ -61,15 +61,11 @@ def get_filename_map_list(orig_dir, target_dir):
     return name_map_list
 
 
-def compare_npy_dir(orig_dir, target_dir, *, name_map_list=None, **kwargs):
+def compare_npy_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, *, name_map_list=None, **kwargs):
     none_and_isdir_check(orig_dir, 'orig_dir')
     none_and_isdir_check(target_dir, 'target_dir')
     if name_map_list is None:
         name_map_list = get_filename_map_list(orig_dir, target_dir)
-
-    rtol = kwargs.get('rtol', 1e-04)
-    atol = kwargs.get('atol', 1e-08)
-    equal_nan = kwargs.get('equal_nan', False)
 
     result_list = []
     normal_orig_dir = validate_and_normalize_path(orig_dir)
@@ -141,8 +137,7 @@ def cal_algorithm(orig_value, target_value, rtol, atol, equal_nan):
             value_diff = np.abs(orig_value - target_value)
             value_mean = value_diff.mean()
             value_max = value_diff.max()
-            value_min = value_diff.min()
-            diff_detail = value_mean, value_max, value_min
+            diff_detail = value_mean, value_max
         else:
             diff_detail = ()
         cosine_sim = cal_cosine_sim(orig_value, target_value)

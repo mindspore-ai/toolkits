@@ -44,7 +44,7 @@ class ConstMS(m_nn.Cell):
     def construct(self, x):
         return self.net1(x) + 1.4
 
-@pytest.mark.skip
+
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard
@@ -61,10 +61,10 @@ def test_model(capsys):
     )
     diff_finder.compare(inputs=[input1, input2])
     out, err = capsys.readouterr()
-    key_result = ['test0-result_0', 'test0-a', 'True', '100.00', '1.00000']
+    key_result = ['test0-result_0', 'test0-a', 'True', '100.00%', '1.00000']
     assert check_delimited_list(out, key_result)
 
-@pytest.mark.skip
+
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard
@@ -81,10 +81,10 @@ def test_th_tensor(capsys):
     )
     diff_finder.compare(inputs=[input1, input2])
     out, err = capsys.readouterr()
-    key_result = ['test0-result_0', 'test0-a', 'True', '100.00', '1.00000']
+    key_result = ['test0-result_0', 'test0-a', 'True', '100.00%', '1.00000']
     assert check_delimited_list(out, key_result)
 
-@pytest.mark.skip
+
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard
@@ -101,10 +101,10 @@ def test_ms_tensor(capsys):
     )
     diff_finder.compare(inputs=[input1, input2])
     out, err = capsys.readouterr()
-    key_result = ['test0-result_0', 'test0-a', 'True', '100.00', '1.00000']
+    key_result = ['test0-result_0', 'test0-a', 'True', '100.00%', '1.00000']
     assert check_delimited_list(out, key_result)
 
-@pytest.mark.skip
+
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard
@@ -116,10 +116,10 @@ def test_single_input(capsys):
         ms_net=ms_net)
     diff_finder.compare(inputs=(np.ones([2, 12]).astype(np.float32), np.ones([2, 13]).astype(np.float32)))
     out, err = capsys.readouterr()
-    key_result = ['True', '100.00', '1.00000']
+    key_result = ['True', '100.00%', '1.00000']
     assert check_delimited_list(out, key_result)
 
-@pytest.mark.skip
+
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard
@@ -134,7 +134,7 @@ def test_single_autoinput(capsys):
     key_result = ['test0-result_0', 'test0-a', 'True', '100.00']
     assert check_delimited_list(out, key_result)
 
-@pytest.mark.skip
+
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard
@@ -147,10 +147,10 @@ def test_autoinput(capsys):
     diff_finder.compare(auto_inputs={'input': (((1, 12), np.float32), ((1, 13), np.float32)), 
                     'num': 2})
     out, err = capsys.readouterr()
-    key_result = ['test0-result_0', 'test0-a', 'True', '100.00', '1.00000']
+    key_result = ['test0-result_0', 'test0-a', 'True', '100.00%', '1.00000']
     assert check_delimited_list(out, key_result)
 
-@pytest.mark.skip
+
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard

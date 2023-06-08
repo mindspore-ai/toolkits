@@ -49,7 +49,7 @@ def test_ms_save_single(mode):
     Description: Verify the result of save
     Expectation: success
     """
-    ms.set_context(mode=mode, device_target="CPU")
+    ms.set_context(mode=mode)
     _ts_save_cnt.reset()
     single_input = ms.ops.randn((2, 3))
     path = f"/tmp/save_ms_single_{mode}/"

@@ -106,15 +106,15 @@ def print_diff_result(result_list, title=None, field_names=None):
 
     if field_names is None:
         x.field_names = ["orig array name", "target array name",
-                         "results of comparison", "match ratio", "cosine similarity", "(mean, max, min)"]
+                         "results of comparison", "match ratio", "cosine similarity", "(mean, max)"]
     else:
         x.field_names = field_names
 
     for result in result_list:
-        ratio = "%.2f" % float(result[3] * 100)
+        ratio = "{:.2%}".format(result[3])
         cos_sim = "%.5f" % float(result[4])
-        min_max = ['%.6f' % r for r in result[5]]
-        x.add_row([result[0], result[1], result[2], ratio, cos_sim, min_max])
+        mean_max = ", ".join('%.5f' % r for r in result[5])
+        x.add_row([result[0], result[1], result[2], ratio, cos_sim, mean_max])
     print(x.get_string())
 
 

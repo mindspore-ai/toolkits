@@ -205,10 +205,21 @@ ts.save(None, {"x1":x1, "x2":x2}, suffix="torch")
 ```
 
 ## 应用场景4：比较两组tensor值(npy文件)是否相等
-进行网络迁移精度问题排查等场景，需要获取网络中的tensor值进行比较。一般我们将tensor保存成npy进行手工比较，此功能提供了批量对比两个目录下名称可以
-映射的npy值的接口。
+进行网络迁移精度问题排查等场景，需要获取网络中的tensor值进行比较。一般我们将tensor保存成npy进行手工比较，此功能提供了批量对比两个目录下名称可以映射的npy值的接口。
+此接口会统计`numpy.allclose`、`allclose`达标比例、余弦相似度、差异值的 $mean$ / $max$ 统计量等信息。
+### 接口定义
+```python
+ts.migrator.compare_npy_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, *, name_map_list=None)
+```
+- orig_dir: 需要对比的npy文件所在的目录。
+- target_dir: 目标数据所在的目录。
+- rtol: 相对误差，默认值为`1e-4`，内部调用`numpy.allclose`的参数。
+- atol: 绝对误差，默认值为`1e-4`，内部调用`numpy.allclose`的参数。
+- equal_nan：是否将nan视为相等，默认值为 `False`，内部调用`numpy.allclose`的参数。
+- name_map_list: 自定义文件名映射列表，默认值为`None`。当需要指定源目录与目标目录的文件映射方式时，可以使用此参数。此参数类型为list[tuple[ori_file, target_file]]，例如`[(ms_file_0.npy, torch_file_0.npy),...]`
 ### 结果展示
-![avatar](images/20h21_53.png)
+![avatar](images/compare_npy_dir.png)
+自左至右分别为源文件名、目标文件名、`allclose`的比较结果、`allclose`的达标比例（符合`allclose`的数据占总数据的百分比）、余弦相似度、差异值的 $mean$ / $max$ 统计量。
 ### 如何使用1-两个目录下名称可自动映射
 
 ```python

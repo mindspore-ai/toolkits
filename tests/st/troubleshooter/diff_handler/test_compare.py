@@ -1,6 +1,8 @@
-import numpy as np
 import os
 import shutil
+
+import numpy as np
+
 import troubleshooter as ts
 
 
@@ -17,11 +19,11 @@ def test_compare_npy_dir(capsys):
     if not is_exists:
         os.makedirs(path2)
 
-    np.save('/tmp/troubleshooter_ta/data1.npy',data1)
-    np.save('/tmp/troubleshooter_ta/data2.npy',data2)
+    np.save('/tmp/troubleshooter_ta/data1.npy', data1)
+    np.save('/tmp/troubleshooter_ta/data2.npy', data2)
 
-    np.save('/tmp/troubleshooter_tb/data1.npy',data1)
-    np.save('/tmp/troubleshooter_tb/data2.npy',data1)
+    np.save('/tmp/troubleshooter_tb/data1.npy', data1)
+    np.save('/tmp/troubleshooter_tb/data2.npy', data1)
 
     ts.migrator.compare_npy_dir(path1, path2)
     result = capsys.readouterr().out
@@ -29,4 +31,3 @@ def test_compare_npy_dir(capsys):
     shutil.rmtree(path1)
     shutil.rmtree(path2)
     assert result.count('True') == 1
-
