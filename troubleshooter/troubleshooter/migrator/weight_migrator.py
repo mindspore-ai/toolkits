@@ -145,6 +145,7 @@ def convert_weight(weight_map_path=None, pt_file_path=None, ms_file_save_path=No
     print_conv_info = kwargs.get('print_conv_info', True)
     pt_param_dict = kwargs.get('pt_param_dict', None)
     weight_map = kwargs.get('weight_map', None)
+    print_save_path = kwargs.get('print_save_path', True)
 
     all_none_or_isfile_check(weight_map_path, 'weight_map_path', weight_map, 'weight_map')
     all_none_or_isfile_check(pt_file_path, 'pt_file_path', pt_param_dict, 'pt_param_dict')
@@ -162,6 +163,7 @@ def convert_weight(weight_map_path=None, pt_file_path=None, ms_file_save_path=No
         pt_param_dict = _get_para_dict(pt_file_path)
 
     new_params_list = []
+
     def converted_status(pt_para_item, ms_para_item, is_value_converted):
         pt_suffix, ms_suffix = pth_param_name.split('.')[-1], ms_para_item.split('.')[-1]
         pt_prefix, ms_prefix = pth_param_name.split('.')[:-1], ms_para_item.split('.')[:-1]
@@ -197,14 +199,16 @@ def convert_weight(weight_map_path=None, pt_file_path=None, ms_file_save_path=No
     if new_params_list is None:
         logger.user_warning("There are no parameters to be converted. Parameter conversion failed. "
                             "Please check whether the configuration is correct")
-    if ms_file_save_path:
-        ms.save_checkpoint(new_params_list, ms_file_save_path)
+
+    ms.save_checkpoint(new_params_list, ms_file_save_path)
 
     if print_conv_info:
         print_convert_result(print_params_list)
-    logger.user_attention("The PTH has been converted to the checkpoint of MindSpore. "
-                          "Please check whether the conversion result is correct. "
-                          "The saved path is: %s", ms_file_save_path)
+
+    if print_save_path:
+        logger.user_attention("The PTH has been converted to the checkpoint of MindSpore. "
+                              "Please check whether the conversion result is correct. "
+                              "The saved path is: %s", ms_file_save_path)
 
 
 def compare_ms_ckpt(orig_file_path, target_file_path, **kwargs):
@@ -219,7 +223,7 @@ def compare_ms_ckpt(orig_file_path, target_file_path, **kwargs):
                              "Parameter shape of torch", "Parameter shape of MindSpore"]
 
     title = kwargs.get('title', 'The list of comparison results for values')
-    compare_value = kwargs.get('compare_value', False)
+    compare_value = kwargs.get('compare_value', True)
     weight_map_path = kwargs.get('weight_map_path', None)
     weight_map = kwargs.get('weight_map', None)
     orig_ckpt_dict = kwargs.get('orig_ckpt_dict', None)
@@ -273,11 +277,11 @@ def compare_ms_ckpt(orig_file_path, target_file_path, **kwargs):
         name_map_list.append((None, name, None, None, target_para.shape))
 
     if weight_map_path:
-        print_weight_compare_result(name_map_list, print_type=print_level, field_names=field_names_shape_pth)
-        print_diff_result(value_map_list, title, field_names_pth)
+        print_weight_compare_result(name_map_list, print_level=print_level, field_names=field_names_shape_pth)
+        print_diff_result(value_map_list, title, field_names_pth, print_level=print_level)
     else:
-        print_weight_compare_result(name_map_list, print_type=print_level)
-        print_diff_result(value_map_list, title, field_names)
+        print_weight_compare_result(name_map_list, print_level=print_level)
+        print_diff_result(value_map_list, title, field_names, print_level=print_level)
 
 
 def compare_pth_and_ckpt(weight_map_path, pt_file_path, ms_file_path, **kwargs):
@@ -292,9 +296,15 @@ def compare_pth_and_ckpt(weight_map_path, pt_file_path, ms_file_path, **kwargs):
     tmp_ckpt_file = os.path.join(temp_save_path, temp_name)
     print_level = kwargs.get('print_level', 1)
     print_conv_info = kwargs.get('print_conv_info', False)
+    compare_value = kwargs.get('compare_value', True)
+    rtol = kwargs.get('rtol', 1e-04)
+    atol = kwargs.get('atol', 1e-04)
+    equal_nan = kwargs.get('equal_nan', False)
 
-    convert_weight(weight_map_path=weight_map_path, pt_file_path=pt_file_path, ms_file_save_path=tmp_ckpt_file,
-                   print_conv_info=print_conv_info)
-    compare_ms_ckpt(orig_file_path=tmp_ckpt_file, target_file_path=ms_file_path, compare_value=True,
-                    weight_map_path=weight_map_path, print_level=print_level)
+    convert_weight(weight_map_path=weight_map_path, pt_file_path=pt_file_path, 
+                   ms_file_save_path=tmp_ckpt_file, print_conv_info=print_conv_info,
+                   print_save_path=False)
+    compare_ms_ckpt(orig_file_path=tmp_ckpt_file, target_file_path=ms_file_path,
+                    compare_value=compare_value, weight_map_path=weight_map_path,
+                    print_level=print_level, rtol=rtol, atol=atol, equal_nan=equal_nan)
     clear_tmp_file(tmp_ckpt_file)

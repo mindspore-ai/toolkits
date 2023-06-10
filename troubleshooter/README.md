@@ -15,7 +15,7 @@ pip install troubleshooter
 
 ## [网络迁移&调试](docs/migrator.md)
 * [应用场景1：pth到ckpt权重转换](docs/migrator.md#应用场景1pth到ckpt权重自动转换)
-* [应用场景2：将转换后的ckpt与MindSpore网络生成的ckpt进行对比](docs/migrator.md#应用场景2将转换后的ckpt与mindspore网络生成的ckpt进行对比)
+* [应用场景2：比对MindSpore与PyTorch的ckpt/pth](docs/migrator.md#应用场景2比对mindspore与pytorch的ckptpth)
 * [应用场景3：保存tensor](docs/migrator.md#应用场景3保存tensor)
 * [应用场景4：比较两组tensor值(npy文件)是否相等](docs/migrator.md#应用场景4比较两组tensor值npy文件是否相等)
 * [应用场景5：比较pytorch和mindspore的网络输出是否相等](docs/migrator.md#应用场景5比较mindspore和pytorch网络输出是否一致)

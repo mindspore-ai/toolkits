@@ -54,11 +54,11 @@ def _add_row(x, item, message, width=TABLE_WIDTH, break_long_words=False, break_
                              break_on_hyphens=break_on_hyphens)])
 
 
-def print_weight_compare_result(result_list, print_type=1, **kwargs):
+def print_weight_compare_result(result_list, print_level=1, **kwargs):
     # 0 Do not print
     # Print All
     # print False
-    if print_type == 0:
+    if print_level == 0:
         return
     title = kwargs.get('title', None)
     field_names = kwargs.get('field_names', None)
@@ -75,9 +75,9 @@ def print_weight_compare_result(result_list, print_type=1, **kwargs):
         x.field_names = field_names
 
     for result in result_list:
-        if print_type == 1:
+        if print_level == 1:
             x.add_row([result[0], result[1], result[2], result[3], result[4]])
-        elif print_type == 2 and result[2] is not True:
+        elif print_level == 2 and result[2] is not True:
             x.add_row([result[0], result[1], result[2], result[3], result[4]])
     print(x.get_string())
 
@@ -94,7 +94,12 @@ def print_convert_result(result_list):
     print(x.get_string())
 
 
-def print_diff_result(result_list, title=None, field_names=None):
+def print_diff_result(result_list, title=None, field_names=None, print_level=1):
+    # 0 Do not print
+    # Print All
+    # print False
+    if print_level == 0:
+        return
     if not result_list:
         return
 
@@ -111,6 +116,8 @@ def print_diff_result(result_list, title=None, field_names=None):
         x.field_names = field_names
 
     for result in result_list:
+        if print_level == 2 and result[2] is True:
+            continue
         ratio = "{:.2%}".format(result[3])
         cos_sim = "%.5f" % float(result[4])
         mean_max = ", ".join('%.5f' % r for r in result[5])

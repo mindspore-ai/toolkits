@@ -177,7 +177,7 @@ def none_and_isdir_check(file_dir, name_str):
 
 def type_check(param, name_str, param_type):
     if param and not isinstance(param, param_type):
-        raise TypeError("The parameter '{0}' must be bool".format(name_str))
+        raise TypeError(f"The parameter '{name_str}' must be {param_type}")
 
 def clear_tmp_file(file):
     if file:

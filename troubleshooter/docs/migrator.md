@@ -1,13 +1,13 @@
 # 网络迁移&调试-使用迁移功能快速迁移网络
 
 ## 应用场景1：pth到ckpt权重自动转换
-用户需要从pytorch网络迁移到MindSpore网络时，需要进行权重迁移，因为MindSpore的权重名称与Pytorch有差异，需要使用权重迁移工具进行权重自动化迁移。
+用户需要从PyTorch网络迁移到MindSpore网络时，需要进行权重迁移，因为MindSpore的权重名称与Pytorch有差异，需要使用权重迁移工具进行权重自动化迁移。
 ### 结果展示
 显示转换后的ckpt保存路径与名称，并给出详细的转换信息。
 
 ![avatar](images/pth2ckpt.png)
 ### 如何使用1-网络结构完全一致，权重自动转换
-在MindSpore迁移后的网络结构与pytorch网络结构完全一致时，pth到ckpt转换，仅有权重名称差异，则可以通过如下方法完成权重的自动转换。
+在MindSpore迁移后的网络结构与PyTorch网络结构完全一致时，pth到ckpt转换，仅有权重名称差异，则可以通过如下方法完成权重的自动转换。
 ```python
 import troubleshooter as ts
 
@@ -15,7 +15,7 @@ torch_net = resnet50(num_classes=10)
 pth_path="./resnet.pth"
 
 """
-pt_model：pytorch网络实例；
+pt_model：PyTorch网络实例；
 weight_map_save_path：转换后的权重映射表路径；
 print_map: 是否打印映射表。
 """
@@ -24,7 +24,7 @@ ts.migrator.get_weight_map(pt_model=torch_net,
                            print_map=True)
 """
 weight_map_path: get_weight_map生成的权重映射表路径；
-pt_file_path: pytorch的pth文件路径。支持模型（例如：torch.save(torch_net, "torch_net.pth") ）和
+pt_file_path: PyTorch的pth文件路径。支持模型（例如：torch.save(torch_net, "torch_net.pth") ）和
 参数（例如：torch.save(torch_net.state_dict(), "torch_net.pth"), 两种形式pth文件的自动加载。
 如果保存的pth文件内容经过定制，不能进行自动加载，可使用"pth_para_dict"直接传入加载并解析后的权重参数字典；
 ms_file_save_path: 转换后的MindSpore的ckpt文件路径。
@@ -38,7 +38,7 @@ ts.migrator.convert_weight(weight_map_path="/tmp/torch_net_map.json",
 ```python
 import troubleshooter as ts
 
-# pytorch的resnet50网络
+# PyTorch的resnet50网络
 torch_net = resnet50(num_classes=10)
 pth_path="./resnet.pth"
 
@@ -54,7 +54,7 @@ ts.migrator.convert_weight(weight_map_path="/tmp/torch_net_map.json",
 ```
 
 ### 如何使用3-网络结构有一定差异，需要对权重名称做复杂的定制转换
-在MindSpore迁移后的网络结构与pytorch网络结构不完全一致时，需要用户手工定义转换规则，此时工具提供了定制接口，满足此种场景下用户的定制诉求。
+在MindSpore迁移后的网络结构与PyTorch网络结构不完全一致时，需要用户手工定义转换规则，此时工具提供了定制接口，满足此种场景下用户的定制诉求。
 
 ```python
 import troubleshooter as ts
@@ -69,7 +69,7 @@ def custorm_weight_name(weight_name_map):
         custorm_name_map[key] = str(value)
     return custorm_name_map
 
-# pytorch的resnet50网络
+# PyTorch的resnet50网络
 torch_net = resnet50(num_classes=10)
 pth_path="./resnet.pth"
 
@@ -91,30 +91,154 @@ ts.migrator.convert_weight(weight_map_path="/tmp/torch_net_map.json",
 ```
 
 
-## 应用场景2：将转换后的ckpt与MindSpore网络生成的ckpt进行对比
-我们写完MindSpore网络后，就可以保存一个ckpt。我们可以将网络生产的ckpt与转换的ckpt（用权重转换工具从pth转换过来的ckpt）进行对比，
-以起到验证网络结构是否正确等目的。当前仅支持名称与shape的比对。
-### 结果展示
-![avatar](images/19h51_37.png)
-### 如何使用1
+## 应用场景2：比对MindSpore与PyTorch的ckpt/pth
 
+1. 在迁移网络到MindSpore后，为检验网络结构是否相同，我们可以保存迁移后网络生产的ckpt与转换的ckpt（用权重转换工具从pth转换过来的ckpt）进行结构对比，以验证网络结构的正确性。
+2. 在迁移网络训练中，在固定随机性后，如果网络输出的第一个loss相同，之后的loss不一致，可以分别保存ckpt与pth，通过比较ckpt与pth的对应参数的值来检验网络反向更新的结果。
+
+### 接口定义：
+
+#### ```compare_ms_ckpt(orig_file_path, target_file_path, **kwargs)```
+
+用于比较两个MindSpore的ckpt的结构和数值的差异。
+
+**位置参数：**
+
+- orig_file_path(str)：原始的ckpt的路径。
+- target_file_path(str)：目标ckpt的路径。
+
+**kwargs参数：**
+
+- compare_value(bool)：是否进行数值比较，默认值为True。为True时，会分别输出shape和value两个差异分析表格。
+- print_level(int)：日志等级，默认值为1。为0时不输出比较结果，为1时输出所有结果，为2时仅输出有差异的结果。
+- rtol(float): 开启数值比较时的比较参数，相对误差，默认值为`1e-4`，内部调用`numpy.allclose`的参数。
+- atol(float): 开启数值比较时的比较参数，绝对误差，默认值为`1e-4`，内部调用`numpy.allclose`的参数。
+- equal_nan(bool)：开启数值比较时的比较参数，是否将nan视为相等，默认值为 `False`，内部调用`numpy.allclose`的参数。
+
+**样例：**
 ```python
 import troubleshooter as ts
+import mindspore as ms
+from mindspore import nn
 
-weight_map_path = "./torch_net_map.json"
-pth_path = "./resnet.pth"
-ms_path = "./resnet.ckpt"
 
-"""
-weight_map_path: get_weight_map生成的权重映射表路径；
-pt_file_path: pytorch的pth文件路径；
-ms_file_path: 用户编写网络保存的ckpt文件路径。
-"""
-ts.migrator.compare_pth_and_ckpt(weight_map_path, pth_path, ms_path)
+class NetA(nn.Cell):
+    def __init__(self):
+        super(NetA, self).__init__()
+        self.fc1 = nn.Dense(2, 10)
+        self.bn1 = nn.BatchNorm1d(10)
+        self.fc2 = nn.Dense(10, 1)
+        self.relu = nn.ReLU()
+        self.sigmoid = nn.Sigmoid()
+
+    def construct(self, x):
+        x = self.relu(self.bn1(self.fc1(x)))
+        x = self.sigmoid(self.fc2(x))
+        return x
+
+class NetB(nn.Cell):
+    def __init__(self):
+        super(NetB, self).__init__()
+        self.fc1 = nn.Dense(3, 10)
+        self.bn1 = nn.BatchNorm1d(10)
+        self.fc2 = nn.Dense(10, 1)
+        self.relu = nn.ReLU()
+        self.sigmoid = nn.Sigmoid()
+        
+
+    def construct(self, x):
+        x = self.relu(self.bn1(self.fc1(x)))
+        x = self.sigmoid(self.fc2(x))
+        return x
+
+net_0 = NetA()
+net_1 = NetB()
+ms.save_checkpoint(net_0, "net_a.ckpt")
+ms.save_checkpoint(net_1, "net_b.ckpt")
 ```
 
+```python
+# Comparing all
+ts.migrator.compare_ms_ckpt("net_a.ckpt", "net_b.ckpt")
+```
+![compare_ckpt_0](images/compare_ckpt_0.png)
+```python
+# Comparing all, only print difference
+ts.migrator.compare_ms_ckpt("net_a.ckpt", "net_b.ckpt", print_level=2)
+```
+![compare_ckpt_1](images/compare_ckpt_1.png)
+```python
+# Comparing network parameter structures, only print difference
+ts.migrator.compare_ms_ckpt("net_a.ckpt", "net_b.ckpt", compare_value=False, print_level=2)
+```
+![compare_ckpt_2](images/compare_ckpt_2.png)
+
+
+#### ```compare_pth_and_ckpt(weight_map_path, pt_file_path, ms_file_path, **kwargs)```
+
+用于比较PyTorch和MindSpore的结构和数值差异。
+
+**位置参数：**
+- weight_map_path(str)：通过get_weight_map函数生成的权重映射表路径。
+- pt_file_path(str)：PyTorch的pth文件路径。
+- ms_file_path(str)：MindSpore的ckpt的文件路径。
+
+**kwargs参数：**
+
+- compare_value(bool)：是否进行数值比较，默认值为True。为True时，会分别输出shape和value两个差异分析表格。
+- print_level(int)：日志等级，默认值为1。为0时不输出比较结果，为1时输出所有结果，为2时仅输出有差异的结果。
+- rtol(float): 开启数值比较时的比较参数，相对误差，默认值为`1e-4`，内部调用`numpy.allclose`的参数。
+- atol(float): 开启数值比较时的比较参数，绝对误差，默认值为`1e-4`，内部调用`numpy.allclose`的参数。
+- equal_nan(bool)：开启数值比较时的比较参数，是否将nan视为相等，默认值为 `False`，内部调用`numpy.allclose`的参数。
+
+**样例：**
+```python
+import troubleshooter as ts
+import torch
+import mindspore as ms
+from mindspore import nn
+
+
+class PTNet(torch.nn.Module):
+    def __init__(self):
+        super(PTNet, self).__init__()
+        self.fc1 = torch.nn.Linear(2, 10)
+        self.bn1 = torch.nn.BatchNorm1d(10)
+        self.fc2 = torch.nn.Linear(10, 1)
+        self.relu = torch.nn.ReLU()
+        self.sigmoid = torch.nn.Sigmoid()
+
+    def construct(self, x):
+        x = self.relu(self.bn1(self.fc1(x)))
+        x = self.sigmoid(self.fc2(x))
+        return x
+
+class MSNet(nn.Cell):
+    def __init__(self):
+        super(MSNet, self).__init__()
+        self.fc1 = nn.Dense(3, 10)
+        self.bn1 = nn.BatchNorm1d(10)
+        self.fc2 = nn.Dense(10, 1)
+        self.relu = nn.ReLU()
+        self.sigmoid = nn.Sigmoid()
+
+    def construct(self, x):
+        x = self.relu(self.bn1(self.fc1(x)))
+        x = self.sigmoid(self.fc2(x))
+        return x
+
+pt_net = PTNet()
+ms_net = MSNet()
+ts.migrator.get_weight_map(pt_model=pt_net,
+                           weight_map_save_path="torch_net_map.json")
+torch.save(pt_net.state_dict(), "pt_net.pth")
+ms.save_checkpoint(ms_net, "ms_net.ckpt")
+ts.migrator.compare_pth_and_ckpt("torch_net_map.json", "pt_net.pth", "ms_net.ckpt", print_level=2)
+```
+![compare_pth_ckpt](images/compare_pth_ckpt.png)
+
 ## 应用场景3：保存tensor
-在网络迁移精度问题排查时，需要对网络中的数据进行保存。`troubleshooter`提供了支持`mindspore`和`pytorch`的统一数据保存接口，并支持文件自动编号功能。
+在网络迁移精度问题排查时，需要对网络中的数据进行保存。`troubleshooter`提供了支持`MindSpore`和`PyTorch`的统一数据保存接口，并支持文件自动编号功能。
 
 ### 接口定义
 
@@ -132,7 +256,7 @@ ts.save(file:str, data:Union(Tensor, list[Tensor], tuple[Tensor], dict[str, Tens
 
 ### 如何使用
 
-**支持mindspore动态图和静态图**
+**支持MindSpore动态图和静态图**
 
 ```python
 import os
@@ -176,7 +300,7 @@ out4 = net({"x1": x1, "x2":x2})
 # /tmp/save/3_ms_tensor_x2.npy
 ```
 
-**支持pytorch**
+**支持PyTorch**
 
 ```python
 import os
