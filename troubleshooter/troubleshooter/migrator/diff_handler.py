@@ -119,11 +119,98 @@ def get_list_filename_map_list(orig_dir, target_dir):
     return name_map_list
 
 
+def map_list_by_min_edit_distance(orig_dir, target_dir):
+    name_map_list = []
+    orig_name_list = find_file(orig_dir)
+    target_name_list = find_file(target_dir)
+    if not (orig_name_list and target_name_list):
+        logger.user_error("The comparison file is not found in the directory. Please \
+            check whether the directory is correct")
+        exit(1)
+    orig_name_list = _sort_list(orig_name_list)
+    target_name_list = _sort_list(target_name_list)
+    print("orig name list is, ", orig_name_list)
+    print("target name list is, ", target_name_list)
+    orig_shape_list = [np.load(os.path.join(orig_dir, orig_name)).shape for orig_name in orig_name_list]
+    target_shape_list = [np.load(os.path.join(target_dir, target_name)).shape for target_name in target_name_list]
+    for grad_orig, grad_target in zip(orig_name_list, target_name_list):
+        name_map_list.append((grad_orig, grad_target))
+    min_cost, index_map_list = min_edit_distance(orig_shape_list, target_shape_list)
+    if min_cost != 0:
+        logger.user_warning("The number of files or their corresponding shapes are inconsistent, "
+                            "and some files may not be correctly mapped.")
+    name_map_list = [(orig_name_list[a] if a is not None else None, target_name_list[b] if b is not None else None) for
+                     a, b in index_map_list]
+    return name_map_list
+
+
+def min_edit_distance(A, B):
+    m = len(A)
+    n = len(B)
+
+    dp = [[0] * (n + 1) for _ in range(m + 1)]
+
+    for i in range(m + 1):
+        dp[i][0] = i
+    for j in range(n + 1):
+        dp[0][j] = j
+
+    operations = [[''] * (n + 1) for _ in range(m + 1)]
+    # Replace cost > (Delete or Insert)
+    for i in range(1, m + 1):
+        for j in range(1, n + 1):
+            if A[i - 1] == B[j - 1]:
+                dp[i][j] = dp[i - 1][j - 1]
+                operations[i][j] = 'Match'
+            else:
+                delete_cost = dp[i - 1][j] + 1
+                insert_cost = dp[i][j - 1] + 1
+                replace_cost = dp[i - 1][j - 1] + 5
+
+                if delete_cost <= insert_cost and delete_cost <= replace_cost:
+                    dp[i][j] = delete_cost
+                    operations[i][j] = 'Delete'
+                elif insert_cost <= delete_cost and insert_cost <= replace_cost:
+                    dp[i][j] = insert_cost
+                    operations[i][j] = 'Insert'
+                else:
+                    dp[i][j] = replace_cost
+                    operations[i][j] = 'Replace'
+
+    i = m
+    j = n
+    matches = []
+    while i > 0 and j > 0:
+        if operations[i][j] == 'Match':
+            matches.append((i - 1, j - 1))
+            i -= 1
+            j -= 1
+        elif operations[i][j] == 'Delete':
+            matches.append((i - 1, None))
+            i -= 1
+        elif operations[i][j] == 'Insert':
+            matches.append((None, j - 1))
+            j -= 1
+        else:
+            matches.append((i - 1, j - 1))
+            i -= 1
+            j -= 1
+
+    while i > 0:
+        matches.append((i - 1, None))
+        i -= 1
+    while j > 0:
+        matches.append((None, j - 1))
+        j -= 1
+
+    matches.reverse()
+    return dp[m][n], matches
+
 def compare_list_npy_dir(orig_dir, target_dir, *, name_map_list=None, **kwargs):
     none_and_isdir_check(orig_dir, 'orig_dir')
     none_and_isdir_check(target_dir, 'target_dir')
     if name_map_list is None:
-        name_map_list = get_list_filename_map_list(orig_dir, target_dir)
+        name_map_list = map_list_by_min_edit_distance(orig_dir, target_dir)
     compare_npy_dir(orig_dir, target_dir, name_map_list=name_map_list, **kwargs)
 
 
