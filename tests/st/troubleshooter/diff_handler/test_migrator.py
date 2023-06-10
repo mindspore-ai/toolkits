@@ -90,7 +90,7 @@ def test_ordereddict_sequential_case(capsys):
     os.remove(torch_path)
     os.remove(map_file_path)
     os.remove(ms_path)
-    assert result.count('True') == 4 and check_delimited_list(result, key_result)
+    assert result.count("Consistent") == 3 and check_delimited_list(result, key_result)
 
 
 @pytest.mark.level0
@@ -114,7 +114,7 @@ def test_save_model_pth_case(capsys):
     os.remove(map_file_path)
     os.remove(pth_path)
     os.remove(ms_file_path)
-    assert result.count('True') == 4 and check_delimited_list(result, key_result)
+    assert result.count("Consistent") == 3 and check_delimited_list(result, key_result)
 
 
 @pytest.mark.level0
@@ -124,10 +124,8 @@ def test_torch_modulelist_and_loadckpt_case(capsys):
     class MyNet_CellList(mindspore.nn.Cell):
         def __init__(self, in_channels, out_channels, hidden_size):
             super(MyNet_CellList, self).__init__()
-            self.fc_layers = mindspore.nn.CellList()
-            self.fc_layers.append(mindspore.nn.Dense(in_channels, hidden_size))
-            self.fc_layers.append(
-                mindspore.nn.Dense(hidden_size, out_channels))
+            self.fc_layers = mindspore.nn.CellList([mindspore.nn.Dense(in_channels, hidden_size), 
+                                                    mindspore.nn.Dense(hidden_size, out_channels)])
             self.relu = mindspore.nn.ReLU()
 
         def construct(self, x):
@@ -165,12 +163,12 @@ def test_torch_modulelist_and_loadckpt_case(capsys):
                                pt_file_path=pth_path,
                                ms_file_save_path=ms_file_path)
     param_dict = mindspore.load_checkpoint(ms_file_path)
-    res = mindspore.load_param_into_net(ms_net, param_dict)
-    ms_param_dict = ms_net.parameters_dict()
+    param_not_load, ckpt_not_load = mindspore.load_param_into_net(ms_net, param_dict)
+    result = capsys.readouterr().out
     os.remove(map_file_path)
     os.remove(pth_path)
     os.remove(ms_file_path)
-    assert len(ms_param_dict) == 4
+    assert len(param_not_load) == 0 and len(ckpt_not_load) == 0
 
 
 @pytest.mark.level0
@@ -220,7 +218,7 @@ def test_modulelist_sequential_case(capsys):
     os.remove(map_file_path)
     os.remove(pth_path)
     os.remove(ms_file_path)
-    assert result.count('False') == 20 and check_delimited_list(result, key_result)
+    assert result.count('Consistent') == 10 and check_delimited_list(result, key_result)
 
 
 @pytest.mark.level0
@@ -271,7 +269,7 @@ def test_save_model_pth_and_input_dict_case(capsys):
     os.remove(map_file_path)
     os.remove(pth_path)
     os.remove(ms_file_path)
-    assert result.count('True') == 4 and check_delimited_list(result, key_result)
+    assert result.count("Consistent") == 3 and check_delimited_list(result, key_result)
 
 
 @pytest.mark.level0
@@ -313,8 +311,6 @@ def test_save_optimizer_case(capsys):
     opt_para = torch.load(pth_path)
     new_optimizer.load_state_dict(opt_para)
     try:
-        # wm = ts.WeightMigrator(pt_model=model, pth_file_path=pth_path, ckpt_save_path='./convert_resnet.ckpt')
-        # wm.convert()
         ts.migrator.get_weight_map(pt_model=model,
                                    weight_map_save_path=map_file_path,
                                    print_map=True)
@@ -401,8 +397,6 @@ def test_conv1d_value_case(capsys):
     ms_net = MSNet()
     # save model
     torch.save(torch_net.state_dict(), pth_path)
-    # wm = ts.WeightMigrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='/tmp/convert_resnet.ckpt')
-    # wm.convert()
     ts.migrator.get_weight_map(pt_model=torch_net,
                                weight_map_save_path=map_file_path,
                                print_map=True)
@@ -422,7 +416,7 @@ def test_conv1d_value_case(capsys):
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard
-def test_batchnorm3d_value_case():
+def test_batchnorm3d_value_case(capsys):
     class MSNet(mindspore.nn.Cell):
         def __init__(self):
             super(MSNet, self).__init__()
@@ -454,11 +448,12 @@ def test_batchnorm3d_value_case():
                                pt_file_path=pth_path,
                                ms_file_save_path=ms_file_path)
     param_dict = mindspore.load_checkpoint(ms_file_path)
-    res = mindspore.load_param_into_net(ms_net, param_dict)
+    param_not_load, ckpt_not_load = mindspore.load_param_into_net(ms_net, param_dict)
     os.remove(map_file_path)
     os.remove(pth_path)
     os.remove(ms_file_path)
-    assert not res[0]
+    result = capsys.readouterr().out
+    assert len(param_not_load) == 0
 
 
 @pytest.mark.level0

@@ -3,9 +3,9 @@
 ## 应用场景1：pth到ckpt权重自动转换
 用户需要从pytorch网络迁移到MindSpore网络时，需要进行权重迁移，因为MindSpore的权重名称与Pytorch有差异，需要使用权重迁移工具进行权重自动化迁移。
 ### 结果展示
-显示转换后的ckpt保持路径与名称，并给出详细的转换信息。
+显示转换后的ckpt保存路径与名称，并给出详细的转换信息。
 
-![avatar](images/18h52_36.png)
+![avatar](images/pth2ckpt.png)
 ### 如何使用1-网络结构完全一致，权重自动转换
 在MindSpore迁移后的网络结构与pytorch网络结构完全一致时，pth到ckpt转换，仅有权重名称差异，则可以通过如下方法完成权重的自动转换。
 ```python

@@ -85,12 +85,12 @@ def print_weight_compare_result(result_list, print_type=1, **kwargs):
 def print_convert_result(result_list):
     x = PrettyTable()
     x.title = 'The list of conversion result'
-    x.field_names = ["Parameter name of torch", "Parameter name of MindSpore", "Whether the name is converted",
-                     "Whether the weight value is converted", "Parameter shape of torch",
-                     "Parameter shape of MindSpore"]
+    x.field_names = ["Parameter name of torch", "Parameter name of MindSpore",
+                     "Conversion status",
+                     "Parameter shape of torch", "Parameter shape of MindSpore"]
     for result in result_list:
         x.add_row([result[0], result[1], result[2],
-                  result[3], result[4], result[5]])
+                  result[3], result[4]])
     print(x.get_string())
 
 
@@ -122,7 +122,7 @@ def print_net_infer_diff_result(result_list):
     x = PrettyTable()
     x.title = 'The list of comparison results'
     x.field_names = ["Pytorch data", "MindSpore data",
-                     "results of comparison", "cosine similarity", "(mean, max, min)"]
+                     "results of comparison", "cosine similarity", "(mean, max)"]
     for result in result_list:
         x.add_row([result[0], result[1], result[2], result[3], result[4]])
     print(x.get_string())
