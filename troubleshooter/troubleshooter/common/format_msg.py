@@ -55,7 +55,7 @@ def _add_row(x, item, message, width=TABLE_WIDTH, break_long_words=False, break_
                              break_on_hyphens=break_on_hyphens)])
 
 
-def print_weight_compare_result(result_list, print_level=1, **kwargs):
+def print_weight_compare_result(result_list, title=None, print_level=1, **kwargs):
     # 0 Do not print
     # Print All
     # print False
@@ -71,7 +71,7 @@ def print_weight_compare_result(result_list, print_level=1, **kwargs):
 
     if field_names is None:
         x.field_names = ["Parameter name of original ckpt", "Parameter name of target ckpt", "Whether shape are equal",
-                     "Parameter shape of original ckpt", "Parameter shape of target ckpt"]
+                         "Parameter shape of original ckpt", "Parameter shape of target ckpt"]
     else:
         x.field_names = field_names
 
@@ -95,7 +95,7 @@ def print_convert_result(result_list):
     print(x.get_string())
 
 
-def print_diff_result(result_list, title=None, field_names=None, print_level=1):
+def print_diff_result(result_list, title=None, print_level=1, **kwargs):
     # 0 Do not print
     # Print All
     # print False
@@ -103,18 +103,16 @@ def print_diff_result(result_list, title=None, field_names=None, print_level=1):
         return
     if not result_list:
         return
-
+    field_names = kwargs.get('field_names', ["orig array name", "target array name",
+                                             "results of comparison", "match ratio",
+                                             "cosine similarity", "(mean, max)"])
     x = PrettyTable()
     if title is None:
         x.title = 'The list of comparison results'
     else:
         x.title = title
 
-    if field_names is None:
-        x.field_names = ["orig array name", "target array name",
-                         "results of comparison", "match ratio", "cosine similarity", "(mean, max)"]
-    else:
-        x.field_names = field_names
+    x.field_names = field_names
 
     for result in result_list:
         if print_level == 2 and result[2] is True:
@@ -126,7 +124,7 @@ def print_diff_result(result_list, title=None, field_names=None, print_level=1):
     print(x.get_string())
 
 
-def print_diff_result_with_shape(result_list, title=None, field_names=None, print_level=1):
+def print_diff_result_with_shape(result_list, title=None, field_names=None, print_level=1, **kwargs):
     # 0 Do not print
     # Print All
     # print False
@@ -140,13 +138,11 @@ def print_diff_result_with_shape(result_list, title=None, field_names=None, prin
         x.title = 'The list of comparison results'
     else:
         x.title = title
-
-    if field_names is None:
-        x.field_names = ["orig array name", "target array name",
-                         "shape of orig", "shape of target",
-                         "results of comparison", "match ratio", "cosine similarity", "(mean, max)"]
-    else:
-        x.field_names = field_names
+    field_names = kwargs.get('field_names', ["orig array name", "target array name",
+                                             "shape of orig", "shape of target",
+                                             "results of comparison",
+                                             "match ratio", "cosine similarity", "(mean, max)"])
+    x.field_names = field_names
 
     for result in result_list:
         if print_level == 2 and result[4] is True:

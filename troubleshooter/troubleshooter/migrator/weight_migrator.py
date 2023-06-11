@@ -215,13 +215,11 @@ def compare_ms_ckpt(orig_file_path, target_file_path, **kwargs):
     name_map_list = []
     value_map_list = []
     name_map = None
-    field_names = ["Parameter name of original ckpt", "Parameter name of target ckpt", "results of comparison",
-                   "match ratio", "cosine similarity", "(mean, max)"]
-    field_names_pth = ["Parameter name of torch", "Parameter name of MindSpore", "results of comparison", "match ratio",
-                       "cosine similarity", "(mean, max)"]
-    field_names_shape_pth = ["Parameter name of torch", "Parameter name of MindSpore", "Whether shape are equal",
-                             "Parameter shape of torch", "Parameter shape of MindSpore"]
-
+    shape_field_names = kwargs.get('shape_field_names', None)
+    value_field_names = kwargs.get('value_field_names', ["Parameter name of original ckpt",
+                                                         "Parameter name of target ckpt",
+                                                         "results of comparison",
+                                                         "match ratio", "cosine similarity", "(mean, max)"])
     title = kwargs.get('title', 'The list of comparison results for values')
     compare_value = kwargs.get('compare_value', True)
     weight_map_path = kwargs.get('weight_map_path', None)
@@ -276,12 +274,8 @@ def compare_ms_ckpt(orig_file_path, target_file_path, **kwargs):
     for name, target_para in target_ckpt_dict.items():
         name_map_list.append((None, name, None, None, target_para.shape))
 
-    if weight_map_path:
-        print_weight_compare_result(name_map_list, print_level=print_level, field_names=field_names_shape_pth)
-        print_diff_result(value_map_list, title, field_names_pth, print_level=print_level)
-    else:
-        print_weight_compare_result(name_map_list, print_level=print_level)
-        print_diff_result(value_map_list, title, field_names, print_level=print_level)
+    print_weight_compare_result(name_map_list, print_level=print_level, field_names=shape_field_names)
+    print_diff_result(value_map_list, title, print_level=print_level, field_names=value_field_names)
 
 
 def compare_pth_and_ckpt(weight_map_path, pt_file_path, ms_file_path, **kwargs):
