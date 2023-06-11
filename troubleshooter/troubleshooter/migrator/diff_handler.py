@@ -15,8 +15,8 @@
 """compare tools"""
 import numpy as np
 import os
-from troubleshooter.common.format_msg import print_diff_result
-from troubleshooter.common.util import validate_and_normalize_path, find_file, none_and_isdir_check
+from troubleshooter.common.format_msg import print_diff_result, print_diff_result_with_shape
+from troubleshooter.common.util import validate_and_normalize_path, find_file, none_and_isdir_check, type_check
 from troubleshooter import log as logger
 
 __all__ = [
@@ -64,6 +64,17 @@ def get_filename_map_list(orig_dir, target_dir):
 def compare_npy_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, *, name_map_list=None, **kwargs):
     none_and_isdir_check(orig_dir, 'orig_dir')
     none_and_isdir_check(target_dir, 'target_dir')
+    compare_shape = kwargs.get('compare_shape', False)
+    type_check(compare_shape, 'compare_shape', bool)
+
+    def load_value(dir, name):
+        if name is None:
+            return None
+        file = os.path.join(dir, name)
+        if not os.path.isfile(file):
+            return None
+        return np.load(file)
+
     if name_map_list is None:
         name_map_list = get_filename_map_list(orig_dir, target_dir)
 
@@ -74,29 +85,24 @@ def compare_npy_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False,
     for name_map in name_map_list:
         orig_name = name_map[0]
         target_name = name_map[1]
+        orig_value = load_value(normal_orig_dir, orig_name)
+        target_value = load_value(normal_target_dir, target_name)
 
-        if orig_name is None or target_name is None:
-            result = False
-            rel_ratio = 0
-            cosine_sim = 0
-            diff_detail = ()
-            result_list.append(
-                (orig_name, target_name, result, rel_ratio, cosine_sim,diff_detail))
-            continue
-
-        orig_file = os.path.join(normal_orig_dir, orig_name)
-        target_file = os.path.join(normal_target_dir, target_name)
-
-        if not os.path.isfile(orig_file) or not os.path.isfile(target_file):
-            continue
-
-        orig_value = np.load(orig_file)
-        target_value = np.load(target_file)
-        result, rel_ratio, cosine_sim, diff_detail = cal_algorithm(orig_value, target_value, rtol, atol, equal_nan)
-        result_list.append((orig_name, target_name, result, rel_ratio, cosine_sim, diff_detail))
+        result, rel_ratio, cosine_sim, diff_detail = False, 0, 0, ()
+        orig_shape = orig_value.shape if orig_value is not None else None
+        target_shape = target_value.shape if target_value is not None else None
+        if orig_value is not None and target_value is not None:
+            result, rel_ratio, cosine_sim, diff_detail = cal_algorithm(orig_value, target_value, rtol, atol, equal_nan)
+        if compare_shape:
+            result_list.append((orig_name, target_name, orig_shape, target_shape, result, rel_ratio, cosine_sim, diff_detail))
+        else:
+            result_list.append((orig_name, target_name, result, rel_ratio, cosine_sim, diff_detail))
     logger.user_attention("The compare directory information:\n The orig dir: %s \n The target dir: %s",
                           orig_dir, target_dir)
-    print_diff_result(result_list)
+    if compare_shape:
+        print_diff_result_with_shape(result_list)
+    else:
+        print_diff_result(result_list)
 
 
 def get_list_filename_map_list(orig_dir, target_dir):
@@ -119,7 +125,7 @@ def get_list_filename_map_list(orig_dir, target_dir):
     return name_map_list
 
 
-def map_list_by_min_edit_distance(orig_dir, target_dir):
+def get_filename_map_list_by_min_edit_distance(orig_dir, target_dir):
     name_map_list = []
     orig_name_list = find_file(orig_dir)
     target_name_list = find_file(target_dir)
@@ -210,8 +216,8 @@ def compare_list_npy_dir(orig_dir, target_dir, *, name_map_list=None, **kwargs):
     none_and_isdir_check(orig_dir, 'orig_dir')
     none_and_isdir_check(target_dir, 'target_dir')
     if name_map_list is None:
-        name_map_list = map_list_by_min_edit_distance(orig_dir, target_dir)
-    compare_npy_dir(orig_dir, target_dir, name_map_list=name_map_list, **kwargs)
+        name_map_list = get_filename_map_list_by_min_edit_distance(orig_dir, target_dir)
+    compare_npy_dir(orig_dir, target_dir, name_map_list=name_map_list, compare_shape=True, **kwargs)
 
 
 compare_grads_dir = compare_list_npy_dir

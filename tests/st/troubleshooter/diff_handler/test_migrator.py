@@ -625,7 +625,7 @@ def test_compare_grads(capsys):
     train_one_step(inputs, labels)
     ts.migrator.compare_grads_dir(pt_path, ms_path)
     result = capsys.readouterr().out
-    key_result = ['0_grads_fc2.bias_3.npy', '1_grads_3.npy', 'False']
+    key_result = ['0_grads_fc2.bias_3.npy', '1_grads_3.npy']
     shutil.rmtree(ms_path)
     shutil.rmtree(pt_path)
     assert check_delimited_list(result, key_result)

@@ -125,6 +125,38 @@ def print_diff_result(result_list, title=None, field_names=None, print_level=1):
     print(x.get_string())
 
 
+def print_diff_result_with_shape(result_list, title=None, field_names=None, print_level=1):
+    # 0 Do not print
+    # Print All
+    # print False
+    if print_level == 0:
+        return
+    if not result_list:
+        return
+
+    x = PrettyTable()
+    if title is None:
+        x.title = 'The list of comparison results'
+    else:
+        x.title = title
+
+    if field_names is None:
+        x.field_names = ["orig array name", "target array name",
+                         "shape of orig", "shape of target",
+                         "results of comparison", "match ratio", "cosine similarity", "(mean, max)"]
+    else:
+        x.field_names = field_names
+
+    for result in result_list:
+        if print_level == 2 and result[4] is True:
+            continue
+        ratio = "{:.2%}".format(result[5])
+        cos_sim = "%.5f" % float(result[6])
+        mean_max = ", ".join('%.5f' % r for r in result[7])
+        x.add_row([result[0], result[1], result[2], result[3], result[4], ratio, cos_sim, mean_max])
+    print(x.get_string())
+
+
 def print_net_infer_diff_result(result_list):
     x = PrettyTable()
     x.title = 'The list of comparison results'
