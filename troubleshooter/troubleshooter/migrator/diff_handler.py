@@ -135,8 +135,6 @@ def get_filename_map_list_by_min_edit_distance(orig_dir, target_dir):
         exit(1)
     orig_name_list = _sort_list(orig_name_list)
     target_name_list = _sort_list(target_name_list)
-    print("orig name list is, ", orig_name_list)
-    print("target name list is, ", target_name_list)
     orig_shape_list = [np.load(os.path.join(orig_dir, orig_name)).shape for orig_name in orig_name_list]
     target_shape_list = [np.load(os.path.join(target_dir, target_name)).shape for target_name in target_name_list]
     for grad_orig, grad_target in zip(orig_name_list, target_name_list):
