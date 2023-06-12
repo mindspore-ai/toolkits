@@ -17,6 +17,8 @@ import csv
 import os
 import random
 import time
+import shutil
+import tempfile
 
 import torch
 import mindspore as ms
@@ -36,9 +38,6 @@ __all__ = [
 class NetDifferenceFinder:
     init_kwargs = {"pt_params_path", "ms_params_path", "auto_conv_ckpt", "fix_seed", "out_path", "pt_org_pth_name",
                    "conv_ckpt_name", "ms_org_ckpt_name"}
-
-    MS_OUTPUT_PATH = "data/output/MindSpore"
-    PT_OUTPUT_PATH = "data/output/PyTorch"
     TITLE = 'The comparison results of Net'
     FIELD_NAMES = ["PyTorch out", "MindSpore out",
                 "results of comparison", "match ratio", "cosine similarity", "(mean, max)"]
@@ -50,9 +49,13 @@ class NetDifferenceFinder:
         self.ms_net = ms_net
         self.pt_net = pt_net
         self.print_level = print_level
+        self.out_path = tempfile.mkdtemp(prefix="tmp_net_diff_finder_")
         self._handle_kwargs(**kwargs)
         if self.fix_seed:
             self.fix_random(self.fix_seed)
+
+    def __del__(self):
+        shutil.rmtree(self.out_path)
 
     def _handle_kwargs(self, **kwargs):
 
@@ -63,8 +66,6 @@ class NetDifferenceFinder:
 
         self.fix_seed = kwargs.get('fix_seed', 16)
 
-        self.out_path = validate_and_normalize_path(
-            kwargs.get('out_path', './net_diff_finder'))
         if not os.path.exists(self.out_path):
             os.makedirs(self.out_path)
         self.pt_org_pth_name = os.path.join(
@@ -191,7 +192,6 @@ class NetDifferenceFinder:
                 raise ValueError("Output results are in different counts! "
                                  f"MindSpore output num: {len(result_ms)}, PyTorch output shape: {len(result_pt)}.")
             compare_results.extend(self._compare_results(result_ms, result_pt, idx, atol, rtol, equal_nan))
-        self._save_results(compare_results)
         print_diff_result(compare_results, title=self.TITLE, field_names=self.FIELD_NAMES)
 
     def _get_input_data(self, input):
@@ -312,7 +312,6 @@ class NetDifferenceFinder:
                 if result_pt_.shape != result_ms_.shape:
                     raise ValueError(f"Output results for {index} have different shapes! "
                                      f"MindSpore output shape: {result_ms_.shape}, PyTorch output shape: {result_pt_.shape}.")
-                self._save_out_data(k_ms, k_pt, result_ms_, result_pt_)
                 result, rel_ratio, cosine_sim, diff_detail = cal_algorithm(result_ms_, result_pt_, rtol, atol, equal_nan)
                 pt_name, ms_name = f"step_{idx}_{k_pt}", f"step_{idx}_{k_ms}"
                 compare_result.append((pt_name, ms_name, result, rel_ratio, cosine_sim, diff_detail))
