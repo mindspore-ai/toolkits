@@ -120,7 +120,7 @@ def print_diff_result(result_list, title=None, field_names=None, print_level=1):
             continue
         ratio = "{:.2%}".format(result[3])
         cos_sim = "%.5f" % float(result[4])
-        mean_max = ", ".join('%.5f' % r for r in result[5])
+        mean_max = result[5] if isinstance(result[5], str) else ", ".join('%.5f' % r for r in result[5])
         x.add_row([result[0], result[1], result[2], ratio, cos_sim, mean_max])
     print(x.get_string())
 

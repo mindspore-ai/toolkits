@@ -230,7 +230,7 @@ def cal_algorithm(orig_value, target_value, rtol, atol, equal_nan):
             value_max = value_diff.max()
             diff_detail = value_mean, value_max
         else:
-            diff_detail = ()
+            diff_detail = "No Difference" 
         cosine_sim = cal_cosine_sim(orig_value, target_value)
         rel_ratio = np.isclose(orig_value, target_value, rtol=rtol, atol=atol,
                                equal_nan=equal_nan).sum()/np.size(orig_value)
@@ -249,6 +249,8 @@ def cal_cosine_sim(a, b):
     denom = np.linalg.norm(a) * np.linalg.norm(b)
     if not denom == 0.:
         sim = num / denom
+    elif np.allclose(a, b):
+        sim = 1.
     return sim
 
 
