@@ -15,6 +15,7 @@
 """format output"""
 
 import os
+import math
 import re
 from textwrap import fill
 import traceback
@@ -118,7 +119,7 @@ def print_diff_result(result_list, title=None, field_names=None, print_level=1):
     for result in result_list:
         if print_level == 2 and result[2] is True:
             continue
-        ratio = "{:.2%}".format(result[3])
+        ratio = result[3] if math.isnan(result[3]) else "{:.2%}".format(result[3])
         cos_sim = "%.5f" % float(result[4])
         mean_max = result[5] if isinstance(result[5], str) else ", ".join('%.5f' % r for r in result[5])
         x.add_row([result[0], result[1], result[2], ratio, cos_sim, mean_max])
@@ -150,7 +151,7 @@ def print_diff_result_with_shape(result_list, title=None, field_names=None, prin
     for result in result_list:
         if print_level == 2 and result[4] is True:
             continue
-        ratio = "{:.2%}".format(result[5])
+        ratio = result[3] if math.isnan(result[5]) else "{:.2%}".format(result[5])
         cos_sim = "%.5f" % float(result[6])
         mean_max = ", ".join('%.5f' % r for r in result[7])
         x.add_row([result[0], result[1], result[2], result[3], result[4], ratio, cos_sim, mean_max])

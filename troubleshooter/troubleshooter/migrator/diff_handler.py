@@ -15,6 +15,7 @@
 """compare tools"""
 import numpy as np
 import os
+import math
 from troubleshooter.common.format_msg import print_diff_result, print_diff_result_with_shape
 from troubleshooter.common.util import validate_and_normalize_path, find_file, none_and_isdir_check, type_check
 from troubleshooter import log as logger
@@ -224,21 +225,18 @@ compare_grads_dir = compare_list_npy_dir
 def cal_algorithm(orig_value, target_value, rtol, atol, equal_nan):
     if orig_value.shape == target_value.shape:
         result = np.allclose(orig_value, target_value, rtol=rtol, atol=atol, equal_nan=equal_nan)
-        if not result:
-            value_diff = np.abs(orig_value - target_value)
-            value_mean = value_diff.mean()
-            value_max = value_diff.max()
-            diff_detail = value_mean, value_max
-        else:
-            diff_detail = "No Difference" 
+        value_diff = np.abs(orig_value - target_value)
+        value_mean = value_diff.mean()
+        value_max = value_diff.max()
+        diff_detail = value_mean, value_max
         cosine_sim = cal_cosine_sim(orig_value, target_value)
         rel_ratio = np.isclose(orig_value, target_value, rtol=rtol, atol=atol,
                                equal_nan=equal_nan).sum()/np.size(orig_value)
     else:
         result = "Shape is inconsistent"
         rel_ratio = 0
-        cosine_sim = 0
-        diff_detail = ()
+        cosine_sim = math.nan
+        diff_detail = (math.nan, math.nan)
 
     return result, rel_ratio, cosine_sim, diff_detail
 
