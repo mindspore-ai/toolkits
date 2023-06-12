@@ -55,6 +55,10 @@ def _add_row(x, item, message, width=TABLE_WIDTH, break_long_words=False, break_
                              break_on_hyphens=break_on_hyphens)])
 
 
+def print_separator_line(content, length=40, character='='):
+    separator = f'{content:{character}^{length}}'
+    print(separator)
+
 def print_weight_compare_result(result_list, title=None, print_level=1, **kwargs):
     # 0 Do not print
     # Print All

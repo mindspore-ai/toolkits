@@ -22,8 +22,8 @@ import torch
 import mindspore as ms
 import numpy as np
 from troubleshooter import log as logger
-from troubleshooter.common.format_msg import print_diff_result
-from troubleshooter.common.util import save_numpy_data, validate_and_normalize_path, clear_tmp_file
+from troubleshooter.common.format_msg import print_diff_result, print_separator_line
+from troubleshooter.common.util import save_numpy_data, validate_and_normalize_path, clear_tmp_file, type_check
 from troubleshooter.migrator import weight_migrator
 from troubleshooter.migrator.diff_handler import cal_algorithm
 
@@ -141,20 +141,20 @@ class NetDifferenceFinder:
             raise TypeError("The type of auto_input must be tuple or dict")
 
     def _build_auto_input(self, auto_inputs):
-        inputs_ = list()
         inputs = []
-        if auto_inputs:
-            if isinstance(auto_inputs, tuple):
-                for item in auto_inputs:
-                    inputs_.append(np.random.randn(*item[0]).astype(item[1]))
-                inputs = tuple(inputs_)
-            elif isinstance(auto_inputs, dict):
-                for _ in range(auto_inputs["num"]):
-                    tmp = []
-                    for item in auto_inputs['input']:
-                        tmp.append(np.random.randn(*item[0]).astype(item[1]))
-                    tmp = tuple(tmp)
-                inputs.append(tmp)
+        if auto_inputs is None:
+            return None
+
+        if isinstance(auto_inputs, tuple):
+            for item in auto_inputs:
+                inputs.append(np.random.randn(*item[0]).astype(item[1]))
+            inputs = tuple(inputs)
+        elif isinstance(auto_inputs, dict):
+            type_check(auto_inputs["num"], "auto_inputs['num']", int)
+            for _ in range(auto_inputs["num"]):
+                inputs.append(self._build_auto_input(auto_inputs["input"]))
+        else:
+            raise ValueError("For ts.migrator.NetDifferenceFinder, the arg 'auto_inputs' value error.")
         return inputs
 
     def _convert_data_format(self, inputs):
@@ -179,10 +179,11 @@ class NetDifferenceFinder:
         inputs = self._convert_data_format(inputs)
         compare_results = []
         if self.print_level:
-            print("\n=================================Start inference net=================================")
+            print_separator_line("Start inference net", length=80)
         for idx, input in enumerate(inputs):
             input_data = self._get_input_data(input)
-            print(f"Start case {idx} inference~")
+            if self.print_level:
+                print_separator_line(f"Start case {idx} inference", length=80, character='-')
             result_ms, result_pt = self._infer_net(input_data, self.ms_net, self.pt_net, idx)
             if len(result_ms) != len(result_pt):
                 raise ValueError("Output results are in different counts! "
@@ -218,6 +219,8 @@ class NetDifferenceFinder:
         torch.backends.cudnn.enabled = False
         # for mindspore
         ms.set_seed(seed)
+        self.pt_net.eval()
+        self.ms_net.set_train(False)
 
     def _save_ckpt(self):
         torch.save(self.pt_net.state_dict(), self.pt_org_pth_name)
@@ -225,27 +228,32 @@ class NetDifferenceFinder:
 
     def _conv_compare_ckpt(self, mode=1):
         self._save_ckpt()
-        print("=================================Start convert pth=================================")
         shape_field_names = ["Parameter name of torch", "Parameter name of MindSpore", "Whether shape are equal",
                              "Parameter shape of torch", "Parameter shape of MindSpore"]
         value_field_names = ["Parameter name of torch", "Parameter name of MindSpore", "results of comparison",
                              "match ratio", "cosine similarity", "(mean, max)"]
         if mode == 1:
             weight_map = weight_migrator.get_weight_map(pt_model=self.pt_net, print_map=False)
+            if self.print_level:
+                print_separator_line("Start params auto convert", length=80)
             weight_migrator.convert_weight(weight_map=weight_map, pt_file_path=self.pt_org_pth_name,
                                            ms_file_save_path=self.conv_ckpt_name, print_level=self.print_level)
             if self.compare_params:
+                print_separator_line("Start params compare", length=80)
                 weight_migrator.compare_ms_ckpt(orig_file_path=self.conv_ckpt_name,
                                                 target_file_path=self.ms_org_ckpt_name,
                                                 compare_value=False, weight_map=weight_map,
                                                 shape_field_names=shape_field_names,
                                                 value_field_names=value_field_names)
         elif mode == 2:
-            self._msadapter_pth2ckpt(self, self.pt_org_pth_name, self.conv_ckpt_name)
+            self._msadapter_pth2ckpt(self.pt_org_pth_name, self.conv_ckpt_name)
             if self.compare_params:
+                print_separator_line("Start compare params of ", length=80)
                 weight_migrator.compare_ms_ckpt(orig_file_path=self.conv_ckpt_name,
                                                 target_file_path=self.ms_org_ckpt_name,
-                                                compare_value=False)
+                                                compare_value=False,
+                                                shape_field_names=shape_field_names,
+                                                value_field_names=value_field_names)
         else:
             if self.compare_params:
                 raise ValueError("For 'NetDifferenceFinder', when the argument 'auto_conv_ckpt' is 0, "
