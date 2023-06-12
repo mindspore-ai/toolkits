@@ -242,9 +242,8 @@ ts.migrator.compare_pth_and_ckpt("torch_net_map.json", "pt_net.pth", "ms_net.ckp
 
 ### 接口定义
 
-```python
-ts.save(file:str, data:Union(Tensor, list[Tensor], tuple[Tensor], dict[str, Tensor], auto_id=True, suffix=None))
-```
+#### ```save(file:str, data:Union(Tensor, list[Tensor], tuple[Tensor], dict[str, Tensor], auto_id=True, suffix=None))```
+
 - file: 文件名路径。当`file`为`None`或`''`时，文件名会自动设置为`tensor_(shape)`，文件路径为当前路径。
 - data: 数据，支持保存`Tensor`（包括`mindspore.Tensor`和`pytorch.tensor`），以及`Tensor`构成的`list/tuple/dict`。当为`list/tuple`类型时，会按照顺序添加编号；当为`dict`类型时，文件名中会添加`key`。
 - auto_id: 自动编号，默认值为`True`。当为`True`时，保存时会自动为文件添加全局编号，编号从0开始。
@@ -332,9 +331,7 @@ ts.save(None, {"x1":x1, "x2":x2}, suffix="torch")
 进行网络迁移精度问题排查等场景，需要获取网络中的tensor值进行比较。一般我们将tensor保存成npy进行手工比较，此功能提供了批量对比两个目录下名称可以映射的npy值的接口。
 此接口会统计`numpy.allclose`、`allclose`达标比例、余弦相似度、差异值的 $mean$ / $max$ 统计量等信息。
 ### 接口定义
-```python
-ts.migrator.compare_npy_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, *, name_map_list=None)
-```
+#### ```compare_npy_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, *, name_map_list=None)```
 - orig_dir: 需要对比的npy文件所在的目录。
 - target_dir: 目标数据所在的目录。
 - rtol: 相对误差，默认值为`1e-4`，内部调用`numpy.allclose`的参数。
@@ -374,27 +371,30 @@ ts.migrator.compare_npy_dir(name_map_list=name_list)
 
 在进行网络迁移时，由于大多数网络是使用pytorch搭建的，在迁移到mindspore过程中，我们需要比较mindspore和pytorch网络输出结果是否一致。此功能实现对比mindspore和pytorch的输出结果。
 
-### 接口参数
+### 接口定义
+#### ```class NetDifferenceFinder```
+##### ```__init__(pt_net, ms_net, print_level=1, **kwargs)```
 
-1. \_\_init\_\_(pt_net, ms_net, print_result=True, pt_path=None, 
-       ms_path=None, auto_conv_ckpt=True, fix_random_seed=16,)
+**位置参数：**
+- pt_net(`torch.nn.Module`): torch模型实例
+- ms_net(`mindspore.nn.Cell`): mindspore模型实例
+- print_level(int): 日志打印等级，默认值为1。
 
-| 参数            | 类型                | 说明                                                         |
-| --------------- | ------------------- | ------------------------------------------------------------ |
-| pt_net          | `torch.nn.Module`   | torch模型实例                                                |
-| ms_net          | `mindspore.nn.Cell` | mindspore模型实例                                            |
-| print_result    | `bool`              | 是否打印比较的中间结果                                       |
-| pt_path         | `str`               | torch模型参数文件路径                                        |
-| ms_path         | `str`               | mindspore模型参数文件路径                                    |
-| auto_conv_ckpt  | `bool`              | 是否自动将torch模型的参数加载到mindspore模型中，仅当pt_path和ms_path都为None时为True |
-| fix_random_seed | `int`               | 随机数种子                                                   |
-
-2. compare(inputs=None, auto_inputs=None, rtol=1e-04, atol=1e-08, equal_nan=False)
+**kwargs参数：**
+- pt_params_path(`str`, 可选): torch模型参数文件路径
+- ms_params_path(`str`, 可选): mindspore模型参数文件路径
+- auto_conv_ckpt(`int`, 可选): 权重自动转换方式，默认值为1。为0时，不进行权重转换；为1时为PyTorch权重转换到MindSpore；为2时为PyTorch权重转换到MsAdapter。
+- compare_params(`bool`, 可选): 是否开启ckpt对比，默认值为True。开启时，会使用PyTorch的保存的pth和MindSpore保存的ckpt进行比较，以校验网络结构。
+> **说明：**
+> 1. 默认参数下，会将PyTorch网络的权重保存、转换并加载MindSpore网络中，以保证两边的模型权重初始化一致。除此以外，还会将PyTorch的权重文件和MindSpore网络自身保存的权重文件进行比对，以校验网络结构。
+> 2. 当`pt_params_path`和`ms_params_path`非空时，会直接从文件中加载权重执行正向推理（`auto_conv_ckpt`和`compare_params`都会失效），不会进行权重转换和比对;
+> 3. 当`pt_params_path`为空，`ms_params_path`不为空时，`auto_conv_ckpt`和`compare_params`都会失效，不会进行权重转换和比对；
+##### ```compare(inputs=None, auto_inputs=None, **kwargs)```
 
 | 参数            | 类型                                                         | 说明                                                         |
 | --------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| input_data      | 单输入：`Union(tuple[torch.tensor], tuple[mindspore.Tensor], tuple[numpy.ndarray], tuple[str])`；多输入：`list[Union(tuple[torch.tensor], tuple[mindspore.Tensor], tuple[numpy.ndarray], tuple[str])]` | 模型输入。模型输入支持`torch.Tensor`, `mindspore.Tensor`, `np.ndarray`以及`str`，每个`tuple`中包含一个模型输入；当用户想要同时验证多组数据时，请使用一个列表存放所有输入。 |
-| auto_input_data | 单输入：`tuple[tuple[numpy.shape, numpy.dtype]]`；多输入：`{'input': tuple[tuple[numpy.shape, numpy.dtype]], 'num':int}` | 默认为`None`，为了方便用户快速验证。用户可以不输入`input_data`，而是输入`auto_input_data`，`auto_input_data`每一个元素为模型输入的`shape`，如果需要使用多次测试，可以传入一个字典，字典的键为`'input'`和`'num'`，分别表示每次的输入以及输入个数 |
+| inputs      | 单输入：`Union(tuple[torch.tensor], tuple[mindspore.Tensor], tuple[numpy.ndarray], tuple[str])`；多输入：`list[Union(tuple[torch.tensor], tuple[mindspore.Tensor], tuple[numpy.ndarray], tuple[str])]` | 模型输入。模型输入支持`torch.Tensor`, `mindspore.Tensor`, `np.ndarray`以及`str`，每个`tuple`中包含一个模型输入；当用户想要同时验证多组数据时，请使用一个列表存放所有输入。 |
+| auto_inputs | 单输入：`tuple[tuple[numpy.shape, numpy.dtype]]`；多输入：`{'input': tuple[tuple[numpy.shape, numpy.dtype]], 'num':int}` | 默认为`None`，为了方便用户快速验证。用户可以不输入`inputs`，而是输入`auto_inputs`，`auto_inputs`每一个元素为模型输入的`shape`，如果需要使用多次测试，可以传入一个字典，字典的键为`'input'`和`'num'`，分别表示每次的输入以及输入个数 |
 | rtol            | `float`                                                      | 相对容差（relative tolerance）是指两个数值之间的相对误差不能超过rtol。默认值为1e-4 |
 | atol            | `float`                                                      | 绝对容差（absolute tolerance）是指两个数值之间的绝对误差不能超过atol。默认值为1e-8 |
 | equal_nan       | `bool`                                                       | 是否将NaN视为相等。默认值为False                             |
@@ -402,7 +402,7 @@ ts.migrator.compare_npy_dir(name_map_list=name_list)
 
 ### 如何使用
 
-可以参考troubleshooter/tests/diff_handler/test_netdifffinder.py中的使用方法，或者下面的使用方法：
+可以参考[test_netdifffinder.py](https://gitee.com/mindspore/toolkits/blob/master/tests/st/troubleshooter/diff_handler/test_netdifffinder.py)中的使用方法，以下为伪代码：
 
 ```python
 pt_net = ConstTorch()
@@ -414,20 +414,27 @@ diff_finder.compare(auto_inputs=(((1, 12), np.float32), ))
 ```
 
 输出结果：
+默认参数下，输出主要包含权重转换、Pytorch和Mindspore的权重比较、网络推理三部分。
 
-![网络输出对比结果展示](images/outputcompare.png)
+**权重转换**
+![权重转换](images/netdifffinder_convert.png)
+**权重比较**
+![权重比较](images/netdifffinder_compare.png)
+**网络推理**
+![网络推理](images/netdifffinder_infer.png)
 
-对于mindspore和pytorch模型不在同一个项目中的情况，无法直接比较网络输出，可以使用sys.path.append()来把模型所在的项目加入系统路径，然后实例化模型比较。例如：
-```python
-import sys
-sys.path.append("path to your mindspore model define project")
-sys.path.append("path to your pytorch model define project")
-from xxx import TorchNet
-from xxx import MSNet
-pt_net = TorchNet()
-ms_net = MSNet()
-diff_finder = ts.migrator.NetDifferenceFinder(
-    pt_net=pt_net,
-    ms_net=ms_net)
-diff_finder.compare(auto_inputs=(((1, 12), np.float32), ))
-```
+> **提示：**
+> 对于mindspore和pytorch模型不在同一个项目中的情况，无法直接比较网络输出，可以使用`sys.path.insert(0, path)`来把模型所在的项目加入系统路径，然后实例化模型比较。例如：
+> ```python
+> import sys
+> sys.path.insert(0, "path to your mindspore model define project")
+> sys.path.insert(0, "path to your pytorch model define project")
+> from xxx import TorchNet
+> from xxx import MSNet
+> pt_net = TorchNet()
+> ms_net = MSNet()
+> diff_finder = ts.migrator.NetDifferenceFinder(
+>     pt_net=pt_net,
+>     ms_net=ms_net)
+> diff_finder.compare(auto_inputs=(((1, 12), np.float32), ))
+> ```

@@ -96,6 +96,8 @@ class NetDifferenceFinder:
                     'auto_conv_ckpt' is set to 'False' and 'ms_params_path' is empty.")
         elif ms_params_path:
             validate_and_normalize_path(ms_params_path)
+            ms.load_param_into_net(self.ms_net,
+                                   ms.load_checkpoint(ms_params_path))
             logger.error("For 'ts.migrator.NetDifferenceFinder', \
                 please ensure that the network has been initialized when \
                 'auto_conv_ckpt' is set to 'False' 'pt_params_path' is empty.")
