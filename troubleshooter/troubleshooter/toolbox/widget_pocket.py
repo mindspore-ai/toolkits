@@ -49,11 +49,9 @@ def fix_random(seed):
 
 def get_pt_grads(model):
     grads_dict = {}
-    i=0
-    for name ,params in model.named_parameters():
-        name = name + '_' + str(i)
-        grads_dict.update({name:params.grad})
-        i += 1
+    for idx, (name, params) in enumerate(model.named_parameters()):
+        name = f"{name}_{idx}"
+        grads_dict.update({name: params.grad})
     return grads_dict
 
 

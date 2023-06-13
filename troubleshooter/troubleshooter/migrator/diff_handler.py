@@ -91,7 +91,10 @@ def min_edit_distance(A, B, del_cost=1, ins_cost=1, rep_cost=5):
         for j in range(1, n + 1):
             if A[i - 1] == B[j - 1]:
                 dp[i][j] = dp[i - 1][j - 1]
-                operations[i][j] = 'Match'
+                if dp[i - 1][j] + del_cost == dp[i][j]:
+                    operations[i][j] = 'Delete'
+                else:
+                    operations[i][j] = 'Match'
             else:
                 delete_cost = dp[i - 1][j] + del_cost
                 insert_cost = dp[i][j - 1] + ins_cost
