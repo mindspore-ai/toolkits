@@ -360,7 +360,7 @@ import troubleshooter as ts
 ta = "/mnt/d/06_project/troubleshooter/troubleshooter/tests/diff_handler/ta"
 tb = "/mnt/d/06_project/troubleshooter/troubleshooter/tests/diff_handler/tb"
 # 可以通过如下接口获取名称映射列表，对npy文件名称映射进行调整
-name_list = ts.migrator.get_filename_map_list(ta, tb)
+name_list = ts.migrator.get_name_map_list_by_name(ta, tb)
 # 通过自定定义一个函数进行list的修改，例如：custom_fun(name_list)
 name_list = custom_fun(name_list)
 # 将调整后的名称传入比较接口

@@ -10,5 +10,5 @@ if __name__ == '__main__':
     dif = ts.diff_finder(ta, tb)
     dif.compare_npy_dir()
 
-    #name_list = dif.get_filename_map_list()
+    #name_list = dif.get_name_map_list_by_name()
     #dif.compare_npy_dir(name_map_list=name_list)
