@@ -162,12 +162,29 @@ def convert_weight(weight_map_path=None, pt_file_path=None, ms_file_save_path=No
     else:
         pt_param_dict = _get_para_dict(pt_file_path)
 
+    if name_map.keys() != pt_param_dict.keys():
+        missing_key = pt_param_dict.keys() - name_map.keys()
+        unwanted_key = name_map.keys() - pt_param_dict.keys()
+        error_message = "For the argument 'weight_map_path', the file in 'convert_weight' should be generated " \
+                        "using 'get_weight_map' within the same model. " \
+                        "The current model parameters and the JSON file are inconsistent."
+        if unwanted_key:
+            error_message += f" The 'weight_map_path' file has unwanted parameters '{unwanted_key}'."
+        if missing_key:
+            error_message += f" The 'weight_map_path' file is missing the parameters '{missing_key}'."
+        raise ValueError(error_message)
+
+    if name_map.keys() != pt_param_dict.keys():
+        raise ValueError("For the argument 'weight_map_path', the file in 'convert_weight' should be generated using 'get_weight_map' within the same model."
+                         "The current model parameters and the JSON file are inconsistent."
+                         f"The 'weight_map_path' file is missing the keys '{missing_key}', and has unwanted keys '{unwanted_key}'.")
+
     new_params_list = []
 
     def converted_status(pt_para_item, ms_para_item, is_value_converted):
-        pt_suffix, ms_suffix = pth_param_name.split('.')[-1], ms_para_item.split('.')[-1]
-        pt_prefix, ms_prefix = pth_param_name.split('.')[:-1], ms_para_item.split('.')[:-1]
-        if ms_para_item == pth_param_name and not is_value_converted:
+        pt_suffix, ms_suffix = pt_para_item.split('.')[-1], ms_para_item.split('.')[-1]
+        pt_prefix, ms_prefix = pt_para_item.split('.')[:-1], ms_para_item.split('.')[:-1]
+        if ms_para_item == pt_para_item and not is_value_converted:
             return "Consistent"
         if pt_para_item != ms_para_item and is_value_converted:
             name_status = f"{pt_suffix}->{ms_suffix}" if pt_suffix != ms_suffix and pt_prefix == ms_prefix else "Name converted"
