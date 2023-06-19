@@ -130,7 +130,7 @@ setup(
     },
     install_requires=[
         'PySnooper >= 1.1.0',
-        'prettytable >= 3.0.0',
+        'prettytable >= 3.0.0, < 3.8.0',
     ],
     classifiers=[
         'License :: OSI Approved :: Apache Software License'
