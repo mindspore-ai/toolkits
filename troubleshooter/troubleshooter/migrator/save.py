@@ -190,6 +190,8 @@ def save(file, data, auto_id=True, suffix=None):
     if isinstance(data, (list, tuple, dict, OrderedDict)):
         for key, val in iterate_items(data):
             item_name = name if name else "tensor_" + str(shape(val))
+            if val is None:
+                continue
             if auto_id:
                 np.save(f"{path}{int(cnt)}_{item_name}_{key}_{suffix}" if suffix else
                         f"{path}{int(cnt)}_{item_name}_{key}", numpy(val))

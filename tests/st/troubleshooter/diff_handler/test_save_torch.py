@@ -1,6 +1,7 @@
 import os
 import shutil
 import time
+import tempfile
 
 import numpy as np
 import pytest
@@ -195,3 +196,30 @@ def test_torch_save_none():
     os.remove("4_tensor_(2, 3)_x1_torch.npy")
     os.remove("tensor_()_x0_torch.npy")
     os.remove("tensor_(2, 3)_x1_torch.npy")
+
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_cpu
+@pytest.mark.platform_arm_cpu
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.platform_arm_ascend_training
+@pytest.mark.platform_x86_ascend_training
+@pytest.mark.env_single
+def test_torch_list_with_none():
+    """
+    Feature: ts.save
+    Description: Verify the result of save
+    Expectation: success
+    """
+    _ts_save_cnt.reset()
+    x0 = torch.randn(tuple())
+    x3 = {"x0": x0, "x1": None}
+    path = tempfile.mkdtemp(prefix="torch_list_with_none")
+    file = os.path.join(path, "list_with_none")
+
+    ts.save(file, x3)
+    time.sleep(0.1)
+    assert np.allclose(np.load(os.path.join(path, "0_list_with_none_x0.npy")),
+                       x0.cpu().detach().numpy())
+
+    shutil.rmtree(path)
