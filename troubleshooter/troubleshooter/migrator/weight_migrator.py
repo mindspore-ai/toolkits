@@ -15,7 +15,8 @@
 import os
 import torch
 import mindspore as ms
-import time
+import tempfile
+import shutil
 from collections import OrderedDict
 from pprint import pprint
 from troubleshooter.common.format_msg import print_weight_compare_result, print_convert_result, print_diff_result
@@ -296,26 +297,31 @@ def compare_ms_ckpt(orig_file_path, target_file_path, **kwargs):
 
 
 def compare_pth_and_ckpt(weight_map_path, pt_file_path, ms_file_path, **kwargs):
+    shape_field_names = ["Parameter name of torch", "Parameter name of MindSpore", "Whether shape are equal",
+                         "Parameter shape of torch", "Parameter shape of MindSpore"]
+    value_field_names = ["Parameter name of torch", "Parameter name of MindSpore", "results of comparison",
+                         "match ratio", "cosine similarity", "(mean, max)"]
     none_and_isfile_check(weight_map_path, 'weight_map_path')
     none_and_isfile_check(pt_file_path, 'pt_file_path')
     none_and_isfile_check(ms_file_path, 'ms_file_path')
 
-    temp_save_path = validate_and_normalize_path(kwargs.get('temp_save_path', './'))
-    timestamp = time.time()
-    formatted_time = time.strftime('%Y%m%d-%H%M%S', time.localtime(timestamp))
-    temp_name = formatted_time + "_ts_temp_file.ckpt"
-    tmp_ckpt_file = os.path.join(temp_save_path, temp_name)
-    print_level = kwargs.get('print_level', 1)
-    print_conv_info = kwargs.get('print_conv_info', False)
     compare_value = kwargs.get('compare_value', True)
+    print_level = kwargs.get('print_level', 1)
     rtol = kwargs.get('rtol', 1e-04)
     atol = kwargs.get('atol', 1e-04)
     equal_nan = kwargs.get('equal_nan', False)
+    print_conv_info = kwargs.get('print_conv_info', False)
+
+    temp_save_path = tempfile.mkdtemp(prefix="compare_pth_and_ckpt")
+    temp_name = "ts_temp_file.ckpt"
+    tmp_ckpt_file = os.path.join(temp_save_path, temp_name)
 
     convert_weight(weight_map_path=weight_map_path, pt_file_path=pt_file_path, 
                    ms_file_save_path=tmp_ckpt_file, print_conv_info=print_conv_info,
                    print_save_path=False)
     compare_ms_ckpt(orig_file_path=tmp_ckpt_file, target_file_path=ms_file_path,
                     compare_value=compare_value, weight_map_path=weight_map_path,
-                    print_level=print_level, rtol=rtol, atol=atol, equal_nan=equal_nan)
-    clear_tmp_file(tmp_ckpt_file)
+                    print_level=print_level, rtol=rtol, atol=atol, equal_nan=equal_nan,
+                    shape_field_names=shape_field_names,
+                    value_field_names=value_field_names)
+    shutil.rmtree(temp_save_path)

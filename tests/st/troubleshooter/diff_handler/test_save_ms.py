@@ -89,7 +89,7 @@ def test_ms_save_iter(mode):
     Description: Verify the result of save
     Expectation: success
     """
-    ms.set_context(mode=mode, device_target="CPU")
+    ms.set_context(mode=mode)
     _ts_save_cnt.reset()
     x1 = ops.randn((3, 5))
     x2 = ops.randn((3, 4))
@@ -149,7 +149,7 @@ def test_ms_save_dict(mode):
     Description: Verify the result of save
     Expectation: success
     """
-    ms.set_context(mode=mode, device_target="CPU")
+    ms.set_context(mode=mode)
     _ts_save_cnt.reset()
     x1 = ops.randn((3, 5))
     x2 = ops.randn((3, 4))
@@ -190,7 +190,7 @@ def test_ms_save_none(mode):
     Description: Verify the result of save
     Expectation: success
     """
-    ms.set_context(mode=mode, device_target="CPU")
+    ms.set_context(mode=mode)
     _ts_save_cnt.reset()
     x0 = ms.ops.randn(tuple())
     x1 = ms.ops.randn((2, 3))
