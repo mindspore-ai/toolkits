@@ -175,7 +175,7 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
             summery_data = []
             tensor_max = TensorFunc["max"](x).float().numpy().tolist()
             tensor_min = TensorFunc["min"](x).float().numpy().tolist()
-            tensor_mean = TensorFunc["mean"](x).float().numpy().tolist()
+            tensor_mean = TensorFunc["mean"](x.float()).numpy().tolist()
             dump_flag = Const.DUMP_RATIO_MAX + 1
             saved_tensor = x.numpy()
             summery_data.extend([tensor_max, tensor_min, tensor_mean])

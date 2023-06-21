@@ -588,7 +588,6 @@ tensor:
   - diagflat
   - diff
   - digamma
-  - ndimension
   - div
   - divide
   - equal
@@ -682,8 +681,6 @@ tensor:
   - nan_to_num
   - nansum
   - narrow
-  - ndim
-  - ndimension
   - ne
   - neg
   - negative
@@ -752,7 +749,6 @@ tensor:
   - unique_consecutive
   - unsqueeze
   - var
-  - view
   - view
   - where
   - xlogy
