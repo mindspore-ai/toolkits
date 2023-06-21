@@ -541,7 +541,11 @@ def test_compare_pth_value_case(capsys):
 
     result = capsys.readouterr().out
     key_result = ["features.bn_mm.weight", "features.bn_mm.gamma", "True"]
+    result_title = ["Parameter name of torch", "Parameter name of MindSpore", "results of comparison"]
+    shape_title = ["Parameter name of torch", "Parameter name of MindSpore", "Whether shape are equal"]
     os.remove(ckpt_path)
     os.remove(map_file_path)
     os.remove(pth_path)
     assert check_delimited_list(result, key_result)
+    assert check_delimited_list(result, result_title)
+    assert check_delimited_list(result, shape_title)
