@@ -36,8 +36,7 @@ __all__ = [
 
 
 class NetDifferenceFinder:
-    init_kwargs = {"pt_params_path", "ms_params_path", "auto_conv_ckpt", "fix_seed", "out_path", "pt_org_pth_name",
-                   "conv_ckpt_name", "ms_conv_ckpt_name"}
+    valid_kwargs = {"pt_params_path", "ms_params_path", "auto_conv_ckpt", "compare_params", "fix_seed"}
     TITLE = 'The comparison results of Net'
     FIELD_NAMES = ["PyTorch out", "MindSpore out",
                 "results of comparison", "match ratio", "cosine similarity", "(mean, max)"]
@@ -50,6 +49,7 @@ class NetDifferenceFinder:
         self.pt_net = pt_net
         self.print_level = print_level
         self.out_path = tempfile.mkdtemp(prefix="tmp_net_diff_finder_")
+        self._check_kwargs(kwargs)
         self._handle_kwargs(**kwargs)
         if self.fix_seed:
             self.fix_random(self.fix_seed)
@@ -66,22 +66,15 @@ class NetDifferenceFinder:
 
         self.fix_seed = kwargs.get('fix_seed', 16)
 
-        if not os.path.exists(self.out_path):
-            os.makedirs(self.out_path)
-        self.pt_org_pth_name = os.path.join(
-            self.out_path,
-            kwargs.get('pt_org_pth_name', 'net_diff_finder_pt_org_pth.pth'))
-        self.conv_ckpt_name = os.path.join(
-            self.out_path,
-            kwargs.get('conv_ckpt_name', 'net_diff_finder_conv_ckpt.ckpt'))
-        self.ms_conv_ckpt_name = os.path.join(
-            self.out_path,
-            kwargs.get('ms_conv_ckpt_name', 'net_diff_finder_ms_conv_ckpt.ckpt'))
+        self.pt_org_pth_name = os.path.join(self.out_path, 'net_diff_finder_pt_org_pth.pth')
+        self.conv_ckpt_name = os.path.join(self.out_path, 'net_diff_finder_conv_ckpt.ckpt')
+        self.ms_conv_ckpt_name = os.path.join(self.out_path, 'net_diff_finder_ms_conv_ckpt.ckpt')
 
     def _load_and_convert(self, pt_params_path, ms_params_path, auto_conv_ckpt):
         if pt_params_path and ms_params_path:
             validate_and_normalize_path(pt_params_path)
             validate_and_normalize_path(ms_params_path)
+            self.compare_params = False
             self.pt_net.load_state_dict(torch.load(pt_params_path))
             ms.load_param_into_net(self.ms_net,
                                    ms.load_checkpoint(ms_params_path))
@@ -129,6 +122,13 @@ class NetDifferenceFinder:
         param_dict = ms.load_checkpoint(self.conv_ckpt_name)
         ms.load_param_into_net(self.ms_net, param_dict)
         ms.save_checkpoint(self.ms_net, self.ms_conv_ckpt_name)
+
+    def _check_kwargs(self, kwargs):
+        if set(kwargs.keys()).issubset(NetDifferenceFinder.valid_kwargs):
+            return True
+        else:
+            invalid_keys = set(kwargs.keys()) - NetDifferenceFinder.valid_kwargs
+            raise ValueError(f"For 'NetDifferenceFinder', Invalid parameter: {', '.join(invalid_keys)}")
 
     def _check_auto_input(self, auto_inputs):
         if auto_inputs is None:
