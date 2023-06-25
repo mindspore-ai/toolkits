@@ -1,3 +1,7 @@
+import os
+import tempfile
+import shutil
+
 import pytest
 import troubleshooter as ts
 import torch.nn as t_nn
@@ -165,19 +169,23 @@ def test_diff(capsys):
     key_result = ['step_0_out', 'step_0_out', 'False', '0.00']
     assert check_delimited_list(out, key_result)
 
-@pytest.mark.skip
+
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard
 def test_load_weight_file(capsys):
+    tmp = tempfile.mkdtemp(prefix="net_diff_load_weight")
     pt_net = ConstTorch()
     ms_net = ConstMS()
+    torch.save(pt_net.state_dict(), os.path.join(tmp, 'torch.pth'))
+    ms.save_checkpoint(ms_net, os.path.join(tmp, 'mindpsore.ckpt'))
     diff_finder = ts.migrator.NetDifferenceFinder(
         pt_net=pt_net,
-        ms_net=ms_net, 
-        pt_path='net_diff_finder_pt_org_pth.pth',
-        ms_path='net_diff_finder_ms_org_ckpt.ckpt')
+        ms_net=ms_net,
+        pt_params_path=os.path.join(tmp, 'torch.pth'),
+        ms_params_path=os.path.join(tmp, 'mindpsore.ckpt'))
     diff_finder.compare(auto_inputs=(((1, 12), np.float32), ))
     out, err = capsys.readouterr()
     key_result = ['step_0_out', 'step_0_out', 'False', '0.00']
+    shutil.rmtree(tmp)
     assert check_delimited_list(out, key_result)
