@@ -489,11 +489,11 @@ shutil.rmtree(ms_outpath)
 - pt_params_path(`str`, 可选): torch模型参数文件路径
 - ms_params_path(`str`, 可选): MindSpore模型参数文件路径
 - auto_conv_ckpt(`int`, 可选): 权重自动转换方式，默认值为1。为0时，不进行权重转换；为1时为PyTorch权重转换到MindSpore；为2时为PyTorch权重转换到MSAdapter。
-- compare_params(`bool`, 可选): 是否开启ckpt对比，默认值为True。开启时，会使用PyTorch的保存的pth和MindSpore保存的ckpt进行比较，以校验网络结构。
+- compare_params(`bool`, 可选): 是否开启网络参数对比，默认值为True。开启时，会使用PyTorch的保存的pth和MindSpore保存的ckpt进行比较，以校验网络结构。
 > **说明：**
 > 1. 默认参数下，会将PyTorch网络的权重保存、转换并加载MindSpore网络中，以保证两边的模型权重初始化一致。除此以外，还会将PyTorch的权重文件和MindSpore网络自身保存的权重文件进行比对，以校验网络结构。
-> 2. 当`pt_params_path`和`ms_params_path`非空时，会直接从文件中加载权重执行正向推理（`auto_conv_ckpt`和`compare_params`都会失效），不会进行权重转换和比对;
-> 3. 当`pt_params_path`为空，`ms_params_path`不为空时，`auto_conv_ckpt`和`compare_params`都会失效，不会进行权重转换和比对；
+> 2. 当同时传入`pt_params_path`和`ms_params_path`时，会从文件中加载权重执行正向推理（`auto_conv_ckpt`会失效），不会进行权重转换;
+> 3. 当前仅支持权重从PyTorch转换到MindSpore，当传入`ms_params_path`，`pt_params_path`为空时，需要将`auto_conv_ckpt`设置为0，并自己保证权重初始化一致；
 ##### ```compare(inputs=None, auto_inputs=None, **kwargs)```
 
 | 参数            | 类型                                                         | 说明                                                         |

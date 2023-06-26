@@ -25,26 +25,20 @@ import mindspore as ms
 import numpy as np
 from troubleshooter import log as logger
 from troubleshooter.common.format_msg import print_diff_result, print_separator_line
-from troubleshooter.common.util import save_numpy_data, validate_and_normalize_path, clear_tmp_file, type_check
+from troubleshooter.common.util import validate_and_normalize_path, type_check
 from troubleshooter.migrator import weight_migrator
 from troubleshooter.migrator.diff_handler import cal_algorithm
 
-
-__all__ = [
-    "NetDifferenceFinder",
-]
+__all__ = ["NetDifferenceFinder", ]
 
 
 class NetDifferenceFinder:
     valid_kwargs = {"pt_params_path", "ms_params_path", "auto_conv_ckpt", "compare_params", "fix_seed"}
     TITLE = 'The comparison results of Net'
-    FIELD_NAMES = ["PyTorch out", "MindSpore out",
-                "results of comparison", "match ratio", "cosine similarity", "(mean, max)"]
-    def __init__(self,
-                 pt_net,
-                 ms_net,
-                 print_level=1,
-                 **kwargs):
+    FIELD_NAMES = ["PyTorch out", "MindSpore out", "results of comparison", "match ratio", "cosine similarity",
+                   "(mean, max)"]
+
+    def __init__(self, pt_net, ms_net, print_level=1, **kwargs):
         self.ms_net = ms_net
         self.pt_net = pt_net
         self.print_level = print_level
@@ -68,40 +62,44 @@ class NetDifferenceFinder:
 
         self.pt_org_pth_name = os.path.join(self.out_path, 'net_diff_finder_pt_org_pth.pth')
         self.conv_ckpt_name = os.path.join(self.out_path, 'net_diff_finder_conv_ckpt.ckpt')
-        self.ms_conv_ckpt_name = os.path.join(self.out_path, 'net_diff_finder_ms_conv_ckpt.ckpt')
 
-    def _load_and_convert(self, pt_params_path, ms_params_path, auto_conv_ckpt):
+    def _handle_weights(self, pt_params_path, ms_params_path, auto_conv_ckpt):
         if pt_params_path and ms_params_path:
             validate_and_normalize_path(pt_params_path)
             validate_and_normalize_path(ms_params_path)
-            self.compare_params = False
             self.pt_net.load_state_dict(torch.load(pt_params_path))
-            ms.load_param_into_net(self.ms_net,
-                                   ms.load_checkpoint(ms_params_path))
-        elif pt_params_path:
+            ms.load_param_into_net(self.ms_net, ms.load_checkpoint(ms_params_path))
+            return
+        if pt_params_path:
             validate_and_normalize_path(pt_params_path)
             self.pt_net.load_state_dict(torch.load(pt_params_path))
             if auto_conv_ckpt:
-                self._convert_ckpt()
-                self._load_and_save()
+                self._convert_and_load()
             else:
-                logger.user_warning("For 'ts.migrator.NetDifferenceFinder', \
-                    please ensure that the network has been initialized when \
-                    'auto_conv_ckpt' is set to 'False' and 'ms_params_path' is empty.")
-        elif ms_params_path:
+                logger.user_warning("For 'ts.migrator.NetDifferenceFinder', "
+                                    "when 'auto_conv_ckpt' is set to '0' and 'ms_params_path' is empty, "
+                                    "please ensure weight initialization consistency on your own")
+            return
+        if ms_params_path:
             validate_and_normalize_path(ms_params_path)
-            ms.load_param_into_net(self.ms_net,
-                                   ms.load_checkpoint(ms_params_path))
-            logger.error("For 'ts.migrator.NetDifferenceFinder', \
-                please ensure that the network has been initialized when \
-                'auto_conv_ckpt' is set to 'False' 'pt_params_path' is empty.")
-        elif auto_conv_ckpt:
-            self._convert_ckpt()
-            self._load_and_save()
+            ms.load_param_into_net(self.ms_net, ms.load_checkpoint(ms_params_path))
+            if auto_conv_ckpt:
+                raise ValueError("For 'ts.migrator.NetDifferenceFinder', "
+                                 "only conversion from Torch weights to MindSpore is supported. "
+                                 "If only 'ms_params_path' is passed, "
+                                 "please set 'auto_conv_ckpt' to 0 and "
+                                 "ensure weight initialization consistency on your own.")
+            logger.user_warning("For 'ts.migrator.NetDifferenceFinder', "
+                                "please ensure that the network has been initialized when "
+                                "'auto_conv_ckpt' is set to '0' and 'ms_params_path' is empty.")
+            return
+        if auto_conv_ckpt:
+            self._convert_and_load()
         else:
-            logger.error("For 'ts.migrator.NetDifferenceFinder', \
-                please ensure that the network has been initialized when \
-                'auto_conv_ckpt' is set to 'False' and 'ms_params_path' / 'pt_params_path' is empty.")
+            logger.user_warning("For 'ts.migrator.NetDifferenceFinder', "
+                                "please ensure that the network has been initialized "
+                                "when 'auto_conv_ckpt' is set to '0' and "
+                                "'ms_params_path' / 'pt_params_path' is empty.")
 
     def _check_input(self, inputs):
         if not isinstance(inputs, (list, tuple)):
@@ -117,11 +115,6 @@ class NetDifferenceFinder:
                 for item in items:
                     if not isinstance(item, (ms.Tensor, np.ndarray, torch.Tensor, str)):
                         raise TypeError("The type of model input must be ms.Tensor, np.ndarray, torch.Tensor or str")
-
-    def _load_and_save(self):
-        param_dict = ms.load_checkpoint(self.conv_ckpt_name)
-        ms.load_param_into_net(self.ms_net, param_dict)
-        ms.save_checkpoint(self.ms_net, self.ms_conv_ckpt_name)
 
     def _check_kwargs(self, kwargs):
         if set(kwargs.keys()).issubset(NetDifferenceFinder.valid_kwargs):
@@ -173,14 +166,9 @@ class NetDifferenceFinder:
             inputs_ = inputs
         return inputs_
 
-    def compare(self,
-                inputs=None,
-                auto_inputs=None,
-                rtol=1e-4,
-                atol=1e-4,
-                equal_nan=False):
+    def compare(self, inputs=None, auto_inputs=None, rtol=1e-4, atol=1e-4, equal_nan=False):
         self._check_auto_input(auto_inputs)
-        self._load_and_convert(self.pt_params_path, self.ms_params_path, self.auto_conv_ckpt)
+        self._handle_weights(self.pt_params_path, self.ms_params_path, self.auto_conv_ckpt)
         self._compare_ckpt()
         if auto_inputs:
             inputs = self._build_auto_input(auto_inputs)
@@ -234,66 +222,62 @@ class NetDifferenceFinder:
         self.pt_net.eval()
         self.ms_net.set_train(False)
 
-    def _convert_ckpt(self):
+    def _convert_and_load(self):
         torch.save(self.pt_net.state_dict(), self.pt_org_pth_name)
         if self.auto_conv_ckpt == 0:
             return
-        if self.auto_conv_ckpt == 1:
-            self.weight_map = weight_migrator.get_weight_map(pt_model=self.pt_net, print_map=False)
+        elif self.auto_conv_ckpt == 1:
+            weight_map = weight_migrator.get_weight_map(pt_model=self.pt_net, print_map=False)
             if self.print_level:
                 print_separator_line("Start Converting PyTorch Weights to MindSpore", length=141)
-            weight_migrator.convert_weight(weight_map=self.weight_map,
-                                           pt_file_path=self.pt_org_pth_name,
-                                           ms_file_save_path=self.conv_ckpt_name,
-                                           print_level=self.print_level,
+            weight_migrator.convert_weight(weight_map=weight_map, pt_file_path=self.pt_org_pth_name,
+                                           ms_file_save_path=self.conv_ckpt_name, print_level=self.print_level,
                                            print_save_path=False)
         elif self.auto_conv_ckpt == 2:
             self._msadapter_pth2ckpt(self.pt_org_pth_name, self.conv_ckpt_name)
         else:
             raise ValueError("For 'NetDifferenceFinder',  the parameter 'auto_conv_ckpt' "
                              f"currently only supports 0, 1, and 2, but got {self.auto_conv_ckpt}.")
+        param_dict = ms.load_checkpoint(self.conv_ckpt_name)
+        ms.load_param_into_net(self.ms_net, param_dict)
 
     def _compare_ckpt(self):
         if self.compare_params is False:
             return
-        shape_field_names = ["Parameter name of torch", "Parameter name of MindSpore", "Whether shape are equal",
-                             "Parameter shape of torch", "Parameter shape of MindSpore"]
-        value_field_names = ["Parameter name of torch", "Parameter name of MindSpore", "results of comparison",
-                             "match ratio", "cosine similarity", "(mean, max)"]
-        if self.auto_conv_ckpt == 1:
-            print_separator_line("Start comparing PyTorch and MindSpore parameters", length=141)
-            weight_migrator.compare_ms_ckpt(orig_file_path=self.conv_ckpt_name,
-                                            target_file_path=self.ms_conv_ckpt_name,
-                                            compare_value=True, weight_map=self.weight_map,
-                                            shape_field_names=shape_field_names,
-                                            value_field_names=value_field_names)
-        elif self.auto_conv_ckpt == 2:
+        ms_params_path = os.path.join(self.out_path, "compare_ms.ckpt")
+        pt_params_path = os.path.join(self.out_path, "compare_pt.pth")
+        ms.save_checkpoint(self.ms_net, ms_params_path)
+        torch.save(self.pt_net.state_dict(), pt_params_path)
+        if self.auto_conv_ckpt == 2:
             print_separator_line("Start comparing PyTorch and MSAdapter parameters", length=141)
-            weight_migrator.compare_ms_ckpt(orig_file_path=self.conv_ckpt_name,
-                                            target_file_path=self.ms_conv_ckpt_name,
+            pt_conv_params_path = os.path.join(self.out_path, "compare_conv_pt.ckpt")
+            self._msadapter_pth2ckpt(pt_params_path, pt_conv_params_path)
+            weight_migrator.compare_ms_ckpt(orig_file_path=pt_conv_params_path, target_file_path=ms_params_path,
                                             compare_value=True,
-                                            shape_field_names=shape_field_names,
-                                            value_field_names=value_field_names)
+                                            shape_field_names=["Parameter name of torch", "Parameter name of MindSpore",
+                                                               "Whether shape are equal", "Parameter shape of torch",
+                                                               "Parameter shape of MindSpore"],
+                                            value_field_names=["Parameter name of torch", "Parameter name of MindSpore",
+                                                               "results of comparison", "match ratio",
+                                                               "cosine similarity", "(mean, max)"])
         else:
-            raise ValueError("For 'NetDifferenceFinder', when the argument 'auto_conv_ckpt' is 0, "
-                             "the argument 'compare_params' is not supported.")
-
-    def _load_conve_ckpt(self):
-        param_dict = ms.load_checkpoint(self.conv_ckpt_name)
-        ms.load_param_into_net(self.ms_net, param_dict)
-        clear_tmp_file(self.conv_ckpt_name)
+            print_separator_line("Start comparing PyTorch and MindSpore parameters", length=141)
+            weight_map_path = os.path.join(self.out_path, "compare_convert.json")
+            weight_migrator.get_weight_map(pt_model=self.pt_net,
+                                           weight_map_save_path=weight_map_path,
+                                           print_map=False)
+            weight_migrator.compare_pth_and_ckpt(weight_map_path, pt_file_path=pt_params_path, ms_file_path=ms_params_path,
+                                                 compare_value=True)
 
     def _infer_net(self, input_data, ms_net, pt_net, idx):
         start_pt = time.time()
         result_pt = self._run_pt_net(pt_net, input_data)
         end_pt = time.time()
-        print(f"In test case {idx}, the PyTorch net inference completed cost %.5f seconds." % (
-                end_pt - start_pt))
+        print(f"In test case {idx}, the PyTorch net inference completed cost %.5f seconds." % (end_pt - start_pt))
         start_ms = time.time()
         result_ms = self._run_ms_net(ms_net, input_data)
         end_ms = time.time()
-        print(f"In test case {idx}, the MindSpore net inference completed cost %.5f seconds." % (
-                end_ms - start_ms))
+        print(f"In test case {idx}, the MindSpore net inference completed cost %.5f seconds." % (end_ms - start_ms))
         if isinstance(result_ms, (tuple, list)):
             result_ms = {f"out_{idx}": result for idx, result in enumerate(result_ms)}
         elif isinstance(result_ms, ms.Tensor):
@@ -318,7 +302,6 @@ class NetDifferenceFinder:
         ms_results = ms_net(*data_list)
         return ms_results
 
-
     def _compare_results(self, result_ms, result_pt, idx, atol, rtol, equal_nan):
         compare_result = []
         for index, (k_pt, k_ms) in enumerate(zip(result_pt, result_ms)):
@@ -328,7 +311,8 @@ class NetDifferenceFinder:
                 if result_pt_.shape != result_ms_.shape:
                     raise ValueError(f"Output results for {index} have different shapes! "
                                      f"MindSpore output shape: {result_ms_.shape}, PyTorch output shape: {result_pt_.shape}.")
-                result, rel_ratio, cosine_sim, diff_detail = cal_algorithm(result_ms_, result_pt_, rtol, atol, equal_nan)
+                result, rel_ratio, cosine_sim, diff_detail = cal_algorithm(result_ms_, result_pt_, rtol, atol,
+                                                                           equal_nan)
                 pt_name, ms_name = f"step_{idx}_{k_pt}", f"step_{idx}_{k_ms}"
                 compare_result.append((pt_name, ms_name, result, rel_ratio, cosine_sim, diff_detail))
             except Exception as e:
@@ -336,28 +320,6 @@ class NetDifferenceFinder:
                 logger.user_warning("The returned result cannot be compared normally, "
                                     "the result index is " + str(index))
         return compare_result
-
-    def _save_out_data(self, k_ms, k_pt, result_ms, result_pt):
-        result_file = "%s.npy" % k_ms
-        ms_out_path = os.path.join(self.out_path, self.MS_OUTPUT_PATH, result_file)
-        save_numpy_data(ms_out_path, result_ms)
-        if self.print_level:
-            print("Saved MindSpore output data at: %s" % ms_out_path)
-
-        result_file = "%s.npy" % k_pt
-        pt_out_path = os.path.join(self.out_path, self.PT_OUTPUT_PATH, result_file)
-        save_numpy_data(pt_out_path, result_pt)
-        if self.print_level:
-            print("Saved PyTorch output data at: %s" % pt_out_path)
-
-    def _save_results(self, compare_results):
-        result_path = os.path.join(self.out_path, "compare_result.csv")
-        with open(result_path, "w", encoding='utf-8') as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(self.FIELD_NAMES)
-            writer.writerows(compare_results)
-            logger.info(
-                "The comparison result have been written to %s" % result_path)
 
     def _msadapter_pth2ckpt(self, pt_path, ms_path):
         torch_dict = torch.load(pt_path, map_location='cpu')
