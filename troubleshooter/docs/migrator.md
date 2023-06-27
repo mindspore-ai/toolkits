@@ -249,7 +249,7 @@ ts.migrator.compare_pth_and_ckpt("torch_net_map.json", "pt_net.pth", "ms_net.ckp
 - auto_id: 自动编号，默认值为`True`。当为`True`时，保存时会自动为文件添加全局编号，编号从0开始。
 - suffix: 文件名后缀，默认值为`None`。
 
-> **Warning:** 目前MindSpore 2.0版本暂不支持图模式下GPU/Ascend平台对于`list/tuple/dict`数据的保存。
+> **Warning:** 在MindSpore 2.0版本下，ts.save函数暂不支持图模式。
 
 **文件保存格式**
 
