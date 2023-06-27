@@ -19,24 +19,71 @@ from tests.util import check_delimited_list
 @pytest.mark.platform_arm_ascend_training
 @pytest.mark.platform_x86_ascend_training
 @pytest.mark.env_onecard
-def test_compare_npy_dir(capsys):
+def test_compare_npy_dir_float(capsys):
     data1 = np.random.rand(1, 3, 2).astype(np.float32)
     data2 = np.random.rand(1, 3, 2).astype(np.float32)
-    path1 = "/tmp/troubleshooter_ta/"
-    path2 = "/tmp/troubleshooter_tb/"
-    is_exists = os.path.exists(path1)
-    if not is_exists:
-        os.makedirs(path1)
+    path1 = tempfile.mkdtemp(prefix="compare_npy_dir_float_a")
+    path2 = tempfile.mkdtemp(prefix="compare_npy_dir_float_b")
 
-    is_exists = os.path.exists(path2)
-    if not is_exists:
-        os.makedirs(path2)
+    np.save(os.path.join(path1, "data1.npy"), data1)
+    np.save(os.path.join(path1, "data2.npy"), data2)
 
-    np.save('/tmp/troubleshooter_ta/data1.npy', data1)
-    np.save('/tmp/troubleshooter_ta/data2.npy', data2)
+    np.save(os.path.join(path2, "data1.npy"), data1)
+    np.save(os.path.join(path2, "data2.npy"), data1)
 
-    np.save('/tmp/troubleshooter_tb/data1.npy', data1)
-    np.save('/tmp/troubleshooter_tb/data2.npy', data1)
+    ts.migrator.compare_npy_dir(path1, path2)
+    result = capsys.readouterr().out
+
+    shutil.rmtree(path1)
+    shutil.rmtree(path2)
+    assert result.count('True') == 1
+
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_cpu
+@pytest.mark.platform_arm_cpu
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.platform_arm_ascend_training
+@pytest.mark.platform_x86_ascend_training
+@pytest.mark.env_onecard
+def test_compare_npy_dir_bool(capsys):
+    data1 = np.array([True, False, False, False])
+    data2 = np.array([True, False, True, True])
+    path1 = tempfile.mkdtemp(prefix="compare_npy_dir_bool_a")
+    path2 = tempfile.mkdtemp(prefix="compare_npy_dir_bool_b")
+
+    np.save(os.path.join(path1, "data1.npy"), data1)
+    np.save(os.path.join(path1, "data2.npy"), data2)
+
+    np.save(os.path.join(path2, "data1.npy"), data1)
+    np.save(os.path.join(path2, "data2.npy"), data1)
+
+    ts.migrator.compare_npy_dir(path1, path2)
+    result = capsys.readouterr().out
+
+    shutil.rmtree(path1)
+    shutil.rmtree(path2)
+    assert result.count('True') == 1
+
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_cpu
+@pytest.mark.platform_arm_cpu
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.platform_arm_ascend_training
+@pytest.mark.platform_x86_ascend_training
+@pytest.mark.env_onecard
+def test_compare_npy_dir_int(capsys):
+    data1 = np.array([1, 2, 3, 4])
+    data2 = np.array([1, 2, 3, 5])
+    path1 = tempfile.mkdtemp(prefix="compare_npy_dir_int_a")
+    path2 = tempfile.mkdtemp(prefix="compare_npy_dir_int_b")
+
+    np.save(os.path.join(path1, "data1.npy"), data1)
+    np.save(os.path.join(path1, "data2.npy"), data2)
+
+    np.save(os.path.join(path2, "data1.npy"), data1)
+    np.save(os.path.join(path2, "data2.npy"), data1)
 
     ts.migrator.compare_npy_dir(path1, path2)
     result = capsys.readouterr().out

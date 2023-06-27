@@ -215,10 +215,18 @@ def cal_algorithm(orig_value, target_value, rtol, atol, equal_nan):
     cosine_sim = math.nan
     diff_detail = (math.nan, math.nan)
 
+    def handle_dtype(input):
+        if np.issubdtype(input.dtype, np.floating):
+            return input
+        else:
+            return input.astype(float)
+
     if orig_value is None or target_value is None:
         result = False
         return result, rel_ratio, cosine_sim, diff_detail
     if orig_value.shape == target_value.shape:
+        orig_value = handle_dtype(orig_value)
+        target_value = handle_dtype(target_value)
         result = np.allclose(orig_value, target_value, rtol=rtol, atol=atol, equal_nan=equal_nan)
         value_diff = np.abs(orig_value - target_value)
         value_mean = value_diff.mean()
