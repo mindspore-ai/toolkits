@@ -131,6 +131,7 @@ setup(
     install_requires=[
         'PySnooper >= 1.1.0',
         'prettytable >= 3.0.0, < 3.8.0',
+        'protobuf >= 3.13.0, <= 3.20.1',
     ],
     classifiers=[
         'License :: OSI Approved :: Apache Software License'

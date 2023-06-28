@@ -33,3 +33,6 @@ pip install troubleshooter
 
 ## [其他调试功能](docs/others.md)
 * [应用场景1：tracking在指定epoch/step停止跟踪（使用model.train训练）](docs/others.md#应用场景1tracking在指定epochstep停止跟踪使用modeltrain训练)
+
+## [网络调试小工具](docs/toolbox.md)
+* [应用场景1：根据传入的pb文件，识别算子升/降精度标识，输出csv文件](docs/toolbox.md#应用场景1：提供precision_tracker接口，根据传入的pb文件，识别图中算子执行后精度变化)
