@@ -8,7 +8,7 @@ TroubleShooter 是MindSpore 网络开发调试工具包，用于提供便捷、�
 # 安装说明
 
 ```bash
-pip install troubleshooter
+pip install troubleshooter -i https://pypi.org/simple
 ```
 
 # 应用场景

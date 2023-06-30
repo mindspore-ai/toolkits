@@ -228,13 +228,19 @@ def cal_algorithm(orig_value, target_value, rtol, atol, equal_nan):
         orig_value = handle_dtype(orig_value)
         target_value = handle_dtype(target_value)
         result = np.allclose(orig_value, target_value, rtol=rtol, atol=atol, equal_nan=equal_nan)
-        value_diff = np.abs(orig_value - target_value)
-        value_mean = value_diff.mean()
-        value_max = value_diff.max()
-        diff_detail = value_mean, value_max
-        cosine_sim = cal_cosine_sim(orig_value, target_value)
-        rel_ratio = np.isclose(orig_value, target_value, rtol=rtol, atol=atol,
-                               equal_nan=equal_nan).sum()/np.size(orig_value)
+        unequal_indices = np.where(orig_value != target_value)
+        value_diff = np.abs(orig_value[unequal_indices] - target_value[unequal_indices])
+        if value_diff.size > 0:
+            value_mean = value_diff.mean()
+            value_max = value_diff.max()
+            diff_detail = value_mean, value_max
+            cosine_sim = cal_cosine_sim(orig_value, target_value)
+            rel_ratio = np.isclose(orig_value, target_value, rtol=rtol, atol=atol,
+                                   equal_nan=equal_nan).sum()/np.size(orig_value)
+        else:
+            diff_detail = (0, 0)
+            cosine_sim = 1
+            rel_ratio = 1
     else:
         result = "Shape is inconsistent"
 
