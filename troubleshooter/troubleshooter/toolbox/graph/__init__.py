@@ -12,20 +12,3 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-"""troubleshooter.save"""
-from __future__ import absolute_import
-
-from troubleshooter import FRAMEWORK_TYPE
-
-__all__ = [
-    'save',
-]
-
-if {"torch", "mindspore"}.issubset(FRAMEWORK_TYPE):
-    from troubleshooter.migrator.save.unified_saver import save
-elif {"torch"}.issubset(FRAMEWORK_TYPE):
-    from troubleshooter.migrator.save.torch_saver import save
-elif {"mindspore"}.issubset(FRAMEWORK_TYPE):
-    from troubleshooter.migrator.save.mindspore_saver import save
-else:
-    from troubleshooter.common.framework_detection import save

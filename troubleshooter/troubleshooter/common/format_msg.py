@@ -15,6 +15,7 @@
 """format output"""
 
 import os
+import math
 import re
 from textwrap import fill
 import traceback
@@ -54,11 +55,15 @@ def _add_row(x, item, message, width=TABLE_WIDTH, break_long_words=False, break_
                              break_on_hyphens=break_on_hyphens)])
 
 
-def print_weight_compare_result(result_list, print_type=1, **kwargs):
+def print_separator_line(content, length=40, character='='):
+    separator = f'{content:{character}^{length}}'
+    print(separator)
+
+def print_weight_compare_result(result_list, title=None, print_level=1, **kwargs):
     # 0 Do not print
     # Print All
     # print False
-    if print_type == 0:
+    if print_level == 0:
         return
     title = kwargs.get('title', None)
     field_names = kwargs.get('field_names', None)
@@ -70,14 +75,14 @@ def print_weight_compare_result(result_list, print_type=1, **kwargs):
 
     if field_names is None:
         x.field_names = ["Parameter name of original ckpt", "Parameter name of target ckpt", "Whether shape are equal",
-                     "Parameter shape of original ckpt", "Parameter shape of target ckpt"]
+                         "Parameter shape of original ckpt", "Parameter shape of target ckpt"]
     else:
         x.field_names = field_names
 
     for result in result_list:
-        if print_type == 1:
+        if print_level == 1:
             x.add_row([result[0], result[1], result[2], result[3], result[4]])
-        elif print_type == 2 and result[2] is not True:
+        elif print_level == 2 and result[2] is not True:
             x.add_row([result[0], result[1], result[2], result[3], result[4]])
     print(x.get_string())
 
@@ -85,16 +90,50 @@ def print_weight_compare_result(result_list, print_type=1, **kwargs):
 def print_convert_result(result_list):
     x = PrettyTable()
     x.title = 'The list of conversion result'
-    x.field_names = ["Parameter name of torch", "Parameter name of MindSpore", "Whether the name is converted",
-                     "Whether the weight value is converted", "Parameter shape of torch",
-                     "Parameter shape of MindSpore"]
+    x.field_names = ["Parameter name of torch", "Parameter name of MindSpore",
+                     "Conversion status",
+                     "Parameter shape of torch", "Parameter shape of MindSpore"]
     for result in result_list:
         x.add_row([result[0], result[1], result[2],
-                  result[3], result[4], result[5]])
+                  result[3], result[4]])
     print(x.get_string())
 
 
-def print_diff_result(result_list, title=None, field_names=None):
+def print_diff_result(result_list, title=None, print_level=1, **kwargs):
+    # 0 Do not print
+    # Print All
+    # print False
+    if print_level == 0:
+        return
+    if not result_list:
+        return
+    field_names = kwargs.get('field_names', ["orig array name", "target array name",
+                                             "results of comparison", "match ratio",
+                                             "cosine similarity", "(mean, max)"])
+    x = PrettyTable()
+    if title is None:
+        x.title = 'The list of comparison results'
+    else:
+        x.title = title
+
+    x.field_names = field_names
+
+    for result in result_list:
+        if print_level == 2 and result[2] is True:
+            continue
+        ratio = result[3] if math.isnan(result[3]) else "{:.2%}".format(result[3])
+        cos_sim = "%.5f" % float(result[4])
+        mean_max = result[5] if isinstance(result[5], str) else ", ".join('%.5f' % r for r in result[5])
+        x.add_row([result[0], result[1], result[2], ratio, cos_sim, mean_max])
+    print(x.get_string())
+
+
+def print_diff_result_with_shape(result_list, title=None, field_names=None, print_level=1, **kwargs):
+    # 0 Do not print
+    # Print All
+    # print False
+    if print_level == 0:
+        return
     if not result_list:
         return
 
@@ -103,18 +142,19 @@ def print_diff_result(result_list, title=None, field_names=None):
         x.title = 'The list of comparison results'
     else:
         x.title = title
-
-    if field_names is None:
-        x.field_names = ["orig array name", "target array name",
-                         "results of comparison", "match ratio", "cosine similarity", "(mean, max, min)"]
-    else:
-        x.field_names = field_names
+    field_names = kwargs.get('field_names', ["orig array name", "target array name",
+                                             "shape of orig", "shape of target",
+                                             "results of comparison",
+                                             "match ratio", "cosine similarity", "(mean, max)"])
+    x.field_names = field_names
 
     for result in result_list:
-        ratio = "%.2f" % float(result[3] * 100)
-        cos_sim = "%.5f" % float(result[4])
-        min_max = ['%.6f' % r for r in result[5]]
-        x.add_row([result[0], result[1], result[2], ratio, cos_sim, min_max])
+        if print_level == 2 and result[4] is True:
+            continue
+        ratio = result[3] if math.isnan(result[5]) else "{:.2%}".format(result[5])
+        cos_sim = "%.5f" % float(result[6])
+        mean_max = ", ".join('%.5f' % r for r in result[7])
+        x.add_row([result[0], result[1], result[2], result[3], result[4], ratio, cos_sim, mean_max])
     print(x.get_string())
 
 
@@ -122,7 +162,7 @@ def print_net_infer_diff_result(result_list):
     x = PrettyTable()
     x.title = 'The list of comparison results'
     x.field_names = ["Pytorch data", "MindSpore data",
-                     "results of comparison", "cosine similarity", "(mean, max, min)"]
+                     "results of comparison", "cosine similarity", "(mean, max)"]
     for result in result_list:
         x.add_row([result[0], result[1], result[2], result[3], result[4]])
     print(x.get_string())

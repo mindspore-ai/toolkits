@@ -13,25 +13,21 @@
 # limitations under the License.
 # ============================================================================
 import os
-import mindspore as ms
 import torch
-import time
+import mindspore as ms
+import tempfile
+import shutil
 from collections import OrderedDict
 from pprint import pprint
-from troubleshooter.common.format_msg import print_weight_compare_result, print_convert_result ,print_diff_result
+from troubleshooter.common.format_msg import print_weight_compare_result, print_convert_result, print_diff_result
 from troubleshooter.migrator.mapping_relation.weight_mapping_lib import weight_name_map, weight_value_map
 from troubleshooter.migrator.diff_handler import cal_algorithm
-from troubleshooter.toolbox.widget_pocket import object_load ,object_dump
+from troubleshooter.toolbox.widget_pocket import object_load, object_dump
 from troubleshooter import log as logger
-from troubleshooter.common.util import isfile_check, validate_and_normalize_path,\
-    none_and_isfile_check, all_none_or_isfile_check, dir_exist_check, type_check, clear_tmp_file
+from troubleshooter.common.util import isfile_check, validate_and_normalize_path, none_and_isfile_check, \
+    all_none_or_isfile_check, dir_exist_check, type_check, clear_tmp_file
 
-__all__ = [
-    "get_weight_map",
-    "convert_weight",
-    "compare_ms_ckpt",
-    "compare_pth_and_ckpt",
-]
+__all__ = ["get_weight_map", "convert_weight", "compare_ms_ckpt", "compare_pth_and_ckpt", ]
 
 
 def _get_para_dict(pth_file_path):
@@ -98,7 +94,8 @@ def _custorm_weight_name_prefix(weight_name_map, prefix=None):
         return weight_name_map
 
 
-def get_weight_map(pt_model=None, weight_map_save_path=None, weight_name_prefix=None, custom_name_func=None, print_map=False, **kwargs):
+def get_weight_map(pt_model=None, weight_map_save_path=None, weight_name_prefix=None, custom_name_func=None,
+                   print_map=False, **kwargs):
     res_weight_name_map = {}
     res_weight_value_map = {}
     full_weight_name_map = {}
@@ -136,10 +133,12 @@ def get_weight_map(pt_model=None, weight_map_save_path=None, weight_name_prefix=
         pprint(res_weight_name_map)
         pprint(res_weight_value_map)
     if weight_map_save_path:
-        object_dump([res_weight_name_map,res_weight_value_map], weight_map_save_path)
+        object_dump([res_weight_name_map, res_weight_value_map], weight_map_save_path)
     return res_weight_name_map, res_weight_value_map
 
-weight_map_dump=object_dump
+
+weight_map_dump = object_dump
+
 
 def convert_weight(weight_map_path=None, pt_file_path=None, ms_file_save_path=None, **kwargs):
     print_params_list = []
@@ -147,11 +146,12 @@ def convert_weight(weight_map_path=None, pt_file_path=None, ms_file_save_path=No
     print_conv_info = kwargs.get('print_conv_info', True)
     pt_param_dict = kwargs.get('pt_param_dict', None)
     weight_map = kwargs.get('weight_map', None)
+    print_save_path = kwargs.get('print_save_path', True)
 
-    all_none_or_isfile_check(weight_map_path,'weight_map_path',weight_map ,'weight_map')
+    all_none_or_isfile_check(weight_map_path, 'weight_map_path', weight_map, 'weight_map')
     all_none_or_isfile_check(pt_file_path, 'pt_file_path', pt_param_dict, 'pt_param_dict')
-    dir_exist_check(ms_file_save_path,'ms_file_save_path')
-    type_check(print_conv_info,'print_conv_info', bool)
+    dir_exist_check(ms_file_save_path, 'ms_file_save_path')
+    type_check(print_conv_info, 'print_conv_info', bool)
 
     if weight_map:
         name_map, value_map = weight_map
@@ -163,7 +163,37 @@ def convert_weight(weight_map_path=None, pt_file_path=None, ms_file_save_path=No
     else:
         pt_param_dict = _get_para_dict(pt_file_path)
 
+    if name_map.keys() != pt_param_dict.keys():
+        missing_key = pt_param_dict.keys() - name_map.keys()
+        unwanted_key = name_map.keys() - pt_param_dict.keys()
+        error_message = "For the argument 'weight_map_path', the file in 'convert_weight' should be generated " \
+                        "using 'get_weight_map' within the same model. " \
+                        "The current model parameters and the JSON file are inconsistent."
+        if unwanted_key:
+            error_message += f" The 'weight_map_path' file has unwanted parameters '{unwanted_key}'."
+        if missing_key:
+            error_message += f" The 'weight_map_path' file is missing the parameters '{missing_key}'."
+        raise ValueError(error_message)
+
+    if name_map.keys() != pt_param_dict.keys():
+        raise ValueError("For the argument 'weight_map_path', the file in 'convert_weight' should be generated using 'get_weight_map' within the same model."
+                         "The current model parameters and the JSON file are inconsistent."
+                         f"The 'weight_map_path' file is missing the keys '{missing_key}', and has unwanted keys '{unwanted_key}'.")
+
     new_params_list = []
+
+    def converted_status(pt_para_item, ms_para_item, is_value_converted):
+        pt_suffix, ms_suffix = pt_para_item.split('.')[-1], ms_para_item.split('.')[-1]
+        pt_prefix, ms_prefix = pt_para_item.split('.')[:-1], ms_para_item.split('.')[:-1]
+        if ms_para_item == pt_para_item and not is_value_converted:
+            return "Consistent"
+        if pt_para_item != ms_para_item and is_value_converted:
+            name_status = f"{pt_suffix}->{ms_suffix}" if pt_suffix != ms_suffix and pt_prefix == ms_prefix else "Name converted"
+            return name_status + "; Value converted"
+        if pt_para_item != ms_para_item:
+            return f"{pt_suffix}->{ms_suffix}" if pt_suffix != ms_suffix and pt_prefix == ms_prefix else "Name converted"
+        if is_value_converted:
+            return "Value converted"
 
     for pth_param_name in pt_param_dict:
         # get ckpt name and value
@@ -178,54 +208,52 @@ def convert_weight(weight_map_path=None, pt_file_path=None, ms_file_save_path=No
         if func:
             def_get_value = _get_object(func)
             ms_tensor = def_get_value(ms_tensor)
-        print_params_list.append((pth_param_name, ms_para_item, bool(ms_para_item!=pth_param_name),
-                                  bool(func), parameter.size(), ms_tensor.shape))
+        print_params_list.append((pth_param_name, ms_para_item,
+                                  converted_status(pth_param_name, ms_para_item, bool(func)),
+                                  tuple(parameter.size()), ms_tensor.shape))
         # add name and value to list
         new_params_list.append({"name": ms_para_item, "data": ms_tensor})
 
     if new_params_list is None:
         logger.user_warning("There are no parameters to be converted. Parameter conversion failed. "
                             "Please check whether the configuration is correct")
-    if ms_file_save_path:
-        ms.save_checkpoint(new_params_list, ms_file_save_path)
+
+    ms.save_checkpoint(new_params_list, ms_file_save_path)
 
     if print_conv_info:
         print_convert_result(print_params_list)
-    logger.user_attention("The PTH has been converted to the checkpoint of MindSpore. "
-                          "Please check whether the conversion result is correct. "
-                          "The saved path is: %s", ms_file_save_path)
+
+    if print_save_path:
+        logger.user_attention("The PTH has been converted to the checkpoint of MindSpore. "
+                              "Please check whether the conversion result is correct. "
+                              "The saved path is: %s", ms_file_save_path)
 
 
-def compare_ms_ckpt(orig_file_path=None, target_file_path=None, **kwargs):
+def compare_ms_ckpt(orig_file_path, target_file_path, **kwargs):
     name_map_list = []
     value_map_list = []
     name_map = None
-    title = 'The list of comparison results for values'
-    field_names = ["Parameter name of original ckpt", "Parameter name of target ckpt",
-                   "results of comparison", "match ratio",
-                   "cosine similarity", "(mean, max, min)"]
-    field_names_pth = ["Parameter name of torch", "Parameter name of MindSpore",
-                   "results of comparison", "match ratio",
-                   "cosine similarity", "(mean, max, min)"]
-    field_names_shape_pth=["Parameter name of torch", "Parameter name of MindSpore",
-                           "Whether shape are equal", "Parameter shape of torch",
-                           "Parameter shape of MindSpore"]
-
-    compare_value = kwargs.get('compare_value', False)
+    shape_field_names = kwargs.get('shape_field_names', None)
+    value_field_names = kwargs.get('value_field_names', ["Parameter name of original ckpt",
+                                                         "Parameter name of target ckpt",
+                                                         "results of comparison",
+                                                         "match ratio", "cosine similarity", "(mean, max)"])
+    title = kwargs.get('title', 'The list of comparison results for values')
+    compare_value = kwargs.get('compare_value', True)
     weight_map_path = kwargs.get('weight_map_path', None)
     weight_map = kwargs.get('weight_map', None)
     orig_ckpt_dict = kwargs.get('orig_ckpt_dict', None)
     target_ckpt_dict = kwargs.get('target_ckpt_dict', None)
     print_level = kwargs.get('print_level', 1)
     rtol = kwargs.get('rtol', 1e-04)
-    atol = kwargs.get('atol', 1e-08)
+    atol = kwargs.get('atol', 1e-04)
     equal_nan = kwargs.get('equal_nan', False)
 
     all_none_or_isfile_check(orig_file_path, 'orig_file_path', orig_ckpt_dict, 'orig_ckpt_dict')
     all_none_or_isfile_check(target_file_path, 'target_file_path', target_ckpt_dict, 'target_ckpt_dict')
-    type_check(compare_value,'compare_value', bool)
+    type_check(compare_value, 'compare_value', bool)
     type_check(print_level, 'print_level', int)
-    isfile_check(weight_map_path,'weight_map_path')
+    isfile_check(weight_map_path, 'weight_map_path')
 
     if orig_file_path:
         orig_ckpt_dict = ms.load_checkpoint(orig_file_path)
@@ -234,7 +262,7 @@ def compare_ms_ckpt(orig_file_path=None, target_file_path=None, **kwargs):
 
     if weight_map_path:
         name_map, _ = object_load(weight_map_path)
-        name_map =  dict(zip(name_map.values(), name_map.keys()))
+        name_map = dict(zip(name_map.values(), name_map.keys()))
 
     if weight_map:
         name_map, _ = weight_map
@@ -253,11 +281,9 @@ def compare_ms_ckpt(orig_file_path=None, target_file_path=None, **kwargs):
             name_map_list.append((new_orig_name, target_para_name, (target_para.shape == orig_parameter.shape),
                                   orig_parameter.shape, target_para.shape))
             if compare_value:
-                result, rel_ratio, cosine_sim, diff_detail =cal_algorithm(orig_parameter.value().asnumpy(),
-                                                                          target_para.value().asnumpy(),
-                                                                          rtol,
-                                                                          atol,
-                                                                          equal_nan)
+                result, rel_ratio, cosine_sim, diff_detail = cal_algorithm(orig_parameter.value().asnumpy(),
+                                                                           target_para.value().asnumpy(), rtol, atol,
+                                                                           equal_nan)
                 value_map_list.append((new_orig_name, target_para_name, result, rel_ratio, cosine_sim, diff_detail))
             target_ckpt_dict.pop(target_para_name)
         else:
@@ -266,31 +292,36 @@ def compare_ms_ckpt(orig_file_path=None, target_file_path=None, **kwargs):
     for name, target_para in target_ckpt_dict.items():
         name_map_list.append((None, name, None, None, target_para.shape))
 
-    if weight_map_path:
-        print_weight_compare_result(name_map_list, print_type=print_level, field_names=field_names_shape_pth)
-        print_diff_result(value_map_list, title, field_names_pth)
-    else:
-        print_weight_compare_result(name_map_list, print_type=print_level)
-        print_diff_result(value_map_list, title, field_names)
+    print_weight_compare_result(name_map_list, print_level=print_level, field_names=shape_field_names)
+    print_diff_result(value_map_list, title, print_level=print_level, field_names=value_field_names)
 
 
-def compare_pth_and_ckpt(weight_map_path=None, pt_file_path=None, ms_file_path=None, **kwargs):
-    temp_save_path = validate_and_normalize_path(kwargs.get('temp_save_path', './'))
-    timestamp = time.time()
-    formatted_time = time.strftime('%Y%m%d-%H%M%S', time.localtime(timestamp))
-    temp_name = formatted_time + "_ts_temp_file.ckpt"
-    tmp_ckpt_file = os.path.join(temp_save_path, temp_name)
-    print_level = kwargs.get('print_level', 1)
-    print_conv_info = kwargs.get('print_conv_info', False)
-
-
+def compare_pth_and_ckpt(weight_map_path, pt_file_path, ms_file_path, **kwargs):
+    shape_field_names = ["Parameter name of torch", "Parameter name of MindSpore", "Whether shape are equal",
+                         "Parameter shape of torch", "Parameter shape of MindSpore"]
+    value_field_names = ["Parameter name of torch", "Parameter name of MindSpore", "results of comparison",
+                         "match ratio", "cosine similarity", "(mean, max)"]
     none_and_isfile_check(weight_map_path, 'weight_map_path')
     none_and_isfile_check(pt_file_path, 'pt_file_path')
     none_and_isfile_check(ms_file_path, 'ms_file_path')
 
-    convert_weight(weight_map_path=weight_map_path, pt_file_path=pt_file_path, ms_file_save_path=tmp_ckpt_file,
-                                  print_conv_info=print_conv_info)
-    compare_ms_ckpt(orig_file_path=tmp_ckpt_file, target_file_path=ms_file_path,
-                    compare_value=True, weight_map_path=weight_map_path, print_level=print_level)
-    clear_tmp_file(tmp_ckpt_file)
+    compare_value = kwargs.get('compare_value', True)
+    print_level = kwargs.get('print_level', 1)
+    rtol = kwargs.get('rtol', 1e-04)
+    atol = kwargs.get('atol', 1e-04)
+    equal_nan = kwargs.get('equal_nan', False)
+    print_conv_info = kwargs.get('print_conv_info', False)
 
+    temp_save_path = tempfile.mkdtemp(prefix="compare_pth_and_ckpt")
+    temp_name = "ts_temp_file.ckpt"
+    tmp_ckpt_file = os.path.join(temp_save_path, temp_name)
+
+    convert_weight(weight_map_path=weight_map_path, pt_file_path=pt_file_path, 
+                   ms_file_save_path=tmp_ckpt_file, print_conv_info=print_conv_info,
+                   print_save_path=False)
+    compare_ms_ckpt(orig_file_path=tmp_ckpt_file, target_file_path=ms_file_path,
+                    compare_value=compare_value, weight_map_path=weight_map_path,
+                    print_level=print_level, rtol=rtol, atol=atol, equal_nan=equal_nan,
+                    shape_field_names=shape_field_names,
+                    value_field_names=value_field_names)
+    shutil.rmtree(temp_save_path)

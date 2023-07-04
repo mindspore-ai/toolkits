@@ -8,14 +8,14 @@ TroubleShooter 是MindSpore 网络开发调试工具包，用于提供便捷、�
 # 安装说明
 
 ```bash
-pip install troubleshooter
+pip install troubleshooter -i https://pypi.org/simple
 ```
 
 # 应用场景
 
 ## [网络迁移&调试](docs/migrator.md)
 * [应用场景1：pth到ckpt权重转换](docs/migrator.md#应用场景1pth到ckpt权重自动转换)
-* [应用场景2：将转换后的ckpt与MindSpore网络生成的ckpt进行对比](docs/migrator.md#应用场景2将转换后的ckpt与mindspore网络生成的ckpt进行对比)
+* [应用场景2：比对MindSpore与PyTorch的ckpt/pth](docs/migrator.md#应用场景2比对mindspore与pytorch的ckptpth)
 * [应用场景3：保存tensor](docs/migrator.md#应用场景3保存tensor)
 * [应用场景4：比较两组tensor值(npy文件)是否相等](docs/migrator.md#应用场景4比较两组tensor值npy文件是否相等)
 * [应用场景5：比较pytorch和mindspore的网络输出是否相等](docs/migrator.md#应用场景5比较mindspore和pytorch网络输出是否一致)
@@ -33,3 +33,6 @@ pip install troubleshooter
 
 ## [其他调试功能](docs/others.md)
 * [应用场景1：tracking在指定epoch/step停止跟踪（使用model.train训练）](docs/others.md#应用场景1tracking在指定epochstep停止跟踪使用modeltrain训练)
+
+## [网络调试小工具](docs/toolbox.md)
+* [应用场景1：根据传入的pb文件，识别算子升/降精度标识，输出csv文件](docs/toolbox.md#应用场景1：提供precision_tracker接口，根据传入的pb文件，识别图中算子执行后精度变化)

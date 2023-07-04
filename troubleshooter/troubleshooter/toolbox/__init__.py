@@ -13,4 +13,6 @@
 # limitations under the License.
 # ============================================================================
 from troubleshooter.toolbox import widget_pocket as widget
-__all__ = ["widget",]
+from troubleshooter.toolbox.parse_pb import precision_tracker
+
+__all__ = ["widget", "precision_tracker"]

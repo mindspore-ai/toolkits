@@ -94,6 +94,9 @@ def compare_stack_words(err_msg, key_word):
         return False
     return True
 
+def extract_number(string):
+    numbers = re.findall(r'\d+', string)
+    return list(map(int, numbers))
 
 def find_file(dir, suffix=".npy"):
     file_list = []
@@ -106,7 +109,10 @@ def find_file(dir, suffix=".npy"):
             file_name, suffix_name = os.path.splitext(file)
             if suffix_name == suffix and root_path == normal_dir:
                 file_list.append(file)
+    # First sort by generate time
     file_list = sorted(file_list, key=lambda x: os.path.getctime(os.path.join(normal_dir, x)))
+    # Second sort by number
+    file_list = sorted(file_list, key=extract_number)
     return file_list
 
 
@@ -177,7 +183,7 @@ def none_and_isdir_check(file_dir, name_str):
 
 def type_check(param, name_str, param_type):
     if param and not isinstance(param, param_type):
-        raise TypeError("The parameter '{0}' must be bool".format(name_str))
+        raise TypeError(f"The parameter '{name_str}' must be {param_type}")
 
 def clear_tmp_file(file):
     if file:

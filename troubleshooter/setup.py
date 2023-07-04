@@ -24,7 +24,7 @@ from setuptools import setup
 from setuptools.command.egg_info import egg_info
 from setuptools.command.build_py import build_py
 
-version = '1.0.9'
+version = '1.0.10'
 cur_dir = os.path.dirname(os.path.realpath(__file__))
 pkg_dir = os.path.join(cur_dir, 'build')
 
@@ -130,7 +130,8 @@ setup(
     },
     install_requires=[
         'PySnooper >= 1.1.0',
-        'prettytable >= 3.0.0',
+        'prettytable >= 3.0.0, < 3.8.0',
+        'protobuf >= 3.13.0, <= 3.20.1',
     ],
     classifiers=[
         'License :: OSI Approved :: Apache Software License'
