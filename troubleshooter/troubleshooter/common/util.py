@@ -195,3 +195,6 @@ def clear_tmp_file(file):
     if file:
         os.remove(file)
 
+def print_to_file(content, file_path, mode='w'):
+    with open(file_path, mode) as f:
+        print(content, file=f)
