@@ -15,7 +15,7 @@
 import random
 import os
 import numpy as np
-from troubleshooter.common.util import validate_and_normalize_path
+from troubleshooter.common.util import validate_and_normalize_path, print_to_file
 from troubleshooter import FRAMEWORK_TYPE
 
 __all__ = [
@@ -24,6 +24,7 @@ __all__ = [
     "load_ms_weight2net",
     "object_load",
     "object_dump",
+    "save_net_and_weight_params"
 ]
 
 if "torch" in FRAMEWORK_TYPE:
@@ -46,6 +47,24 @@ def fix_random(seed):
     if "mindspore" in FRAMEWORK_TYPE:
         mindspore.set_seed(seed)
 
+def save_net_and_weight_params(model, path=os.getcwd()):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    if "torch" in FRAMEWORK_TYPE and isinstance(model, torch.nn.Module):
+        torch.save(model.state_dict(), os.path.join(path, "torch.pth"))
+        from troubleshooter.migrator import get_weight_map
+        get_weight_map(model, weight_map_save_path=os.path.join(path, "torch_net_map.json"))
+        print_to_file(model, os.path.join(path, "torch_model_architecture.txt"))
+        return
+
+    if "mindspore" in FRAMEWORK_TYPE and isinstance(model, mindspore.nn.Cell):
+        mindspore.save_checkpoint(model, os.path.join(path, "mindspore.ckpt"))
+        print_to_file(model, os.path.join(path, "mindspore_model_architecture.txt"))
+        return
+
+    raise ValueError("For the 'save_net_and_weight_params', the type of the 'model' parameter must be" \
+                     "'MindSpore.nn.Cell' or 'torch.nn.Module'.")
 
 def get_pt_grads(model):
     grads_dict = {}
