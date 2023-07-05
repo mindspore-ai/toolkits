@@ -98,6 +98,12 @@ def extract_number(string):
     numbers = re.findall(r'\d+', string)
     return list(map(int, numbers))
 
+def extract_front_end_number(string):
+    numbers = extract_number(string)
+    if numbers:
+        return numbers[0], numbers[-1]
+    return []
+
 def find_file(dir, suffix=".npy"):
     file_list = []
     normal_dir = validate_and_normalize_path(dir)
@@ -112,7 +118,7 @@ def find_file(dir, suffix=".npy"):
     # First sort by generate time
     file_list = sorted(file_list, key=lambda x: os.path.getctime(os.path.join(normal_dir, x)))
     # Second sort by number
-    file_list = sorted(file_list, key=extract_number)
+    file_list = sorted(file_list, key=extract_front_end_number)
     return file_list
 
 
