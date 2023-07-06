@@ -16,6 +16,7 @@
 import os
 import re
 import stat
+import uuid
 from collections import OrderedDict
 
 import numpy as np
@@ -198,3 +199,8 @@ def clear_tmp_file(file):
 def print_to_file(content, file_path, mode='w'):
     with open(file_path, mode) as f:
         print(content, file=f)
+
+def generate_random_filename(prefix='', suffix=''):
+    random_uuid = uuid.uuid4()
+    filename = f'{prefix}_{str(random_uuid)}{suffix}'
+    return filename

@@ -25,9 +25,9 @@ from troubleshooter.migrator.diff_handler import cal_algorithm
 from troubleshooter.toolbox.widget_pocket import object_load, object_dump
 from troubleshooter import log as logger
 from troubleshooter.common.util import isfile_check, validate_and_normalize_path, none_and_isfile_check, \
-    all_none_or_isfile_check, dir_exist_check, type_check, clear_tmp_file
+    all_none_or_isfile_check, dir_exist_check, type_check, clear_tmp_file, generate_random_filename
 
-__all__ = ["get_weight_map", "convert_weight", "compare_ms_ckpt", "compare_pth_and_ckpt", ]
+__all__ = ["get_weight_map", "convert_weight", "compare_ms_ckpt", "compare_pth_and_ckpt", "convert_weight_and_load"]
 
 
 def _get_para_dict(pth_file_path):
@@ -175,11 +175,6 @@ def convert_weight(weight_map_path=None, pt_file_path=None, ms_file_save_path=No
             error_message += f" The 'weight_map_path' file is missing the parameters '{missing_key}'."
         raise ValueError(error_message)
 
-    if name_map.keys() != pt_param_dict.keys():
-        raise ValueError("For the argument 'weight_map_path', the file in 'convert_weight' should be generated using 'get_weight_map' within the same model."
-                         "The current model parameters and the JSON file are inconsistent."
-                         f"The 'weight_map_path' file is missing the keys '{missing_key}', and has unwanted keys '{unwanted_key}'.")
-
     new_params_list = []
 
     def converted_status(pt_para_item, ms_para_item, is_value_converted):
@@ -227,6 +222,14 @@ def convert_weight(weight_map_path=None, pt_file_path=None, ms_file_save_path=No
         logger.user_attention("The PTH has been converted to the checkpoint of MindSpore. "
                               "Please check whether the conversion result is correct. "
                               "The saved path is: %s", ms_file_save_path)
+
+
+def convert_weight_and_load(weight_map_path, pt_file_path, net):
+    convert_ckpt = generate_random_filename(prefix="convert_weight_and_load", suffix=".ckpt")
+    convert_weight(weight_map_path, pt_file_path, ms_file_save_path=convert_ckpt, print_save_path=False)
+    param_dict = ms.load_checkpoint(convert_ckpt)
+    clear_tmp_file(convert_ckpt)
+    ms.load_param_into_net(net, param_dict)
 
 
 def compare_ms_ckpt(orig_file_path, target_file_path, **kwargs):

@@ -1,5 +1,6 @@
 import os
 import shutil
+import tempfile
 from collections import OrderedDict
 import troubleshooter as ts
 from troubleshooter.migrator.save import _ts_save_cnt
@@ -549,3 +550,28 @@ def test_compare_pth_value_case(capsys):
     assert check_delimited_list(result, key_result)
     assert check_delimited_list(result, result_title)
     assert check_delimited_list(result, shape_title)
+
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
+def test_convert_weight_and_load(capsys):
+    tmp_path = tempfile.mkdtemp(prefix="test_convert_weight_and_load")
+    pth_path = os.path.join(tmp_path, "torch_net.pth")
+    ckpt_path = os.path.join(tmp_path, "ms_net.ckpt")
+    map_file_path = os.path.join(tmp_path, "torch_net_map.json")
+    torch_net = MyNet(in_features=10, out_classes=2)
+    ms_net = MSNet(in_features=10, out_classes=2)
+    torch.save(torch_net.state_dict(), pth_path)
+
+    ts.migrator.get_weight_map(pt_model=torch_net,
+                               weight_map_save_path=map_file_path)
+    ts.migrator.convert_weight_and_load(weight_map_path=map_file_path,
+                                        pt_file_path=pth_path,
+                                        net=ms_net)
+    mindspore.save_checkpoint(ms_net, ckpt_path)
+    ts.migrator.compare_pth_and_ckpt(map_file_path, pt_file_path=pth_path, ms_file_path=ckpt_path)
+    shutil.rmtree(tmp_path)
+    result = capsys.readouterr().out
+    key_result = ['features.bn_mm.weight', 'features.bn_mm.gamma', 'True']
+    assert check_delimited_list(result, key_result)
