@@ -34,8 +34,8 @@ def test_save_net_and_weight_params():
     ms_net = ConstMS()
     ts.widget.save_net_and_weight_params(pt_net, path="pt")
     ts.widget.save_net_and_weight_params(ms_net, path="ms")
-    pt = ["torch.pth", "torch_model_architecture.txt", "torch_net_map.json"]
-    ms = ["mindspore.ckpt", "mindspore_model_architecture.txt"]
+    pt = ["torch_troubleshooter_create.pth", "torch_model_architecture.txt", "torch_net_map.json"]
+    ms = ["mindspore_troubleshooter_create.ckpt", "mindspore_model_architecture.txt"]
     for file in pt:
         assert os.path.isfile(os.path.join("pt", file))
     for file in ms:
