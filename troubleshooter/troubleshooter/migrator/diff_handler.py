@@ -228,8 +228,11 @@ def cal_algorithm(orig_value, target_value, rtol, atol, equal_nan):
         orig_value = handle_dtype(orig_value)
         target_value = handle_dtype(target_value)
         result = np.allclose(orig_value, target_value, rtol=rtol, atol=atol, equal_nan=equal_nan)
-        unequal_indices = np.where(orig_value != target_value)
-        value_diff = np.abs(orig_value[unequal_indices] - target_value[unequal_indices])
+        if not orig_value.shape:
+            value_diff = np.abs(orig_value - target_value) if orig_value != target_value else np.array([])
+        else:
+            unequal_indices = np.where(orig_value != target_value)
+            value_diff = np.abs(orig_value[unequal_indices] - target_value[unequal_indices])
         if value_diff.size > 0:
             value_mean = value_diff.mean()
             value_max = value_diff.max()

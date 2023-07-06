@@ -100,6 +100,36 @@ def test_compare_npy_dir_int(capsys):
 @pytest.mark.platform_arm_ascend_training
 @pytest.mark.platform_x86_ascend_training
 @pytest.mark.env_onecard
+def test_compare_npy_dir_scalar(capsys):
+    data1_0 = np.float32(np.inf)
+    data1_1 = np.float32(2)
+    data2_0 = np.float32(np.inf)
+    data2_1 = np.float32(1)
+    path1 = tempfile.mkdtemp(prefix="compare_npy_dir_int_a")
+    path2 = tempfile.mkdtemp(prefix="compare_npy_dir_int_b")
+
+    np.save(os.path.join(path1, "data1.npy"), data1_0)
+    np.save(os.path.join(path1, "data2.npy"), data1_1)
+
+    np.save(os.path.join(path2, "data1.npy"), data2_0)
+    np.save(os.path.join(path2, "data2.npy"), data2_1)
+
+    ts.migrator.compare_npy_dir(path1, path2)
+    result = capsys.readouterr().out
+
+    shutil.rmtree(path1)
+    shutil.rmtree(path2)
+    assert check_delimited_list(result, ["data1.npy", "data1.npy", "True", "100.00%", "1.00000", "0.00000, 0.00000"])
+    assert check_delimited_list(result, ["data2.npy", "data2.npy", "False", "0.00%", "1.00000", "1.00000, 1.00000"])
+
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_cpu
+@pytest.mark.platform_arm_cpu
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.platform_arm_ascend_training
+@pytest.mark.platform_x86_ascend_training
+@pytest.mark.env_onecard
 def test_compare_grads_part_match(capsys):
     _ts_save_cnt.reset()
 
