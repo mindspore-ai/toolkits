@@ -47,19 +47,27 @@ def fix_random(seed):
     if "mindspore" in FRAMEWORK_TYPE:
         mindspore.set_seed(seed)
 
-def save_net_and_weight_params(model, path=os.getcwd()):
+def save_net_and_weight_params(model, path=os.getcwd(), weight_params_filename=None):
     if not os.path.exists(path):
         os.makedirs(path)
 
     if "torch" in FRAMEWORK_TYPE and isinstance(model, torch.nn.Module):
-        torch.save(model.state_dict(), os.path.join(path, "torch.pth"))
+        if weight_params_filename is None:
+            params_name = "torch_troubleshooter_create.pth"
+        else:
+            params_name = weight_params_filename
+        torch.save(model.state_dict(), os.path.join(path, params_name))
         from troubleshooter.migrator import get_weight_map
         get_weight_map(model, weight_map_save_path=os.path.join(path, "torch_net_map.json"))
         print_to_file(model, os.path.join(path, "torch_model_architecture.txt"))
         return
 
     if "mindspore" in FRAMEWORK_TYPE and isinstance(model, mindspore.nn.Cell):
-        mindspore.save_checkpoint(model, os.path.join(path, "mindspore.ckpt"))
+        if weight_params_filename is None:
+            params_name = "mindspore_troubleshooter_create.ckpt"
+        else:
+            params_name = weight_params_filename
+        mindspore.save_checkpoint(model, os.path.join(path, params_name))
         print_to_file(model, os.path.join(path, "mindspore_model_architecture.txt"))
         return
 
