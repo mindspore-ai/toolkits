@@ -15,11 +15,11 @@ torch_net = resnet50(num_classes=10)
 pth_path="./resnet.pth"
 
 """
-pt_model：PyTorch网络实例；
+pt_net：PyTorch网络实例；
 weight_map_save_path：转换后的权重映射表路径；
 print_map: 是否打印映射表。
 """
-ts.migrator.get_weight_map(pt_model=torch_net,
+ts.migrator.get_weight_map(pt_net=torch_net,
                            weight_map_save_path="/tmp/torch_net_map.json",
                            print_map=True)
 """
@@ -43,7 +43,7 @@ torch_net = resnet50(num_classes=10)
 pth_path="./resnet.pth"
 
 # weight_name_prefix：需要添加的权重前缀
-ts.migrator.get_weight_map(pt_model=torch_net,
+ts.migrator.get_weight_map(pt_net=torch_net,
                            weight_map_save_path="/tmp/torch_net_map.json",
                            weight_name_prefix='uvp',
                            print_map=True)
@@ -76,7 +76,7 @@ pth_path="./resnet.pth"
 """
 custom_name_func: 可封装定制函数，例如：custorm_weight_name，完成映射关系的定制
 """
-ts.migrator.get_weight_map(pt_model=torch_net,
+ts.migrator.get_weight_map(pt_net=torch_net,
                            weight_map_save_path="/tmp/torch_net_map.json",
                            custom_name_func=custorm_weight_name,
                            print_map=True)
@@ -229,7 +229,7 @@ class MSNet(nn.Cell):
 
 pt_net = PTNet()
 ms_net = MSNet()
-ts.migrator.get_weight_map(pt_model=pt_net,
+ts.migrator.get_weight_map(pt_net=pt_net,
                            weight_map_save_path="torch_net_map.json")
 torch.save(pt_net.state_dict(), "pt_net.pth")
 ms.save_checkpoint(ms_net, "ms_net.ckpt")

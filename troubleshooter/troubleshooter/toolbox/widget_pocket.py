@@ -59,7 +59,7 @@ def save_net_and_weight_params(model, path=os.getcwd(), weight_params_filename=N
         torch.save(model.state_dict(), os.path.join(path, params_name))
         from troubleshooter.migrator import get_weight_map
         get_weight_map(model, weight_map_save_path=os.path.join(path, "torch_net_map.json"))
-        print_to_file(model, os.path.join(path, "torch_model_architecture.txt"))
+        print_to_file(model, os.path.join(path, "torch_net_architecture.txt"))
         return
 
     if "mindspore" in FRAMEWORK_TYPE and isinstance(model, mindspore.nn.Cell):
@@ -68,7 +68,7 @@ def save_net_and_weight_params(model, path=os.getcwd(), weight_params_filename=N
         else:
             params_name = weight_params_filename
         mindspore.save_checkpoint(model, os.path.join(path, params_name))
-        print_to_file(model, os.path.join(path, "mindspore_model_architecture.txt"))
+        print_to_file(model, os.path.join(path, "mindspore_net_architecture.txt"))
         return
 
     raise ValueError("For the 'save_net_and_weight_params', the type of the 'model' parameter must be" \
