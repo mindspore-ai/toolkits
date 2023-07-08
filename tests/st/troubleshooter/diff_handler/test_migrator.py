@@ -79,7 +79,7 @@ def test_ordereddict_sequential_case(capsys):
     map_file_path = "/tmp/torch_net_ordereddict_sequential_map.json"
     ms_path = "/tmp/convert_ordereddict_sequential.ckpt"
     torch.save(torch_net.state_dict(), torch_path)
-    ts.migrator.get_weight_map(pt_model=torch_net,
+    ts.migrator.get_weight_map(pt_net=torch_net,
                                weight_map_save_path=map_file_path,
                                print_map=True)
     ts.migrator.convert_weight(weight_map_path=map_file_path,
@@ -104,7 +104,7 @@ def test_save_model_pth_case(capsys):
     ms_file_path = '/tmp/convert_resnet.ckpt'
     map_file_path = "/tmp/torch_net_map.json"
     torch.save(torch_net, pth_path)
-    ts.migrator.get_weight_map(pt_model=torch_net,
+    ts.migrator.get_weight_map(pt_net=torch_net,
                                weight_map_save_path=map_file_path,
                                print_map=True)
     ts.migrator.convert_weight(weight_map_path=map_file_path,
@@ -157,7 +157,7 @@ def test_torch_modulelist_and_loadckpt_case(capsys):
     torch_net = MyNet(in_channels=10, out_channels=2, hidden_size=20)
     ms_net = MyNet_CellList(in_channels=10, out_channels=2, hidden_size=20)
     torch.save(torch_net.state_dict(), pth_path)
-    ts.migrator.get_weight_map(pt_model=torch_net,
+    ts.migrator.get_weight_map(pt_net=torch_net,
                                weight_map_save_path=map_file_path,
                                print_map=True)
     ts.migrator.convert_weight(weight_map_path=map_file_path,
@@ -208,7 +208,7 @@ def test_modulelist_sequential_case(capsys):
     map_file_path = "/tmp/torch_modulelist_sequential_net_map.json"
     torch_net = MyModule()
     torch.save(torch_net.state_dict(), pth_path)
-    ts.migrator.get_weight_map(pt_model=torch_net,
+    ts.migrator.get_weight_map(pt_net=torch_net,
                                weight_map_save_path=map_file_path,
                                print_map=True)
     ts.migrator.convert_weight(weight_map_path=map_file_path,
@@ -231,7 +231,7 @@ def test_weight_name_prefix_case(capsys):
     map_file_path = "/tmp/torch_weight_name_prefix_net_map.json"
     torch_net = MyModule(in_features=10, out_classes=2)
     torch.save(torch_net.state_dict(), pth_path)
-    ts.migrator.get_weight_map(pt_model=torch_net,
+    ts.migrator.get_weight_map(pt_net=torch_net,
                                weight_map_save_path=map_file_path,
                                weight_name_prefix="pre_test")
     ts.migrator.convert_weight(weight_map_path=map_file_path,
@@ -259,7 +259,7 @@ def test_save_model_pth_and_input_dict_case(capsys):
     model = torch.load(pth_path)
     # @验证模型场景下提取权重参数
     pd = model.state_dict()
-    ts.migrator.get_weight_map(pt_model=torch_net,
+    ts.migrator.get_weight_map(pt_net=torch_net,
                                weight_map_save_path=map_file_path,
                                print_map=True)
     ts.migrator.convert_weight(weight_map_path=map_file_path,
@@ -312,7 +312,7 @@ def test_save_optimizer_case(capsys):
     opt_para = torch.load(pth_path)
     new_optimizer.load_state_dict(opt_para)
     try:
-        ts.migrator.get_weight_map(pt_model=model,
+        ts.migrator.get_weight_map(pt_net=model,
                                    weight_map_save_path=map_file_path,
                                    print_map=True)
         ts.migrator.convert_weight(weight_map_path=map_file_path,
@@ -345,20 +345,14 @@ def test_custorm_weight_case(capsys):
     ms_file_path = '/tmp/convert_custorm_weight_resnet.ckpt'
     map_file_path = "/tmp/torch_custorm_weight_net_map.json"
     torch_net = MyModule(in_features=10, out_classes=2)
-    # save model
+    # save net
     torch.save(torch_net, pth_path)
-    # model = torch.load(pth_path)
     # @验证模型场景下提取权重参数
-    # pd = model.state_dict()
-    # wm = ts.WeightMigrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='/tmp/convert_resnet.ckpt')
-    # name_map, value_map = wm.get_weight_map(full_name_map=True)
-
-    ts.migrator.get_weight_map(pt_model=torch_net,
+    ts.migrator.get_weight_map(pt_net=torch_net,
                                weight_map_save_path=map_file_path,
                                custom_name_func=custorm_weight_name)
     # 将定制好的map传入转换接口
     # weight_map：传入定制后的map，以定制后的map进行权重转换
-    # wm.convert(weight_name_map=w_map)
     ts.migrator.convert_weight(weight_map_path=map_file_path,
                                pt_file_path=pth_path,
                                ms_file_save_path=ms_file_path)
@@ -398,7 +392,7 @@ def test_conv1d_value_case(capsys):
     ms_net = MSNet()
     # save model
     torch.save(torch_net.state_dict(), pth_path)
-    ts.migrator.get_weight_map(pt_model=torch_net,
+    ts.migrator.get_weight_map(pt_net=torch_net,
                                weight_map_save_path=map_file_path,
                                print_map=True)
     ts.migrator.convert_weight(weight_map_path=map_file_path,
@@ -442,7 +436,7 @@ def test_batchnorm3d_value_case(capsys):
     ms_net = MSNet()
     # save model
     torch.save(torch_net.state_dict(), pth_path)
-    ts.migrator.get_weight_map(pt_model=torch_net,
+    ts.migrator.get_weight_map(pt_net=torch_net,
                                weight_map_save_path=map_file_path,
                                print_map=True)
     ts.migrator.convert_weight(weight_map_path=map_file_path,
@@ -469,16 +463,12 @@ def test_compare_ckpt_value_case(capsys):
     ms_net = MSNet(in_features=10, out_classes=2)
     torch.save(torch_net.state_dict(), pth_path)
     mindspore.save_checkpoint(ms_net, ckpt_path)
-    # wm = ts.WeightMigrator(pt_model=torch_net, pth_file_path=pth_path, ckpt_save_path='/tmp/convert_resnet.ckpt')
-    # wm.convert(print_conv_info=False)
-    ts.migrator.get_weight_map(pt_model=torch_net,
+    ts.migrator.get_weight_map(pt_net=torch_net,
                                weight_map_save_path=map_file_path,
                                print_map=True)
     ts.migrator.convert_weight(weight_map_path=map_file_path,
                                pt_file_path=pth_path,
                                ms_file_save_path=ms_file_path)
-    # wm.compare_ckpt(ckpt_path=ckpt_path,
-    #               converted_ckpt_path='/tmp/convert_resnet.ckpt', compare_value=True)
     ts.migrator.compare_ms_ckpt(orig_file_path=ms_file_path,
                                 target_file_path=ckpt_path,
                                 compare_value=True)
@@ -504,7 +494,7 @@ def test_compare_show_pth_name_case(capsys):
     torch.save(torch_net.state_dict(), pth_path)
     mindspore.save_checkpoint(ms_net, ckpt_path)
 
-    ts.migrator.get_weight_map(pt_model=torch_net,
+    ts.migrator.get_weight_map(pt_net=torch_net,
                                weight_map_save_path=map_file_path,
                                print_map=True)
     ts.migrator.convert_weight(weight_map_path=map_file_path,
@@ -535,7 +525,7 @@ def test_compare_pth_value_case(capsys):
     torch.save(torch_net.state_dict(), pth_path)
     mindspore.save_checkpoint(ms_net, ckpt_path)
     ts.migrator.get_weight_map(
-        pt_model=torch_net, weight_map_save_path=map_file_path, print_map=True)
+        pt_net=torch_net, weight_map_save_path=map_file_path, print_map=True)
     ts.migrator.compare_pth_and_ckpt(weight_map_path=map_file_path,
                                      pt_file_path=pth_path,
                                      ms_file_path=ckpt_path)
@@ -564,7 +554,7 @@ def test_convert_weight_and_load(capsys):
     ms_net = MSNet(in_features=10, out_classes=2)
     torch.save(torch_net.state_dict(), pth_path)
 
-    ts.migrator.get_weight_map(pt_model=torch_net,
+    ts.migrator.get_weight_map(pt_net=torch_net,
                                weight_map_save_path=map_file_path)
     ts.migrator.convert_weight_and_load(weight_map_path=map_file_path,
                                         pt_file_path=pth_path,

@@ -94,14 +94,19 @@ def _custorm_weight_name_prefix(weight_name_map, prefix=None):
         return weight_name_map
 
 
-def get_weight_map(pt_model=None, weight_map_save_path=None, weight_name_prefix=None, custom_name_func=None,
-                   print_map=False, **kwargs):
+def get_weight_map(pt_net=None, weight_map_save_path=None, weight_name_prefix=None, custom_name_func=None,
+                   print_map=False, **kwargs):    
+    pt_model = kwargs.get('pt_model', None)
+    if pt_model is not None:
+        logger.user_warning("The 'pt_model' parameter of 'ts.migrator.get_weight_map' has been deprecated "
+                            "starting from version 1.0.11. Please use the 'pt_net' parameter instead of 'pt_model'.")
+        pt_net = pt_model
+
     res_weight_name_map = {}
     res_weight_value_map = {}
     full_weight_name_map = {}
-
-    if not isinstance(pt_model, torch.nn.Module):
-        raise TypeError("The parameter 'pt_model' must be torch.nn.Module")
+    if not isinstance(pt_net, torch.nn.Module):
+        raise TypeError("The parameter 'pt_net' must be torch.nn.Module")
 
     if custom_name_func and not callable(custom_name_func):
         raise TypeError("The parameter 'custom_name_func' must be a function")
@@ -110,7 +115,7 @@ def get_weight_map(pt_model=None, weight_map_save_path=None, weight_name_prefix=
     type_check(weight_name_prefix, 'weight_name_prefix', str)
     type_check(print_map, 'print_map', bool)
 
-    for name, module in pt_model.named_modules():
+    for name, module in pt_net.named_modules():
         tmp_name_map = _get_trans_map(name, module, weight_name_map)
         if tmp_name_map:
             res_weight_name_map.update(tmp_name_map)
@@ -119,7 +124,7 @@ def get_weight_map(pt_model=None, weight_map_save_path=None, weight_name_prefix=
         if tmp_value_map:
             res_weight_value_map.update(tmp_value_map)
 
-    for key, value in pt_model.state_dict().items():
+    for key, value in pt_net.state_dict().items():
         full_weight_name_map[key] = key
 
     full_weight_name_map.update(res_weight_name_map)

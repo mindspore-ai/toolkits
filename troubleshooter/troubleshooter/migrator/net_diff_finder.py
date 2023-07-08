@@ -227,7 +227,7 @@ class NetDifferenceFinder:
         if self.auto_conv_ckpt == 0:
             return
         elif self.auto_conv_ckpt == 1:
-            weight_map = weight_migrator.get_weight_map(pt_model=self.pt_net, print_map=False)
+            weight_map = weight_migrator.get_weight_map(pt_net=self.pt_net, print_map=False)
             if self.print_level:
                 print_separator_line("Start Converting PyTorch Weights to MindSpore", length=141)
             weight_migrator.convert_weight(weight_map=weight_map, pt_file_path=self.pt_org_pth_name,
@@ -263,7 +263,7 @@ class NetDifferenceFinder:
         else:
             print_separator_line("Start comparing PyTorch and MindSpore parameters", length=141)
             weight_map_path = os.path.join(self.out_path, "compare_convert.json")
-            weight_migrator.get_weight_map(pt_model=self.pt_net,
+            weight_migrator.get_weight_map(pt_net=self.pt_net,
                                            weight_map_save_path=weight_map_path,
                                            print_map=False)
             weight_migrator.compare_pth_and_ckpt(weight_map_path, pt_file_path=pt_params_path, ms_file_path=ms_params_path,
