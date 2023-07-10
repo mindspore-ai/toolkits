@@ -19,15 +19,22 @@ import tempfile
 import shutil
 from collections import OrderedDict
 from pprint import pprint
+from troubleshooter import FRAMEWORK_TYPE
 from troubleshooter.common.format_msg import print_weight_compare_result, print_convert_result, print_diff_result
 from troubleshooter.migrator.mapping_relation.weight_mapping_lib import weight_name_map, weight_value_map
 from troubleshooter.migrator.diff_handler import cal_algorithm
 from troubleshooter.toolbox.widget_pocket import object_load, object_dump
 from troubleshooter import log as logger
-from troubleshooter.common.util import isfile_check, validate_and_normalize_path, none_and_isfile_check, \
-    all_none_or_isfile_check, dir_exist_check, type_check, clear_tmp_file, generate_random_filename
+from troubleshooter.common.util import isfile_check, none_and_isfile_check, all_none_or_isfile_check,\
+    dir_exist_check, type_check, clear_tmp_file, generate_random_filename, print_to_file
 
-__all__ = ["get_weight_map", "convert_weight", "compare_ms_ckpt", "compare_pth_and_ckpt", "convert_weight_and_load"]
+__all__ = ["get_weight_map",
+           "convert_weight",
+           "compare_ms_ckpt",
+           "compare_pth_and_ckpt",
+           "convert_weight_and_load",
+           "save_net_and_weight_params"
+           ]
 
 
 def _get_para_dict(pth_file_path):
@@ -235,6 +242,40 @@ def convert_weight_and_load(weight_map_path, pt_file_path, net):
     param_dict = ms.load_checkpoint(convert_ckpt)
     clear_tmp_file(convert_ckpt)
     ms.load_param_into_net(net, param_dict)
+
+
+def save_net_and_weight_params(net, path=os.getcwd(), weight_params_filename=None):
+    if "torch" in FRAMEWORK_TYPE:
+        import torch
+
+    if "mindspore" in FRAMEWORK_TYPE:
+        import mindspore
+
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    if "torch" in FRAMEWORK_TYPE and isinstance(net, torch.nn.Module):
+        if weight_params_filename is None:
+            params_name = "torch_troubleshooter_create.pth"
+        else:
+            params_name = weight_params_filename
+        torch.save(net.state_dict(), os.path.join(path, params_name))
+        from troubleshooter.migrator import get_weight_map
+        get_weight_map(net, weight_map_save_path=os.path.join(path, "torch_net_map.json"))
+        print_to_file(net, os.path.join(path, "torch_net_architecture.txt"))
+        return
+
+    if "mindspore" in FRAMEWORK_TYPE and isinstance(net, mindspore.nn.Cell):
+        if weight_params_filename is None:
+            params_name = "mindspore_troubleshooter_create.ckpt"
+        else:
+            params_name = weight_params_filename
+        mindspore.save_checkpoint(net, os.path.join(path, params_name))
+        print_to_file(net, os.path.join(path, "mindspore_net_architecture.txt"))
+        return
+
+    raise ValueError("For the 'save_net_and_weight_params', the type of the 'net' parameter must be" \
+                     "'MindSpore.nn.Cell' or 'torch.nn.Module'.")
 
 
 def compare_ms_ckpt(orig_file_path, target_file_path, **kwargs):

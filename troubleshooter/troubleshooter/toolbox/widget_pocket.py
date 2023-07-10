@@ -23,8 +23,7 @@ __all__ = [
     "get_pt_grads",
     "load_ms_weight2net",
     "object_load",
-    "object_dump",
-    "save_net_and_weight_params"
+    "object_dump"
 ]
 
 if "torch" in FRAMEWORK_TYPE:
@@ -46,33 +45,6 @@ def fix_random(seed):
         torch.manual_seed(seed)
     if "mindspore" in FRAMEWORK_TYPE:
         mindspore.set_seed(seed)
-
-def save_net_and_weight_params(model, path=os.getcwd(), weight_params_filename=None):
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-    if "torch" in FRAMEWORK_TYPE and isinstance(model, torch.nn.Module):
-        if weight_params_filename is None:
-            params_name = "torch_troubleshooter_create.pth"
-        else:
-            params_name = weight_params_filename
-        torch.save(model.state_dict(), os.path.join(path, params_name))
-        from troubleshooter.migrator import get_weight_map
-        get_weight_map(model, weight_map_save_path=os.path.join(path, "torch_net_map.json"))
-        print_to_file(model, os.path.join(path, "torch_net_architecture.txt"))
-        return
-
-    if "mindspore" in FRAMEWORK_TYPE and isinstance(model, mindspore.nn.Cell):
-        if weight_params_filename is None:
-            params_name = "mindspore_troubleshooter_create.ckpt"
-        else:
-            params_name = weight_params_filename
-        mindspore.save_checkpoint(model, os.path.join(path, params_name))
-        print_to_file(model, os.path.join(path, "mindspore_net_architecture.txt"))
-        return
-
-    raise ValueError("For the 'save_net_and_weight_params', the type of the 'model' parameter must be" \
-                     "'MindSpore.nn.Cell' or 'torch.nn.Module'.")
 
 def get_pt_grads(model):
     grads_dict = {}

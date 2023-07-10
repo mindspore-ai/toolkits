@@ -3,7 +3,6 @@ import shutil
 import tempfile
 from collections import OrderedDict
 import troubleshooter as ts
-from troubleshooter.migrator.save import _ts_save_cnt
 
 import pytest
 import torch
@@ -565,3 +564,44 @@ def test_convert_weight_and_load(capsys):
     result = capsys.readouterr().out
     key_result = ['features.bn_mm.weight', 'features.bn_mm.gamma', 'True']
     assert check_delimited_list(result, key_result)
+
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_cpu
+@pytest.mark.platform_arm_cpu
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.platform_arm_ascend_training
+@pytest.mark.platform_x86_ascend_training
+@pytest.mark.env_onecard
+def test_save_net_and_weight_params():
+    import torch.nn as t_nn
+    import mindspore.nn as m_nn
+
+    class ConstTorch(t_nn.Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.net1 = t_nn.Linear(12, 21)
+        
+        def forward(self, x):
+            return self.net1(x)
+
+    class ConstMS(m_nn.Cell):
+        def __init__(self):
+            super().__init__()
+            self.net1 = m_nn.Dense(12, 21)
+        
+        def construct(self, x):
+            return self.net1(x)
+
+    pt_net = ConstTorch()
+    ms_net = ConstMS()
+    ts.migrator.save_net_and_weight_params(pt_net, path="pt")
+    ts.migrator.save_net_and_weight_params(ms_net, path="ms")
+    pt = ["torch_troubleshooter_create.pth", "torch_net_architecture.txt", "torch_net_map.json"]
+    ms = ["mindspore_troubleshooter_create.ckpt", "mindspore_net_architecture.txt"]
+    for file in pt:
+        assert os.path.isfile(os.path.join("pt", file))
+    for file in ms:
+        assert os.path.isfile(os.path.join("ms", file))
+    shutil.rmtree("pt")
+    shutil.rmtree("ms")
