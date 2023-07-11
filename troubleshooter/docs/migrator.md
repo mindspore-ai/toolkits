@@ -249,7 +249,13 @@ ts.migrator.compare_pth_and_ckpt("torch_net_map.json", "pt_net.pth", "ms_net.ckp
 - auto_id: 自动编号，默认值为`True`。当为`True`时，保存时会自动为文件添加全局编号，编号从0开始。
 - suffix: 文件名后缀，默认值为`None`。
 
-> **Warning:** 在MindSpore 2.0版本下，ts.save函数暂不支持图模式。
+> **Warning:**
+>
+> - 在MindSpore 2.0版本中，save函数暂时不支持图模式。
+>
+> - 在2.1版本中，save函数支持MindSpore图模式，但实现依赖于[JIT Fallback](https://mindspore.cn/docs/zh-CN/master/design/dynamic_graph_and_static_graph.html#jit-fallback)特性。因此，在图模式中使用时，需要将`context`中的`jit_syntax_level`设置为`LAX`级别（2.1版本默认为此级别，无需修改）。此外，`save`语法的限制与该特性限制相同。目前已知的主要限制如下：
+>   - `data`参数不支持传入函数返回值或表达式，例如`ts.save(file, func(x))`或`ts.save(file, x + 1)`可能会导致未定义行为。您可以使用临时变量保存中间结果，然后调用`save`函数来规避此问题，例如`t = func(x);ts.save(file, t)`。
+>   - `file`参数对于全局变量的支持不完善，它只能获取全局变量在图编译完成后的值，无法获取在运行过程中修改的值；
 
 **文件保存格式**
 
