@@ -285,12 +285,8 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step):
 
 
 def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
-    if "backward" in name_template:
-        dump_tensor(out_feat, name_template.format("input"), dump_step, dump_file)
-        dump_tensor(in_feat, name_template.format("output"), dump_step, dump_file)
-    else:
-        dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file)
-        dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file)
+    dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file)
+    dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file)
 
 
 def acc_cmp_dump(name, **kwargs):
