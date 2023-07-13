@@ -10,6 +10,9 @@ TroubleShooter 是MindSpore 网络开发调试工具包，用于提供便捷、�
 ```bash
 pip install troubleshooter -i https://pypi.org/simple
 ```
+# API列表
+
+## [API汇总](docs/api_summary.md)
 
 # 应用场景
 
