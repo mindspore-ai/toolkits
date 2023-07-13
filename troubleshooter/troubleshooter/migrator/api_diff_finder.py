@@ -31,12 +31,6 @@ def get_npy_map_list(
     Returns:
         List: npy文件映射表
     """
-    for i, _ in enumerate(apis_map):
-        orig, target = apis_map[i]
-        orig = [j for j in orig if j is not '']
-        target = [j for j in target if j is not '']
-        apis_map[i] = (orig, target)
-
     def _get_npy_list(apis, io, npy_dir):
         npy_list = [
             os.path.basename(i)
