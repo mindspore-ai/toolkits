@@ -85,7 +85,8 @@ def get_npy_map_list(
             else:
                 return _get_name_map_list(orig_npy_list, target_npy_list)
 
-    ret = []
+    forward_list = []
+    backward_list = []
     for orig_apis, target_apis in apis_map:
         orig_input_forward, orig_input_backward = _get_npy_list(
             orig_apis[0], 'input', orig_npy_dir
@@ -101,21 +102,21 @@ def get_npy_map_list(
         )
 
         input_forward_map = _get_npy_map(orig_input_forward, target_input_forward)
-        ret += input_forward_map
+        forward_list += input_forward_map
         if not ignore_backward:
             input_backward_map = _get_npy_map(
                 orig_input_backward, target_input_backward
             )
-            ret += input_backward_map
+            backward_list += input_backward_map
         output_forward_map = _get_npy_map(orig_output_forward, target_output_forward)
-        ret += output_forward_map
+        forward_list += output_forward_map
         if not ignore_backward:
             output_backward_map = _get_npy_map(
                 orig_output_backward, target_output_backward
             )
-            ret += output_backward_map
+            backward_list += output_backward_map
 
-    return ret
+    return forward_list, backward_list
 
 
 class APIDiffFinder:
@@ -156,11 +157,17 @@ class APIDiffFinder:
         if self.print_api_map:
             print_apis_map_result(apis_map)
 
-        npy_map_list = get_npy_map_list(
+        npy_forward_list, npy_backward_list = get_npy_map_list(
             apis_map, orig_npy_dir, target_npy_dir, ignore_backward=self.ignore_backward
         )
         compare_grads_dir(
             orig_npy_dir,
             target_npy_dir,
-            name_map_list=npy_map_list,
+            name_map_list=npy_forward_list,
         )
+        if not self.ignore_backward:
+            compare_grads_dir(
+                orig_npy_dir,
+                target_npy_dir,
+                name_map_list=npy_backward_list,
+            )
