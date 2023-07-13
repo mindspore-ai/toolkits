@@ -31,6 +31,7 @@ def get_npy_map_list(
     Returns:
         List: npy文件映射表
     """
+
     def _get_npy_list(apis, io, npy_dir):
         npy_list = [
             os.path.basename(i)
@@ -82,18 +83,30 @@ def get_npy_map_list(
     forward_list = []
     backward_list = []
     for orig_apis, target_apis in apis_map:
-        orig_input_forward, orig_input_backward = _get_npy_list(
-            orig_apis[0], 'input', orig_npy_dir
-        )
-        orig_output_forward, orig_output_backward = _get_npy_list(
-            orig_apis[-1], 'output', orig_npy_dir
-        )
-        target_input_forward, target_input_backward = _get_npy_list(
-            target_apis[0], 'input', target_npy_dir
-        )
-        target_output_forward, target_output_backward = _get_npy_list(
-            target_apis[-1], 'output', target_npy_dir
-        )
+        if len(orig_apis) != 0:
+            orig_input_forward, orig_input_backward = _get_npy_list(
+                orig_apis[0], 'input', orig_npy_dir
+            )
+            orig_output_forward, orig_output_backward = _get_npy_list(
+                orig_apis[-1], 'output', orig_npy_dir
+            )
+        else:
+            orig_input_forward = []
+            orig_input_backward = []
+            orig_output_forward = []
+            orig_output_backward = []
+        if len(target_apis) != 0:
+            target_input_forward, target_input_backward = _get_npy_list(
+                target_apis[0], 'input', target_npy_dir
+            )
+            target_output_forward, target_output_backward = _get_npy_list(
+                target_apis[-1], 'output', target_npy_dir
+            )
+        else:
+            target_input_forward = []
+            target_input_backward = []
+            target_output_forward = []
+            target_output_backward = []
 
         input_forward_map = _get_npy_map(orig_input_forward, target_input_forward)
         forward_list += input_forward_map
@@ -150,7 +163,6 @@ class APIDiffFinder:
         apis_map = FlowMatch()(orig_pkl_list, target_pkl_list, 1.0)
         if self.print_api_map:
             print_apis_map_result(apis_map)
-
         npy_forward_list, npy_backward_list = get_npy_map_list(
             apis_map, orig_npy_dir, target_npy_dir, ignore_backward=self.ignore_backward
         )

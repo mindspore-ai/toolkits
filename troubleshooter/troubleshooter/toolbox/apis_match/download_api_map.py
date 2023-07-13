@@ -1,11 +1,21 @@
 import requests
 import re
+import os
 
 
 def get_pt_api_dict(version='master', pt_filter=None, ms_filter=None):
-    url = f"https://gitee.com/mindspore/docs/raw/{version}/docs/mindspore/source_zh_cn/note/api_mapping/pytorch_api_mapping.md"
-    response = requests.get(url)
-    content = response.content.decode("utf-8")
+    try:
+        url = f"https://gitee.com/mindspore/docs/raw/{version}/docs/mindspore/source_zh_cn/note/api_mapping/pytorch_api_mapping.md"
+        response = requests.get(url, timeout=5)
+        content = response.content.decode("utf-8")
+    except Exception as e:
+        print('The mapping file download failed, use local.')
+        with open(
+            os.path.join(os.path.dirname(__file__), 'pytorch_api_mapping.md'),
+            'r',
+            encoding='UTF-8',
+        ) as f:
+            content = f.read()
 
     if not pt_filter:
         pt_filter = lambda x: x
@@ -36,6 +46,7 @@ if __name__ == "__main__":
     import yaml
 
     ret = get_pt_api_dict()
+
     ms_ops = {}
     pt_ops = {}
 
