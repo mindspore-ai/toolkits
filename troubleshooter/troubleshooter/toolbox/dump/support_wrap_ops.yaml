@@ -611,7 +611,6 @@ tensor:
   - greater
   - greater_equal
   - gt
-  - H
   - half
   - hardshrink
   - heaviside
@@ -668,13 +667,11 @@ tensor:
   - maximum
   - mean
   - median
-  - mH
   - min
   - minimum
   - moveaxis
   - movedim
   - msort
-  - mT
   - multinomial
   - multiply
   - mvlgamma
@@ -731,7 +728,6 @@ tensor:
   - svd
   - swapaxes
   - swapdims
-  - T
   - t
   - take
   - tan
@@ -762,7 +758,6 @@ tensor:
   - diagonal
   - flatten
   - resize
-  - strides
   - sum
 
 nn:
