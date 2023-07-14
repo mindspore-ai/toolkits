@@ -88,11 +88,14 @@ class GetUniIO:
 
 
 class GetMSUniName(object):
-    @staticmethod
-    def _get_pt_api_dict():
-        api_dict = get_pt_api_dict()
-        pt_dict = {}
-        for k, v in api_dict.items():
+    def __init__(self) -> None:
+        _pt_dict = self._get_pt_api_dict()
+        self._uni_name_map = {"pytorch": _pt_dict, "mindspore": {}}
+
+    def _get_pt_api_dict(self):
+        apis_dict = get_pt_api_dict()
+        ret = {}
+        for k, v in apis_dict.items():
             pt_api = k.split(".")[-2:]
             ms_api = v.split(".")[-2:]
 
@@ -103,19 +106,16 @@ class GetMSUniName(object):
 
             pt_api_name, ms_api_name = pt_api[-1], ms_api[-1]
             pt_api_type, ms_api_type = pt_api[0].lower(), ms_api[0].lower()
-            pt_dict.update({(pt_api_type, pt_api_name): f"{ms_api_type}_{ms_api_name}"})
-        return pt_dict
-
-    pt_dict = _get_pt_api_dict.__func__()
-    uni_name_map = {"pytorch": pt_dict, "mindspore": {}}
+            ret.update({(pt_api_type, pt_api_name): f"{ms_api_type}_{ms_api_name}"})
+        return ret
 
     def __call__(self, framework: str, dump_type: str, name: str):
         assert framework in [
             "pytorch",
             "mindspore",
         ], "framework should be pytorch or mindspore."
-        if (dump_type.lower(), name) in self.uni_name_map[framework]:
-            return self.uni_name_map[framework][(dump_type.lower(), name)]
+        if (dump_type.lower(), name) in self._uni_name_map[framework]:
+            return self._uni_name_map[framework][(dump_type.lower(), name)]
         return f'{dump_type.lower()}_{name}'
 
 
