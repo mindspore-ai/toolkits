@@ -2,10 +2,9 @@ import functools
 import mindspore as ms
 import os
 
-import wrap_functional
-import wrap_tensor
-from hooks import make_dump_dirs
-from utils import print_error_log, Const, CompareException, check_file_or_directory_path, print_info_log
+from . import wrap_functional, wrap_tensor, wrap_nn
+from .hooks import make_dump_dirs
+from .utils import print_error_log, Const, CompareException, check_file_or_directory_path, print_info_log
 
 
 def initialize_hook(hook):
@@ -19,6 +18,7 @@ def initialize_hook(hook):
         if attr_name.startswith("wrap_"):
             setattr(ms.ops, attr_name[5:], getattr(wrap_functional.HOOKFunctionalOP, attr_name))
 
+    wrap_nn.wrap_nn_cell_and_bind()
 
 def register_hook(net, hook, **kwargs):
     dump_mode, dump_config_file = init_dump_config(kwargs)

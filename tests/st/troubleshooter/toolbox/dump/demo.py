@@ -1,12 +1,7 @@
 import mindspore as ms
 import numpy as np
 from mindspore import Tensor, ops, nn
-
-import wrap_nn
-
-wrap_nn.wrap_nn_cell_and_bind()
-from initialize import register_hook
-from hooks import acc_cmp_dump, set_dump_switch
+from troubleshooter.toolbox.dump.ms_dump import register_hook, acc_cmp_dump, set_dump_switch
 
 ms.set_context(mode=ms.PYNATIVE_MODE, device_target='CPU')
 
@@ -35,6 +30,6 @@ if __name__ == "__main__":
     net = Net()
     register_hook(net, acc_cmp_dump)
     set_dump_switch("ON")
-    grad_net = ms.grad(net)
+    grad_net = ms.grad(net, None, net.trainable_params())
     output = grad_net(ms.Tensor(np.random.random([1, 1, 2, 2]).astype(np.float32)))
     print(output)

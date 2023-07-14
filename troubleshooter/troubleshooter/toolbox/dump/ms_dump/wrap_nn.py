@@ -12,16 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-
-from __future__ import absolute_import
-
 import mindspore as ms
 import numpy as np
 import os
 import yaml
 from mindspore import nn
 
-from troubleshooter.toolbox.dump import cell as _cell
+from . import cell as _cell
 
 cur_path = os.path.dirname(os.path.realpath(__file__))
 yaml_path = os.path.join(cur_path, "support_wrap_ops.yaml")

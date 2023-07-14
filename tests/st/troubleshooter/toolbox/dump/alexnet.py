@@ -4,12 +4,8 @@ import mindspore.nn as nn
 import mindspore.ops as ops
 import numpy as np
 from mindspore.common.tensor import Tensor
+from troubleshooter.toolbox.dump.ms_dump import register_hook, acc_cmp_dump, set_dump_switch
 
-import wrap_nn
-from hooks import acc_cmp_dump, set_dump_switch
-from initialize import register_hook
-
-wrap_nn.wrap_nn_cell_and_bind()
 ms.set_context(mode=ms.PYNATIVE_MODE)
 
 
@@ -110,6 +106,6 @@ if __name__ == "__main__":
     net = AlexNet()
     register_hook(net, acc_cmp_dump)
     set_dump_switch("ON")
-    grad_net = ms.grad(net)
+    grad_net = ms.grad(net, None, net.trainable_params())
     output = grad_net(ms.Tensor(np.random.random([1, 227, 227, 3]).astype(np.float32)))
     print(output)

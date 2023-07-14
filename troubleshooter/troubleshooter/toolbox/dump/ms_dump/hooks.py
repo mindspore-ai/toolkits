@@ -10,9 +10,9 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-from utils import Const, print_error_log, get_time, print_info_log, CompareException, \
+from .utils import Const, print_error_log, get_time, print_info_log, CompareException, \
     modify_dump_path, check_mode_valid, __version__
-from wrap_tensor import TensorFunc
+from .wrap_tensor import TensorFunc
 
 DumpCount = 0
 forward_init_status = False
