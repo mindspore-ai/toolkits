@@ -217,6 +217,7 @@ class NetDifferenceFinder:
         torch.cuda.manual_seed(seed)
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.enabled = False
+        torch.backends.cudnn.benchmark = False
         # for mindspore
         ms.set_seed(seed)
         self.pt_net.eval()
