@@ -17,7 +17,7 @@ import mindspore as ms
 import os
 import yaml
 
-from cell import HOOKCell
+from .cell import HOOKCell
 
 cur_path = os.path.dirname(os.path.realpath(__file__))
 yaml_path = os.path.join(cur_path, "support_wrap_ops.yaml")
