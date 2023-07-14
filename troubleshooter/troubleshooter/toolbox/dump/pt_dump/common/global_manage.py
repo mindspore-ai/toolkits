@@ -19,9 +19,7 @@
 def init():
     global _global_dict
     _global_dict = {
-        "g_stop_hook": False,
-        "dump_module": False,
-        "expand": True
+        "g_stop_hook": False
     }
 
 

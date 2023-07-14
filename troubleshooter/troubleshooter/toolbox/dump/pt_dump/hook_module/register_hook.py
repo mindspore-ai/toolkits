@@ -66,6 +66,8 @@ def initialize_hook(hook):
             if attr_name.startswith("wrap_"):
                 setattr(torch_npu, attr_name[5:], getattr(wrap_npu_custom.HOOKNpuOP, attr_name))
 
+    wrap_module.wrap_nn_module_and_bind()
+
 
 def register_hook(model, hook, **kwargs):
     global make_dir_flag
@@ -131,10 +133,3 @@ def init_dump_config(kwargs):
             print_error_log("dump_config must be configure json file.")
             raise CompareException(CompareException.INVALID_PARAM_ERROR)
     return dump_mode, dump_config_file
-
-
-def enable_ms():
-    global_manage.set_value("dump_module", True)
-    global_manage.set_value("expand", False)
-    wrap_module.wrap_nn_module_and_bind()
-    print_info_log("Enable the dump mode for adapting to MindSpore")

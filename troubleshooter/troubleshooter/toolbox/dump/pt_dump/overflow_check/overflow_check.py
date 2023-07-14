@@ -63,7 +63,7 @@ def overflow_check(name, **kwargs):
     if DumpUtil.dump_path:
         DumpUtil.dump_dir = os.path.dirname(DumpUtil.dump_path)
     else:
-        DumpUtil.dump_dir = './'
+        DumpUtil.dump_dir = '/'
     overflow_nums = kwargs.get('overflow_nums', 1)
     pid = kwargs.get('pid')
     dump_mode = kwargs.get('dump_mode', "api")

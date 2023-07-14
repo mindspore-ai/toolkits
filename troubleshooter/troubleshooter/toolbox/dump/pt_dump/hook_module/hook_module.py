@@ -51,9 +51,6 @@ class HOOKModule(nn.Module):
             self.register_backward_hook(hook(prefix + "backward"))
 
     def __call__(self, *input, **kwargs):
-        if global_manage.get_value("expand"):
-            return self._call_func(*input, **kwargs)
-
         changed = False
         if global_manage.get_value("g_stop_hook"):
             self._enable_hook = False

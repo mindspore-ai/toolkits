@@ -39,9 +39,6 @@ def get_nn_module():
 
 
 def call_decorator(cls, name):
-    if not global_manage.get_value("dump_module"):
-        return cls
-
     original_call = cls.__call__
     cls.hook_name = "wrap_" + name
     cls._enable_hook = True
