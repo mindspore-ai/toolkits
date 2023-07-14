@@ -37,12 +37,12 @@ def fix_random(seed):
     os.environ["PYTHONSEED"] = str(seed)
     np.random.seed(seed)
     if "torch" in FRAMEWORK_TYPE:
-        torch.cuda.manual_seed(seed)
-        torch.cuda.manual_seed_all(seed)
-        torch.backends.cudnn.deterministic = True
-        torch.backends.cudnn.benchmark = True
-        torch.backends.cudnn.enabled = True
         torch.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        torch.cuda.manual_seed(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.enabled = False
+        torch.backends.cudnn.benchmark = False
     if "mindspore" in FRAMEWORK_TYPE:
         mindspore.set_seed(seed)
 
