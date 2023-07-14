@@ -20,6 +20,7 @@
 | 接口名                             | 描述                                   |
 | ---------------------------------- | -------------------------------------- |
 | [troubleshooter.save](api/save.md) | 用于保存MindSpore和PyTorch的Tensor数据 |
+|[troubleshooter.migrator.save_net_and_weight_params](api/migrator/save_net_and_weight_params.md)|将网络对象保存成文件|
 
 ## 数据比较
 
@@ -42,3 +43,8 @@
 | ------------------------------------------------------------ | ----------------------- |
 | [troubleshooter.migrator.compare_npy_dir](api/migrator/compare_npy_dir.md) | 比较两个目录下的npy文件 |
 | [troubleshooter.migrator.compare_grads_dir](api/migrator/compare_grads_dir.md) | 比较梯度                |
+
+## 工具插件
+| 接口名                                                       | 描述                    |
+| ------------------------------------------------------------ | ----------------------- |
+| [troubleshooter.widget.fix_random](api/widget/fix_random.md) | 固定随机性 |
