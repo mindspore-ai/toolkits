@@ -2,6 +2,10 @@
 
 > ## *Class*  troubleshooter.migrator.NetDifferenceFinder(pt_net, ms_net, print_level=1, **kwargs)
 
+`NetDifferenceFinder`用于自动化比较MindSpore和PyTorch网络正向结果。
+
+初始化时会自动固定MindSpore和PyTorch模型的随机性。
+
 ### 参数：
 
 - pt_net(`torch.nn.Module`): torch模型实例
@@ -15,14 +19,17 @@
 - auto_conv_ckpt(`int`, 可选): 权重自动转换方式，默认值为1。为0时，不进行权重转换；为1时为PyTorch权重转换到MindSpore；为2时为PyTorch权重转换到MSAdapter。
 - compare_params(`bool`, 可选): 是否开启网络参数对比，默认值为True。开启时，会使用PyTorch的保存的pth和MindSpore保存的ckpt进行比较，以校验网络结构。
 > **说明：**
+>
 > 1. 默认参数下，会将PyTorch网络的权重保存、转换并加载MindSpore网络中，以保证两边的模型权重初始化一致。除此以外，还会将PyTorch的权重文件和MindSpore网络自身保存的权重文件进行比对，以校验网络结构。
 > 2. 当同时传入`pt_params_path`和`ms_params_path`时，会从文件中加载权重执行正向推理（`auto_conv_ckpt`会失效），不会进行权重转换;
 > 3. 当前仅支持权重从PyTorch转换到MindSpore，当传入`ms_params_path`，`pt_params_path`为空时，需要将`auto_conv_ckpt`设置为0，并自己保证权重初始化一致；
 
 ## troubleshooter.migrator.NetDifferenceFinder.compare
->  troubleshooter.migrator.NetDifferenceFinder.compare(inputs=None, auto_inputs=None, **kwargs)
+> troubleshooter.migrator.NetDifferenceFinder.compare(inputs=None, auto_inputs=None, **kwargs)
 
-### 参数列表
+`compare`时会构建相同的输入样本，自动迁移权重参数，保证两个模型权重参数一致。
+
+### 参数：
 
 | 参数        | 类型                                                         | 说明                                                         |
 | ----------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -32,7 +39,7 @@
 | atol        | `float`                                                      | 绝对误差，默认值为`1e-4`，内部调用`numpy.allclose`的参数。   |
 | equal_nan   | `bool`                                                       | 是否将nan视为相等，默认值为 `False`，内部调用`numpy.allclose`的参数。 |
 
-# 如何使用
+# 如何使用：
 
 可以参考[test_netdifffinder.py](https://gitee.com/mindspore/toolkits/blob/master/tests/st/troubleshooter/diff_handler/test_netdifffinder.py)中的使用方法，以下为伪代码：
 
@@ -64,6 +71,7 @@ diff_finder.compare(auto_inputs=(((1, 12), np.float32), ))
 ![网络推理](../../images/netdifffinder_infer.png)
 
 > **提示：**
+>
 > 对于MindSpore和PyTorch模型不在同一个项目中的情况，无法直接比较网络输出，可以使用`sys.path.insert(0, path)`来把模型所在的项目加入系统路径，然后实例化模型比较。例如：
 > ```python
 > import sys
