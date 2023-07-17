@@ -43,8 +43,7 @@
 
 | 接口名                                                       | 描述                    |
 | ------------------------------------------------------------ | ----------------------- |
-| [troubleshooter.migrator.compare_npy_dir](api/migrator/compare_npy_dir.md) | 比较两个目录下的npy文件 |
-| [troubleshooter.migrator.compare_grads_dir](api/migrator/compare_grads_dir.md) | 比较梯度                |
+| [troubleshooter.migrator.NetDifferenceFinder](api/migrator/NetDifferenceFinder.md) | 自动化比较网络输出结果 |
 
 ## 工具插件
 | 接口名                                                       | 描述                    |
