@@ -27,6 +27,8 @@
 | 接口名                                                       | 描述                    |
 | ------------------------------------------------------------ | ----------------------- |
 | [troubleshooter.migrator.compare_npy_dir](api/migrator/compare_npy_dir.md) | 比较两个目录下的npy文件 |
+| [troubleshooter.migrator.compare_list_dir](api/migrator/compare_list_dir.md) | 比较两个目录使用[save](api/save.md)保存的列表类型Tensor |
+| [troubleshooter.migrator.compare_dict_dir](api/migrator/compare_dict_dir.md) | 比较两个目录使用[save](api/save.md)保存的字典类型Tensor |
 | [troubleshooter.migrator.compare_grads_dir](api/migrator/compare_grads_dir.md) | 比较梯度                |
 
 用于梯度比较获取**name_map_list**

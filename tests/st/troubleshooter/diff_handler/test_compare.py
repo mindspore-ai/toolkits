@@ -274,3 +274,61 @@ def test_compare_grads_full_match(capsys):
     shutil.rmtree(ms_path)
     shutil.rmtree(pt_path)
     assert check_delimited_list(result, key_result)
+
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_cpu
+@pytest.mark.platform_arm_cpu
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.platform_arm_ascend_training
+@pytest.mark.platform_x86_ascend_training
+@pytest.mark.env_onecard
+def test_compare_list_dir(capsys):
+    import mindspore as ms
+    import torch
+    path1 = tempfile.mkdtemp(prefix="compare_dict_list_ms")
+    path2 = tempfile.mkdtemp(prefix="compare_dict_list_torch")
+    a1 = np.random.rand(1, 3, 2).astype(np.float32)
+    a2 = np.random.rand(1, 3, 2).astype(np.float32)
+    data1 = [ms.Tensor(a1), ms.Tensor(a2)]
+    _ts_save_cnt.reset()
+    ts.save(os.path.join(path1, "data"), data1)
+    _ts_save_cnt.reset()
+    data2 = [torch.tensor(a1), torch.tensor(a2)]
+    ts.save(os.path.join(path2, "data"), data2)
+
+    ts.migrator.compare_list_dir(path1, path2)
+    result = capsys.readouterr().out
+
+    shutil.rmtree(path1)
+    shutil.rmtree(path2)
+    assert result.count('True') == 2
+
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_cpu
+@pytest.mark.platform_arm_cpu
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.platform_arm_ascend_training
+@pytest.mark.platform_x86_ascend_training
+@pytest.mark.env_onecard
+def test_compare_dict_dir(capsys):
+    import mindspore as ms
+    import torch
+    path1 = tempfile.mkdtemp(prefix="compare_dict_npy_ms")
+    path2 = tempfile.mkdtemp(prefix="compare_dict_npy_torch")
+    a1 = np.random.rand(1, 3, 2).astype(np.float32)
+    a2 = np.random.rand(1, 3, 2).astype(np.float32)
+    data1 = {"a": ms.Tensor(a1), "b": ms.Tensor(a2)}
+    _ts_save_cnt.reset()
+    ts.save(os.path.join(path1, "data"), data1)
+    _ts_save_cnt.reset()
+    data2 = {"b": torch.tensor(a2), "a": torch.tensor(a1)}
+    ts.save(os.path.join(path2, "data"), data2)
+
+    ts.migrator.compare_dict_dir(path1, path2)
+    result = capsys.readouterr().out
+
+    shutil.rmtree(path1)
+    shutil.rmtree(path2)
+    assert result.count('True') == 2

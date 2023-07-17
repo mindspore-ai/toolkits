@@ -11,7 +11,7 @@
 - orig_dir：源目录。
 - target_dir：目标目录。
 
-###  返回值：
+### 返回值：
 
 - list[tuple]：匹配的文件列表。
 
@@ -19,20 +19,20 @@
 
 > get_name_map_list_by_number(orig_dir, target_dir)
 
-按照文件名中的数字升序后顺序配对。
+按照文件名中的首尾数字排升序，之后顺序做配对。
 
 ### 参数：
 
 - orig_dir：源目录。
 - target_dir：目标目录。
 
-###  返回值：
+### 返回值：
 
 - list[tuple]：匹配的文件列表。
 
-## get_name_map_list_by_shape_edit_distance
+## troubleshooter.migrator.get_name_map_list_by_shape_edit_distance
 
-> get_name_map_list_by_shape_edit_distance(orig_dir, target_dir, *, del_cost=1, ins_cost=1, rep_cost=5)
+> troubleshooter.migrator.get_name_map_list_by_shape_edit_distance(orig_dir, target_dir, *, del_cost=1, ins_cost=1, rep_cost=5)
 
 按照文件名中的数字排序后，根据shape信息计算最小编辑距离计算进行匹配。
 
@@ -46,13 +46,9 @@
 - ins_cost：编辑距离匹配时插入代价。默认值：1。
 - rep_cost：编辑距离匹配时替换代价。默认值：5。
 
-
-
-###  返回值：
+### 返回值：
 
 - list[tuple]：匹配的文件列表。
-
-
 
 以下为使用`ts.save`对不等长的数据进行连续保存，分别使用三种不同匹配算法获得的匹配效果。
 ```python

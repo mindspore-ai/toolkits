@@ -166,14 +166,16 @@ class APIDiffFinder:
         npy_forward_list, npy_backward_list = get_npy_map_list(
             apis_map, orig_npy_dir, target_npy_dir, ignore_backward=self.ignore_backward
         )
-        compare_grads_dir(
+        compare_npy_dir(
             orig_npy_dir,
             target_npy_dir,
             name_map_list=npy_forward_list,
+            compare_shape=True
         )
         if not self.ignore_backward:
-            compare_grads_dir(
+            compare_npy_dir(
                 orig_npy_dir,
                 target_npy_dir,
                 name_map_list=npy_backward_list,
+                compare_shape=True
             )
