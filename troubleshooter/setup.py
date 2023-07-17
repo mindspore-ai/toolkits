@@ -24,7 +24,7 @@ from setuptools import setup
 from setuptools.command.egg_info import egg_info
 from setuptools.command.build_py import build_py
 
-version = '1.0.10'
+version = '1.0.11'
 cur_dir = os.path.dirname(os.path.realpath(__file__))
 pkg_dir = os.path.join(cur_dir, 'build')
 
@@ -136,7 +136,10 @@ setup(
         'pandas >= 1.3.5'
     ],
     package_data={
-        'troubleshooter': ['toolbox/dump/ms_dump/*.yaml', 'toolbox/apis_match/pytorch_api_mapping.md'],
+        'troubleshooter': ['toolbox/dump/ms_dump/support_wrap_ops.yaml',
+                           'toolbox/dump/pt_dump/hook_module/support_wrap_ops.yaml',
+                           'toolbox/apis_match/pytorch_api_mapping.md',
+                           ],
     },
     classifiers=[
         'License :: OSI Approved :: Apache Software License'
