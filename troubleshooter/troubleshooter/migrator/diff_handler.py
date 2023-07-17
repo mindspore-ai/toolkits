@@ -26,6 +26,8 @@ __all__ = [
     "get_name_map_list_by_number",
     "get_name_map_list_by_shape_edit_distance",
     "compare_npy_dir",
+    "compare_list_dir",
+    "compare_dict_dir",
     "compare_grads_dir",
     "cal_algorithm",
     "cal_cosine_sim"
@@ -158,13 +160,12 @@ def get_name_map_list_by_shape_edit_distance(orig_dir, target_dir, *, del_cost=1
     return name_map_list
 
 
-def compare_npy_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, *, name_map_list=None, **kwargs):
+def compare_npy_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, *, name_map_list=None, compare_shape=False):
     none_and_isdir_check(orig_dir, 'orig_dir')
     none_and_isdir_check(target_dir, 'target_dir')
     type_check(rtol, 'rtol', float)
     type_check(atol, 'atol', float)
     type_check(equal_nan, 'atol', bool)
-    compare_shape = kwargs.get('compare_shape', False)
     type_check(compare_shape, 'compare_shape', bool)
 
     def load_value(dir, name):
@@ -202,12 +203,25 @@ def compare_npy_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False,
         print_diff_result(result_list)
 
 
-def compare_grads_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, *, name_map_list=None):
+def compare_grads_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, compare_shape=True):
     none_and_isdir_check(orig_dir, 'orig_dir')
     none_and_isdir_check(target_dir, 'target_dir')
-    if name_map_list is None:
-        name_map_list = get_name_map_list_by_shape_edit_distance(orig_dir, target_dir)
-    compare_npy_dir(orig_dir, target_dir, rtol, atol, equal_nan, name_map_list=name_map_list, compare_shape=True)
+    name_map_list = get_name_map_list_by_shape_edit_distance(orig_dir, target_dir)
+    compare_npy_dir(orig_dir, target_dir, rtol, atol, equal_nan, name_map_list=name_map_list, compare_shape=compare_shape)
+
+
+def compare_list_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, compare_shape=False):
+    none_and_isdir_check(orig_dir, 'orig_dir')
+    none_and_isdir_check(target_dir, 'target_dir')
+    name_map_list = get_name_map_list_by_number(orig_dir, target_dir)
+    compare_npy_dir(orig_dir, target_dir, rtol, atol, equal_nan, name_map_list=name_map_list, compare_shape=compare_shape)
+
+
+def compare_dict_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, compare_shape=False):
+    none_and_isdir_check(orig_dir, 'orig_dir')
+    none_and_isdir_check(target_dir, 'target_dir')
+    name_map_list = get_name_map_list_by_name(orig_dir, target_dir)
+    compare_npy_dir(orig_dir, target_dir, rtol, atol, equal_nan, name_map_list=name_map_list, compare_shape=compare_shape)
 
 
 def cal_algorithm(orig_value, target_value, rtol, atol, equal_nan):
