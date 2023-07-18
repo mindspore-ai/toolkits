@@ -96,7 +96,7 @@ ts.migrator.convert_weight(weight_map_path="/tmp/torch_net_map.json",
 1. 在迁移网络到MindSpore后，为检验网络结构是否相同，我们可以保存迁移后网络生产的ckpt与转换的ckpt（用权重转换工具从pth转换过来的ckpt）进行结构对比，以验证网络结构的正确性。
 2. 在迁移网络训练中，在固定随机性后，如果网络输出的第一个loss相同，之后的loss不一致，可以分别保存ckpt与pth，通过比较ckpt与pth的对应参数的值来检验网络反向更新的结果。
 
-### 接口定义：
+### 接口定义
 
 #### ```compare_ms_ckpt(orig_file_path, target_file_path, **kwargs)```
 

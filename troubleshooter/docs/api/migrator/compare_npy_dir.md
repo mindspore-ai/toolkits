@@ -6,7 +6,7 @@
 
 会计算`numpy.allclose`、`allclose`达标比例、余弦相似度、差异值的 $mean$ / $max$ 统计量等信息，如果两个目录下名称不完全相同，可以通过指定`name_map_list`来自定义规则。
 
-### 参数：
+### 参数
 
 - orig_dir(`str`): 需要对比的npy文件所在的目录。
 - target_dir(`str`): 目标数据所在的目录。
@@ -16,7 +16,7 @@
 - name_map_list(`list[tuple[str, str]]`): 自定义文件名映射列表，默认值为`None`。当需要指定源目录与目标目录的文件映射方式时，可以使用此参数。此参数类型为list[tuple[ori_file, target_file]]，例如`[(ms_file_0.npy, torch_file_0.npy),...]`
 - compare_shape(`bool`): 是否比较shape信息，默认值False。
 
-### 样例：
+### 样例
 
 ```python
 import os

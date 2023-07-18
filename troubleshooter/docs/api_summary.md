@@ -2,6 +2,8 @@
 
 ## 权重转换
 
+权重转换教程，请参考[pth到ckpt权重自动转换](migrator.md#应用场景1pth到ckpt权重自动转换)
+
 | 接口名                                                       | 描述                                                |
 | ------------------------------------------------------------ | --------------------------------------------------- |
 | [troubleshooter.migrator.get_weight_map](api/migrator/get_weight_map.md) | 生成PyTorch模型转换到MindSpore的参数映射文件        |
@@ -9,6 +11,8 @@
 | [troubleshooter.migrator.convert_weight_and_load](api/migrator/convert_weight_and_load.md) | 转换PyTorch的离线模型并加载到MindSpore模型中        |
 
 ##  模型权重参数比较
+
+模型权重参数比较教程，请参考[pth与ckpt比较](migrator.md#应用场景2比对mindspore与pytorch的ckptpth)
 
 | 接口名                                                       | 描述                           |
 | ------------------------------------------------------------ | ------------------------------ |
@@ -31,7 +35,7 @@
 | [troubleshooter.migrator.compare_dict_dir](api/migrator/compare_dict_dir.md) | 比较两个目录使用[save](api/save.md)保存的字典类型Tensor |
 | [troubleshooter.migrator.compare_grads_dir](api/migrator/compare_grads_dir.md) | 比较梯度                |
 
-用于梯度比较获取**name_map_list**
+以下接口用于获取**name_map_list**
 
 | 接口名                                                       | 描述                                |
 | ------------------------------------------------------------ | ----------------------------------- |
@@ -46,6 +50,7 @@
 | [troubleshooter.migrator.NetDifferenceFinder](api/migrator/NetDifferenceFinder.md) | 自动化比较网络输出结果 |
 
 ## 工具插件
+
 | 接口名                                                       | 描述                    |
 | ------------------------------------------------------------ | ----------------------- |
 | [troubleshooter.widget.fix_random](api/widget/fix_random.md) | 固定随机性 |
