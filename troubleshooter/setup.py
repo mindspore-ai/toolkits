@@ -129,11 +129,13 @@ setup(
         'build_py': BuildPy,
     },
     install_requires=[
+        'wheel',
+        'numpy',
+        'pandas >= 1.3.5',
+        'pyyaml',
         'PySnooper >= 1.1.0',
         'prettytable >= 3.0.0, < 3.8.0',
         'protobuf >= 3.13.0, <= 3.20.1',
-        'pyyaml',
-        'pandas >= 1.3.5'
     ],
     package_data={
         'troubleshooter': ['toolbox/dump/ms_dump/support_wrap_ops.yaml',
