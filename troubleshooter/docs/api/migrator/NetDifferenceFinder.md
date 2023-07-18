@@ -6,13 +6,13 @@
 
 初始化时会自动固定MindSpore和PyTorch模型的随机性。
 
-### 参数：
+### 参数
 
 - pt_net(`torch.nn.Module`): torch模型实例
 - ms_net(`mindspore.nn.Cell`): MindSpore模型实例
 - print_level(int): 日志打印等级，默认值为1。
 
-### kwargs参数：
+### kwargs参数
 
 - pt_params_path(`str`, 可选): torch模型参数文件路径
 - ms_params_path(`str`, 可选): MindSpore模型参数文件路径
@@ -29,7 +29,7 @@
 
 `compare`时会构建相同的输入样本，自动迁移权重参数，保证两个模型权重参数一致。
 
-### 参数：
+### 参数
 
 | 参数        | 类型                                                         | 说明                                                         |
 | ----------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -39,7 +39,7 @@
 | atol        | `float`                                                      | 绝对误差，默认值为`1e-4`，内部调用`numpy.allclose`的参数。   |
 | equal_nan   | `bool`                                                       | 是否将nan视为相等，默认值为 `False`，内部调用`numpy.allclose`的参数。 |
 
-# 如何使用：
+# 如何使用
 
 可以参考[test_netdifffinder.py](https://gitee.com/mindspore/toolkits/blob/master/tests/st/troubleshooter/diff_handler/test_netdifffinder.py)中的使用方法，以下为伪代码：
 

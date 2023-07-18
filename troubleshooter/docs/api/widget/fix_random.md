@@ -19,6 +19,6 @@
 | torch.backends.cudnn.deterministic=True  | cuDNN仅使用确定性的卷积算法   |
 | mindspore.set_seed(seed)                 | 设置mindspore随机生成器的种子 |
 
-### 参数：
+### 参数
 
 - seed：随机数种子。

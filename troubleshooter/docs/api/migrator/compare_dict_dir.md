@@ -8,7 +8,7 @@
 
 会计算`numpy.allclose`、`allclose`达标比例、余弦相似度、差异值的 $mean$ / $max$ 统计量等信息。
 
-### 参数：
+### 参数
 
 - orig_dir(`str`): 需要对比的npy文件所在的目录。
 - target_dir(`str`): 目标数据所在的目录。

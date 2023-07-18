@@ -14,7 +14,7 @@
 >
 > 2. torch的梯度需要通过`ts.widget.get_pt_grads`获取，如样例所示。
 
-### 参数：
+### 参数
 
 - orig_dir(`str`): 需要对比的npy文件所在的目录。
 - target_dir(`str`): 目标数据所在的目录。
@@ -23,7 +23,7 @@
 - equal_nan(`bool`): 是否将nan视为相等，默认值为 `False`，内部调用`numpy.allclose`的参数。
 - compare_shape(`bool`): 是否比较shape信息，默认值True。
 
-### 样例：
+### 样例
 
 ```python
 import os

@@ -5,7 +5,7 @@
 
 常用于网络权重迁移、比较场景。
 
-### 参数：
+### 参数
 
 - pt_net：PyTorch网络实例。
 - weight_map_save_path：转换后的权重映射表路径。
@@ -13,3 +13,8 @@
 - custom_name_func：自定义名称映射函数。
 - print_map：是否打印映射表。
 
+### 样例
+
+权重迁移场景参考[pth到ckpt权重自动转换](../../migrator.md#应用场景1pth到ckpt权重自动转换)
+
+比较场景参考[pth与ckpt比较](../../migrator.md#应用场景2比对mindspore与pytorch的ckptpth)

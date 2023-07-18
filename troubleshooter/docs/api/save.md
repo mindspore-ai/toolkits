@@ -1,7 +1,8 @@
 ## troubleshooter.save
 > troubleshooter.save(file:str, data:Union(Tensor, list[Tensor], tuple[Tensor], dict[str, Tensor], auto_id=True, suffix=None))
 
-### 参数：
+### 参数
+
 - file: 文件名路径。当`file`为`None`或`''`时，文件名会自动设置为`tensor_(shape)`，文件路径为当前路径。
 - data: 数据，支持保存`Tensor`（包括`mindspore.Tensor`和`pytorch.tensor`），以及`Tensor`构成的`list/tuple/dict`。当为`list/tuple`类型时，会按照顺序添加编号；当为`dict`类型时，文件名中会添加`key`。
 - auto_id: 自动编号，默认值为`True`。当为`True`时，保存时会自动为文件添加全局编号，编号从0开始。
@@ -10,7 +11,6 @@
 **文件保存格式**
 
 存储的文件名称为 **{id}\_name\_{idx/key}\_{suffix}.npy`**
-
 
 > **Warning:**
 >
