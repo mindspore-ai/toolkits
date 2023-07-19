@@ -5,4 +5,5 @@
 # pytorch
 pt_io_dict = {
     ('Functional', 'batch_norm'): ([0], [0]),
+    ('Tensor', 'transpose'): ([0], [0]),
 }
