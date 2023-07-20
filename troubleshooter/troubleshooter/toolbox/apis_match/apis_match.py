@@ -50,75 +50,6 @@ def load_pkl(path: str):
     return ret
 
 
-class GetUniIO:
-    def __init__(self, framework: str = 'pytorch') -> None:
-        # 前面是输入映射，后面是输出映射
-        self.framework = framework
-        if framework == 'pytorch':
-            self.api_io_dict = pt_io_dict
-        else:
-            raise NotImplementedError(f'Not support {framework} now.')
-
-    def __call__(self, api_list: List) -> Any:
-        for api in api_list:
-            if (api.dump_type, api.api_name) in self.api_io_dict:
-                if len(self.api_io_dict[(api.dump_type, api.api_name)][0]) != 0:
-                    forward_input_shape = []
-                    forward_input_type = []
-                    forward_input_summery = []
-                    for i in self.api_io_dict[(api.dump_type, api.api_name)][0]:
-                        forward_input_shape.append(api.forward_input_shape[i])
-                        forward_input_type.append(api.forward_input_type[i])
-                        forward_input_summery.append(api.forward_input_summery[i])
-                    api.forward_input_shape = forward_input_shape
-                    api.forward_input_type = forward_input_type
-                    api.forward_input_summery = forward_input_summery
-                if len(self.api_io_dict[(api.dump_type, api.api_name)][1]) != 0:
-                    forward_output_shape = []
-                    forward_output_type = []
-                    forward_output_summery = []
-                    for i in self.api_io_dict[(api.dump_type, api.api_name)][1]:
-                        forward_output_shape.append(api.forward_output_shape[i])
-                        forward_output_type.append(api.forward_output_type[i])
-                        forward_output_summery.append(api.forward_output_summery[i])
-
-                    api.forward_output_shape = forward_output_shape
-                    api.forward_output_type = forward_output_type
-                    api.forward_output_summery = forward_output_summery
-
-
-class GetMSUniName(object):
-    def __init__(self) -> None:
-        _pt_dict = self._get_pt_api_dict()
-        self._uni_name_map = {"pytorch": _pt_dict, "mindspore": {}}
-
-    def _get_pt_api_dict(self):
-        apis_dict = get_pt_api_dict()
-        ret = {}
-        for k, v in apis_dict.items():
-            pt_api = k.split(".")[-2:]
-            ms_api = v.split(".")[-2:]
-
-            if ms_api[0] not in ["nn", "ops", "Tensor"]:
-                continue
-            if pt_api[0] not in ["torch", "functional", "Tensor", "Module", "nn"]:
-                continue
-
-            pt_api_name, ms_api_name = pt_api[-1], ms_api[-1]
-            pt_api_type, ms_api_type = pt_api[0].lower(), ms_api[0].lower()
-            ret.update({(pt_api_type, pt_api_name): f"{ms_api_type}_{ms_api_name}"})
-        return ret
-
-    def __call__(self, framework: str, dump_type: str, name: str):
-        assert framework in [
-            "pytorch",
-            "mindspore",
-        ], "framework should be pytorch or mindspore."
-        if (dump_type.lower(), name) in self._uni_name_map[framework]:
-            return self._uni_name_map[framework][(dump_type.lower(), name)]
-        return f'{dump_type.lower()}_{name}'
-
-
 class APIDump:
     api_dump_num = 0
 
@@ -230,6 +161,7 @@ class APIList:
             ret = self._read_line(l)
             if not ret:
                 break
+        GetUniIO(self.api_list, self.framework)
 
     def _read_line(self, line):
         prefix, dump_step, _, data_type, data_shape, data_summery = line
@@ -333,6 +265,72 @@ class APIInter:
         return _eq_list(
             self.forward_input_shape, __value.forward_input_shape
         ) and _eq_list(self.forward_output_shape, __value.forward_output_shape)
+
+
+def GetUniIO(api_list: List, framework) -> Any:
+    if framework == 'mindspore':
+        return
+    elif framework == 'pytorch':
+        api_io_dict = pt_io_dict
+    else:
+        raise NotImplementedError(f'Not support {framework} now.')
+    for api in api_list:
+        if (api.dump_type, api.api_name) in api_io_dict:
+            if len(api_io_dict[(api.dump_type, api.api_name)][0]) != 0:
+                forward_input_shape = []
+                forward_input_type = []
+                forward_input_summery = []
+                for i in api_io_dict[(api.dump_type, api.api_name)][0]:
+                    forward_input_shape.append(api.forward_input_shape[i])
+                    forward_input_type.append(api.forward_input_type[i])
+                    forward_input_summery.append(api.forward_input_summery[i])
+                api.forward_input_shape = forward_input_shape
+                api.forward_input_type = forward_input_type
+                api.forward_input_summery = forward_input_summery
+            if len(api_io_dict[(api.dump_type, api.api_name)][1]) != 0:
+                forward_output_shape = []
+                forward_output_type = []
+                forward_output_summery = []
+                for i in api_io_dict[(api.dump_type, api.api_name)][1]:
+                    forward_output_shape.append(api.forward_output_shape[i])
+                    forward_output_type.append(api.forward_output_type[i])
+                    forward_output_summery.append(api.forward_output_summery[i])
+
+                api.forward_output_shape = forward_output_shape
+                api.forward_output_type = forward_output_type
+                api.forward_output_summery = forward_output_summery
+
+
+class GetMSUniName(object):
+    def __init__(self) -> None:
+        _pt_dict = self._get_pt_api_dict()
+        self._uni_name_map = {"pytorch": _pt_dict, "mindspore": {}}
+
+    def _get_pt_api_dict(self):
+        apis_dict = get_pt_api_dict()
+        ret = {}
+        for k, v in apis_dict.items():
+            pt_api = k.split(".")[-2:]
+            ms_api = v.split(".")[-2:]
+
+            if ms_api[0] not in ["nn", "ops", "Tensor"]:
+                continue
+            if pt_api[0] not in ["torch", "functional", "Tensor", "Module", "nn"]:
+                continue
+
+            pt_api_name, ms_api_name = pt_api[-1], ms_api[-1]
+            pt_api_type, ms_api_type = pt_api[0].lower(), ms_api[0].lower()
+            ret.update({(pt_api_type, pt_api_name): f"{ms_api_type}_{ms_api_name}"})
+        return ret
+
+    def __call__(self, framework: str, dump_type: str, name: str):
+        assert framework in [
+            "pytorch",
+            "mindspore",
+        ], "framework should be pytorch or mindspore."
+        if (dump_type.lower(), name) in self._uni_name_map[framework]:
+            return self._uni_name_map[framework][(dump_type.lower(), name)]
+        return f'{dump_type.lower()}_{name}'
 
 
 class APIsInterMatch:
