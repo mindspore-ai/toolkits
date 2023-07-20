@@ -3,7 +3,7 @@ import os
 
 from typing import List
 import numpy as np
-from troubleshooter.migrator.diff_handler import compare_grads_dir, min_edit_distance
+from troubleshooter.migrator.diff_handler import compare_npy_dir, min_edit_distance
 
 from troubleshooter.toolbox.apis_match.apis_match import (
     APIList,
