@@ -24,6 +24,7 @@ class DumpUtil(object):
     backward_input = {}
     dump_dir_tag = 'ptdbg_dump'
     dump_config = None
+    dump_stack_dic = {}
 
     @staticmethod
     def set_dump_path(save_path):

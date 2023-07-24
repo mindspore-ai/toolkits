@@ -1136,7 +1136,6 @@ Module:
   - RNNCell
   - RReLU
   - SELU
-  - Sequential
   - Sigmoid
   - SiLU
   - SmoothL1Loss
