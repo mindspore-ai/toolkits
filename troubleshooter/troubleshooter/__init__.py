@@ -29,3 +29,4 @@ from troubleshooter.migrator import save
 from troubleshooter.proposer import ProposalAction as proposal
 from troubleshooter.tracker import Tracker as tracking
 from troubleshooter.toolbox import widget
+from troubleshooter.version import __version__

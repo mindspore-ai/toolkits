@@ -6,7 +6,6 @@ from pathlib import Path
 from ..common.utils import print_error_log, CompareException, DumpException, Const, get_time, print_info_log, \
     check_mode_valid, get_api_name_from_matcher
 
-from ..common.version import __version__
 
 dump_count = 0
 range_begin_flag, range_end_flag = False, False
@@ -200,7 +199,7 @@ def make_dump_data_dir(dump_file_name):
 def make_dump_dirs(rank):
     dump_file_name, dump_file_name_body = "dump.pkl", "dump"
     dump_root_dir = DumpUtil.dump_path if DumpUtil.dump_path else "./"
-    tag_dir = os.path.join(dump_root_dir, DumpUtil.dump_dir_tag + f'_v{__version__}')
+    tag_dir = os.path.join(dump_root_dir, DumpUtil.dump_dir_tag)
     Path(tag_dir).mkdir(mode=0o750, parents=True, exist_ok=True)
     rank_dir = os.path.join(tag_dir, 'rank' + str(rank))
     if not os.path.exists(rank_dir):

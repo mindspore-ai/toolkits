@@ -221,7 +221,7 @@ def make_dump_dirs(rank, pid):
         dump_file_name_body, _ = os.path.splitext(dump_file_name)
     else:
         dump_root_dir, dump_file_name, dump_file_name_body = './', 'anonymous.pkl', 'anonymous'
-    tag_dir = os.path.join(dump_root_dir, DumpUtil.dump_dir_tag + f'_{__version__}')
+    tag_dir = os.path.join(dump_root_dir, DumpUtil.dump_dir_tag)
     Path(tag_dir).mkdir(mode=0o750, parents=True, exist_ok=True)
     rank_dir = os.path.join(tag_dir, 'rank' + str(rank))
     if not os.path.exists(rank_dir):
