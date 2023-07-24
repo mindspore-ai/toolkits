@@ -739,6 +739,7 @@ tensor:
   - topk
   - tril
   - tensor_split
+  - transpose
   - true_divide
   - trunc
   - unbind
