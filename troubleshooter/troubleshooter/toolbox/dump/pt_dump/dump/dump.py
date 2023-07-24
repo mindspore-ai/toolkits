@@ -129,29 +129,28 @@ def dump_data(dump_file_name, dump_step, prefix, data_info):
 
 def dump_stack_info(name_template, dump_file):
     stack_str = []
+    prefix = name_template.format("stack_info")
     for (_, path, line, func, code, _) in inspect.stack()[3:]:
         if code:
-            stack_line = [path, str(line), func, code[0].strip() if code else code]
+            stack_line = " ".join([
+                "File", ", ".join([path, " ".join(["line", str(line)]), " ".join(["in", func]),
+                                   " ".join(["\n", code[0].strip() if code else code])])])
         else:
-            stack_line = [path, str(line), func, code]
+            stack_line = " ".join([
+                "File", ", ".join([path, " ".join(["line", str(line)]), " ".join(["in", func]),
+                                   " ".join(["\n", code])])])
         stack_str.append(stack_line)
 
-    prefix = name_template.format("stack_info")
-    with os.fdopen(os.open(dump_file, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "a") as f:
+    DumpUtil.dump_stack_dic[prefix] = stack_str
+    dump_file = dump_file.replace("pkl", "json")
+    json_str = json.dumps(DumpUtil.dump_stack_dic, indent=4)
+
+    with os.fdopen(os.open(dump_file, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "w") as f:
         if DumpUtil.dump_switch_mode in Const.DUMP_MODE:
             if json_dump_condition(prefix):
-                if DumpUtil.dump_mode == Const.FORWARD and "forward" in prefix:
-                    json.dump([prefix, stack_str], f)
-                    f.write('\n')
-                elif DumpUtil.dump_mode == Const.BACKWARD and "backward" in prefix:
-                    json.dump([prefix, stack_str], f)
-                    f.write('\n')
-                elif DumpUtil.dump_mode == Const.ALL:
-                    json.dump([prefix, stack_str], f)
-                    f.write('\n')
+                f.write(json_str)
         else:
-            json.dump([prefix, stack_str], f)
-            f.write('\n')
+            f.write(json_str)
 
 
 def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
@@ -180,9 +179,9 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
 
         name_prefix = name
         name_template = f"{name_prefix}" + "_{}"
-        if DumpUtil.dump_switch_mode in [Const.ALL, Const.API_LIST]:
+        if DumpUtil.dump_switch_mode == Const.API_LIST:
             dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file)
-        elif DumpUtil.dump_switch_mode == Const.API_STACK:
+        elif DumpUtil.dump_switch_mode == Const.ALL:
             dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file)
             dump_stack_info(name_template, dump_file)
         elif DumpUtil.check_switch_scope(name_prefix):
