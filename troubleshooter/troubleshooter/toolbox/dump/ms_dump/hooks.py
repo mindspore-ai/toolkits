@@ -7,6 +7,7 @@ import random
 import shutil
 import stat
 import sys
+import threading
 from collections import defaultdict
 from pathlib import Path
 
@@ -19,6 +20,7 @@ forward_init_status = False
 backward_init_status = False
 range_begin_flag, range_end_flag = False, False
 NNCount = defaultdict(int)
+backward_threading_id = 0
 
 
 class DumpUtil(object):
@@ -31,6 +33,7 @@ class DumpUtil(object):
     dump_api_list = []
     backward_input = {}
     dump_dir_tag = 'ms_dump'
+    dump_stack_dic = {}
 
     @staticmethod
     def set_dump_path(save_path):
@@ -220,7 +223,7 @@ def make_dump_dirs(rank, pid):
         dump_root_dir, dump_file_name = os.path.split(DumpUtil.dump_path)
         dump_file_name_body, _ = os.path.splitext(dump_file_name)
     else:
-        dump_root_dir, dump_file_name, dump_file_name_body = './', 'anonymous.pkl', 'anonymous'
+        dump_root_dir, dump_file_name, dump_file_name_body = './', 'dump.pkl', 'dump'
     tag_dir = os.path.join(dump_root_dir, DumpUtil.dump_dir_tag)
     Path(tag_dir).mkdir(mode=0o750, parents=True, exist_ok=True)
     rank_dir = os.path.join(tag_dir, 'rank' + str(rank))
@@ -250,32 +253,59 @@ def _set_dump_switch4api_list(name):
         api_name = name.rsplit("_", 2)[0].split("_", 1)[1].lower()
         DumpUtil.dump_switch = "ON" if api_name in DumpUtil.dump_api_list else "OFF"
 
+def json_dump_condition(prefix):
+    cur_threading_id = threading.current_thread().ident
+    global backward_threading_id
+    if not backward_threading_id and Const.BACKWARD in prefix:
+        backward_threading_id = cur_threading_id
+    return (Const.BACKWARD in prefix and backward_threading_id == cur_threading_id) or 'forward' in prefix
 
 def dump_stack_info(name_template, dump_file):
     stack_str = []
+    prefix = name_template.format("stack_info")
     for (_, path, line, func, code, _) in inspect.stack()[3:]:
-        stack_line = [path, str(line), func, code[0].strip() if code else code]
+        if code:
+            stack_line = " ".join([
+                "File", ", ".join([path, " ".join(["line", str(line)]), " ".join(["in", func]),
+                                   " ".join(["\n", code[0].strip() if code else code])])])
+        else:
+            stack_line = " ".join([
+                "File", ", ".join([path, " ".join(["line", str(line)]), " ".join(["in", func]),
+                                   " ".join(["\n", code])])])
         stack_str.append(stack_line)
-    _dump_tensor_completely(stack_str, name_template.format("stack_info"), dump_file)
+
+    DumpUtil.dump_stack_dic[prefix] = stack_str
+    dump_file = dump_file.replace("pkl", "json")
+    json_str = json.dumps(DumpUtil.dump_stack_dic, indent=4)
+
+    with os.fdopen(os.open(dump_file, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "w") as f:
+        if DumpUtil.dump_switch_mode in Const.DUMP_MODE:
+            if json_dump_condition(prefix):
+                f.write(json_str)
+        else:
+            f.write(json_str)
 
 
 def dump_acc_cmp(name, in_feat, out_feat, dump_step):
     dump_file = DumpUtil.get_dump_path()
     _set_dump_switch4api_list(name)
-    if DumpUtil.dump_switch_mode == Const.API_STACK:
-        dump_file = modify_dump_path(dump_file)
+
+    dump_file = modify_dump_path(dump_file, DumpUtil.dump_switch_mode)
 
     if DumpUtil.get_dump_switch():
         if DumpUtil.dump_init_enable:
             DumpUtil.dump_init_enable = False
             DumpUtil.dump_data_dir = make_dump_data_dir(dump_file) \
                 if DumpUtil.dump_switch_mode not in [Const.STACK, Const.ACL] else ""
+            if os.path.exists(dump_file) and not os.path.isdir(dump_file):
+                check_writable(dump_file)
+                os.remove(dump_file)
 
         name_prefix = name
         name_template = f"{name_prefix}" + "_{}"
-        if DumpUtil.dump_switch_mode in [Const.ALL, Const.API_LIST]:
+        if DumpUtil.dump_switch_mode == Const.API_LIST:
             dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file)
-        elif DumpUtil.dump_switch_mode == Const.API_STACK:
+        elif DumpUtil.dump_switch_mode == Const.ALL:
             dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file)
             dump_stack_info(name_template, dump_file)
         elif DumpUtil.check_switch_scope(name_prefix):

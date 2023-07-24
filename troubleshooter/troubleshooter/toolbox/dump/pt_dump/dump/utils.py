@@ -22,7 +22,7 @@ class DumpUtil(object):
     dump_filter_switch = None
     dump_mode = Const.ALL
     backward_input = {}
-    dump_dir_tag = 'ptdbg_dump'
+    dump_dir_tag = 'torch_dump'
     dump_config = None
     dump_stack_dic = {}
 
