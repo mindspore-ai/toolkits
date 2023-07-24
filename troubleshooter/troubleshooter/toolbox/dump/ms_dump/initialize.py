@@ -2,16 +2,18 @@ import functools
 import mindspore as ms
 import os
 
-from . import wrap_functional, wrap_tensor, wrap_nn
+from . import wrap_functional, wrap_tensor, wrap_nn, wrap_sub_tensor
 from .hooks import make_dump_dirs
 from .utils import print_error_log, Const, CompareException, check_file_or_directory_path, print_info_log
 
 
 def initialize_hook(hook):
     wrap_tensor.wrap_tensor_ops_and_bind(hook)
+    wrap_sub_tensor.wrap_sub_tensor_ops_and_bind(hook)
     for attr_name in dir(wrap_tensor.HOOKTensor):
         if attr_name.startswith("wrap_"):
             setattr(ms.Tensor, attr_name[5:], getattr(wrap_tensor.HOOKTensor, attr_name))
+            setattr(ms.common._stub_tensor.StubTensor, attr_name[5:], getattr(wrap_sub_tensor.HOOKSubTensor, attr_name))
 
     wrap_functional.wrap_functional_ops_and_bind(hook)
     for attr_name in dir(wrap_functional.HOOKFunctionalOP):
