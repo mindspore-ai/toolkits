@@ -146,7 +146,6 @@ tensor:
   - __eq__
   - __ge__
   - __gt__
-  - __getitem__
   - __iadd__
   - __iand__
   - __idiv__

@@ -44,6 +44,8 @@ class Const:
     SUPPORT_DUMP_MODE = ['api', 'acl']
     ON = 'ON'
     OFF = 'OFF'
+    BACKWARD = 'backward'
+    FORWARD = 'forward'
 
     # dump mode
     ALL = "all"
@@ -186,10 +188,12 @@ def get_dump_data_path(dump_dir):
     return dump_data_path, file_is_exist
 
 
-def modify_dump_path(dump_path):
+def modify_dump_path(dump_path, mode):
+    if mode == Const.ALL:
+        return dump_path
     file_name = os.path.split(dump_path)
-    stack_file_name = "api_stack_" + file_name[-1]
-    return os.path.join(file_name[0], stack_file_name)
+    mode_file_name = mode + "_" + file_name[-1]
+    return os.path.join(file_name[0], mode_file_name)
 
 
 def create_directory(dir_path):
