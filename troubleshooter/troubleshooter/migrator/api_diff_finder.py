@@ -7,7 +7,7 @@ from troubleshooter.migrator.diff_handler import compare_npy_dir, min_edit_dista
 
 from troubleshooter.toolbox.apis_match.apis_match import (
     APIList,
-    FlowMatch,
+    flow_match,
     print_apis_map_result,
 )
 
@@ -202,7 +202,7 @@ class APIDiffFinder:
         target_pkl_list = APIList(target_framework)
         orig_pkl_list.Construct(orig_pkl)
         target_pkl_list.Construct(target_pkl)
-        apis_map = FlowMatch()(orig_pkl_list, target_pkl_list, 1.0)
+        apis_map = flow_match(orig_pkl_list, target_pkl_list, 1.0)
         if self.print_api_map:
             print_apis_map_result(apis_map)
         npy_forward_list, npy_backward_list = get_npy_map_list(

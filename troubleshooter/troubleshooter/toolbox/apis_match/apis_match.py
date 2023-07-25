@@ -8,10 +8,11 @@ from prettytable import ALL as ALL
 from prettytable import PrettyTable
 
 from troubleshooter.toolbox.apis_match.api_io_dict import pt_io_dict
+from troubleshooter.toolbox.apis_match.api_name_dict import pt_name_dict
 from troubleshooter.toolbox.apis_match.download_api_map import get_pt_api_dict
 
 
-__all__ = ['FlowMatch', 'APIList', 'print_apis_map_result']
+__all__ = ['flow_match', 'APIList', 'print_apis_map_result']
 
 
 def print_apis_map_result(result_list, title=None, print_level=1, **kwargs):
@@ -51,6 +52,10 @@ def load_pkl(path: str):
 
 
 class APIDump:
+    """单个API的对象，包含该api的基本信息，如名字、形状等。
+    注意该对象名字、形状相同则认为相等，所以一个list里面可能有多个相等的对象但id并不相同。
+    """
+
     api_dump_num = 0
 
     def __init__(
@@ -64,7 +69,7 @@ class APIDump:
         self.dump_type = dump_type
         self.api_name = api_name
         self.api_id = api_id
-        self.uni_name = GetMSUniName()(framework, dump_type, api_name)
+        self.uni_name = get_uni_name(framework, dump_type, api_name)
         self.dump_id = APIDump.api_dump_num
         APIDump.api_dump_num += 1
 
@@ -151,6 +156,8 @@ class APIDump:
 
 
 class APIList:
+    """用于根据pkl文件构造一个api数据流。"""
+
     def __init__(self, framework: str):
         self.api_list = []
         self.framework = framework
@@ -227,6 +234,8 @@ class APIList:
 
 
 class APIInter:
+    """API数据流之间的中间对象"""
+
     def __init__(
         self,
         output_api_name,
@@ -302,12 +311,17 @@ def GetUniIO(api_list: List, framework) -> Any:
 
 
 class GetMSUniName(object):
+    """获取框架之间的统一名字"""
+
     def __init__(self) -> None:
         _pt_dict = self._get_pt_api_dict()
         self._uni_name_map = {"pytorch": _pt_dict, "mindspore": {}}
 
     def _get_pt_api_dict(self):
         apis_dict = get_pt_api_dict()
+        if apis_dict is None:
+            print('load local pytorch name map.')
+            return pt_name_dict
         ret = {}
         for k, v in apis_dict.items():
             pt_api = k.split(".")[-2:]
@@ -320,22 +334,34 @@ class GetMSUniName(object):
 
             pt_api_name, ms_api_name = pt_api[-1], ms_api[-1]
             pt_api_type, ms_api_type = pt_api[0].lower(), ms_api[0].lower()
-            ret.update({(pt_api_type, pt_api_name): f"{ms_api_type}_{ms_api_name}"})
+            ret.update({(pt_api_type, pt_api_name): (ms_api_type, ms_api_name)})
         return ret
 
-    def __call__(self, framework: str, dump_type: str, name: str):
+    def __call__(self, framework: str, dump_type: str, name: str) -> str:
+        """_summary_
+
+        Args:
+            framework (str): 框架
+            dump_type (str): 算子类型
+            name (str): 算子名称
+
+        Returns:
+            str: 统一的算子名称
+        """
         assert framework in [
             "pytorch",
             "mindspore",
         ], "framework should be pytorch or mindspore."
         if (dump_type.lower(), name) in self._uni_name_map[framework]:
-            return self._uni_name_map[framework][(dump_type.lower(), name)]
+            return '_'.join(self._uni_name_map[framework][(dump_type.lower(), name)])
         return f'{dump_type.lower()}_{name}'
 
 
+get_uni_name = GetMSUniName()
+
+
 class APIsInterMatch:
-    def __init__(self) -> None:
-        pass
+    """核心匹配算法"""
 
     def __call__(self, orig_list: List, target_list: List, err_threshold: float = 1.0):
         orig_inter, target_inter = self._get_vertex(orig_list, target_list)
@@ -600,9 +626,11 @@ class APIsInterMatch:
         return ret[::-1]
 
 
+apis_match = APIsInterMatch()
+
+
 class FlowMatch:
-    def __init__(self) -> None:
-        pass
+    """用户匹配接口"""
 
     def _set_api_index(self, orig_list, target_list):
         for i, api in enumerate(orig_list):
@@ -611,7 +639,11 @@ class FlowMatch:
             api.index = i
 
     def __call__(
-        self, orig_list: APIList, target_list: APIList, err_threshold: float = 1.0
+        self,
+        orig_list: APIList,
+        target_list: APIList,
+        err_threshold: float = 1.0,
+        ignore_shape=False,
     ):
         assert (
             err_threshold >= 0 and err_threshold <= 1
@@ -619,15 +651,14 @@ class FlowMatch:
         orig_list = orig_list.api_list
         target_list = target_list.api_list
         self._set_api_index(orig_list, target_list)
-        match = self._convinced_match(orig_list, target_list)
+        match = self._convinced_match(orig_list, target_list, ignore_shape)
         unmatch = self._get_unmatch_api(orig_list, target_list, match)
         unmatch_split = []
         for i in unmatch:
             if len(i[0]) == 0 or len(i[1]) == 0:
                 unmatch_split.append(i)
                 continue
-            apis_match_fun = APIsInterMatch()
-            unmatch_split.append(apis_match_fun(*i, err_threshold=err_threshold))
+            unmatch_split.append(apis_match(*i, err_threshold=err_threshold))
         match = [([i[0]], [i[1]]) for i in match]
         if (
             isinstance(unmatch_split[0], tuple)
@@ -651,13 +682,16 @@ class FlowMatch:
                 ret += u
         return ret
 
-    def _convinced_match(self, orig_list, target_list):
+    def _convinced_match(self, orig_list, target_list, ignore_shape=False):
         def _get_api_attr(api):
-            return (
-                api.uni_name,
-                tuple(api.forward_input_shape),
-                tuple(api.forward_output_shape),
-            )
+            if ignore_shape:
+                return (
+                    api.uni_name,
+                    tuple(api.forward_input_shape),
+                    tuple(api.forward_output_shape),
+                )
+            else:
+                return api.uni_name
 
         api_count = {}
         api_match = []
@@ -703,3 +737,6 @@ class FlowMatch:
         unmatch_target.append(target_list[last_target:])
 
         return list(zip(unmatch_orig, unmatch_target))
+
+
+flow_match = FlowMatch()
