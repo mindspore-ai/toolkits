@@ -1,6 +1,7 @@
 import functools
 import json
 import re
+from collections import OrderedDict
 from typing import Any, List, Optional
 
 import numpy as np
@@ -10,7 +11,6 @@ from prettytable import PrettyTable
 from troubleshooter.toolbox.apis_match.api_io_dict import pt_io_dict
 from troubleshooter.toolbox.apis_match.api_name_dict import pt_name_dict
 from troubleshooter.toolbox.apis_match.download_api_map import get_pt_api_dict
-
 
 __all__ = ['flow_match', 'APIList', 'print_apis_map_result']
 
@@ -74,12 +74,12 @@ class APIDump:
         APIDump.api_dump_num += 1
 
         # 此处大小需要作为key，需要转换为tuple
-        self.forward_input_shape = {}
-        self.forward_output_shape = {}
-        self.forward_input_type = {}
-        self.forward_output_type = {}
-        self.forward_input_summery = {}
-        self.forward_output_summery = {}
+        self.forward_input_shape = OrderedDict()
+        self.forward_output_shape = OrderedDict()
+        self.forward_input_type = OrderedDict()
+        self.forward_output_type = OrderedDict()
+        self.forward_input_summery = OrderedDict()
+        self.forward_output_summery = OrderedDict()
 
         self.dump_list_index = index
 
@@ -278,9 +278,9 @@ def GetUniIO(api_list: List, framework) -> Any:
     for api in api_list:
         if (api.dump_type, api.api_name) in api_io_dict:
             if len(api_io_dict[(api.dump_type, api.api_name)][0]) != 0:
-                forward_input_shape = {}
-                forward_input_type = {}
-                forward_input_summery = {}
+                forward_input_shape = OrderedDict()
+                forward_input_type = OrderedDict()
+                forward_input_summery = OrderedDict()
                 for k, v in api_io_dict[(api.dump_type, api.api_name)][0].items():
                     forward_input_shape[k] = api.forward_input_shape[v]
                     forward_input_type[k] = api.forward_input_type[v]
@@ -289,9 +289,9 @@ def GetUniIO(api_list: List, framework) -> Any:
                 api.forward_input_type = forward_input_type
                 api.forward_input_summery = forward_input_summery
             if len(api_io_dict[(api.dump_type, api.api_name)][1]) != 0:
-                forward_output_shape = {}
-                forward_output_type = {}
-                forward_output_summery = {}
+                forward_output_shape = OrderedDict()
+                forward_output_type = OrderedDict()
+                forward_output_summery = OrderedDict()
                 for k, v in api_io_dict[(api.dump_type, api.api_name)][1].items():
                     forward_output_shape[k] = api.forward_output_shape[v]
                     forward_output_type[k] = api.forward_output_type[v]
