@@ -325,6 +325,7 @@ class GetMSUniName(object):
 
             pt_api_name, ms_api_name = pt_api[-1], ms_api[-1]
             pt_api_type, ms_api_type = pt_api[0].lower(), ms_api[0].lower()
+            ms_api_type = 'functional' if ms_api_type == 'ops' else ms_api_type
             ret.update({(pt_api_type, pt_api_name): (ms_api_type, ms_api_name)})
         return ret
 
