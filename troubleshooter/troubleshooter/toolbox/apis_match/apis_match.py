@@ -1,6 +1,7 @@
 import functools
 import json
 import re
+from collections import OrderedDict
 from typing import Any, List, Optional
 
 import numpy as np
@@ -10,7 +11,6 @@ from prettytable import PrettyTable
 from troubleshooter.toolbox.apis_match.api_io_dict import pt_io_dict
 from troubleshooter.toolbox.apis_match.api_name_dict import pt_name_dict
 from troubleshooter.toolbox.apis_match.download_api_map import get_pt_api_dict
-
 
 __all__ = ['flow_match', 'APIList', 'print_apis_map_result']
 
@@ -74,12 +74,12 @@ class APIDump:
         APIDump.api_dump_num += 1
 
         # 此处大小需要作为key，需要转换为tuple
-        self.forward_input_shape = []
-        self.forward_output_shape = []
-        self.forward_input_type = []
-        self.forward_output_type = []
-        self.forward_input_summery = []
-        self.forward_output_summery = []
+        self.forward_input_shape = OrderedDict()
+        self.forward_output_shape = OrderedDict()
+        self.forward_input_type = OrderedDict()
+        self.forward_output_type = OrderedDict()
+        self.forward_input_summery = OrderedDict()
+        self.forward_output_summery = OrderedDict()
 
         self.dump_list_index = index
 
@@ -131,23 +131,13 @@ class APIDump:
         ):
             if direction == "forward":
                 if data_io == "input":
-                    if len(self.forward_input_type) <= data_id:
-                        self.forward_input_type.append(data_type)
-                        self.forward_input_shape.append(tuple(data_shape))
-                        self.forward_input_summery.append(np.array(data_summery))
-                    else:
-                        self.forward_input_type[data_id] = data_type
-                        self.forward_input_shape[data_id] = tuple(data_shape)
-                        self.forward_input_summery[data_id] = np.array(data_summery)
+                    self.forward_input_type[data_id] = data_type
+                    self.forward_input_shape[data_id] = tuple(data_shape)
+                    self.forward_input_summery[data_id] = np.array(data_summery)
                 else:
-                    if len(self.forward_output_type) <= data_id:
-                        self.forward_output_type.append(data_type)
-                        self.forward_output_shape.append(tuple(data_shape))
-                        self.forward_output_summery.append(np.array(data_summery))
-                    else:
-                        self.forward_output_type[data_id] = data_type
-                        self.forward_output_shape[data_id] = tuple(data_shape)
-                        self.forward_output_summery[data_id] = np.array(data_summery)
+                    self.forward_output_type[data_id] = data_type
+                    self.forward_output_shape[data_id] = tuple(data_shape)
+                    self.forward_output_summery[data_id] = np.array(data_summery)
             else:
                 raise NotImplementedError("backward not implemented.")
         else:
@@ -175,7 +165,7 @@ class APIList:
 
         def _read_prefix(prefix):
             pattern = re.compile(
-                r"^(\w+?)_(\w+)_(\d+)+_(\w+)_([io][nu]t?put)\.?(\d+)?$"
+                r"^(\w+?)_(\w+)_(\d+)+_(\w+)_([io][nu]t?put)\.?(\d+)?\.?(\d+)?$"
             )
             prefix_con = re.findall(pattern, prefix)
             if len(prefix_con) == 0:
@@ -183,9 +173,11 @@ class APIList:
                 return None
             prefix_con = prefix_con[0]
             if prefix_con[5] == "":
-                data_id = 0
-            else:
+                data_id = '0'
+            elif prefix_con[6] == "":
                 data_id = prefix_con[5]
+            else:
+                data_id = prefix_con[5] + '.' + prefix_con[6]
 
             return (
                 prefix_con[0],
@@ -193,7 +185,7 @@ class APIList:
                 int(prefix_con[2]),
                 prefix_con[3],
                 prefix_con[4],
-                int(data_id),
+                data_id,
             )
 
         prefix_con = _read_prefix(prefix)
@@ -286,25 +278,24 @@ def GetUniIO(api_list: List, framework) -> Any:
     for api in api_list:
         if (api.dump_type, api.api_name) in api_io_dict:
             if len(api_io_dict[(api.dump_type, api.api_name)][0]) != 0:
-                forward_input_shape = []
-                forward_input_type = []
-                forward_input_summery = []
-                for i in api_io_dict[(api.dump_type, api.api_name)][0]:
-                    forward_input_shape.append(api.forward_input_shape[i])
-                    forward_input_type.append(api.forward_input_type[i])
-                    forward_input_summery.append(api.forward_input_summery[i])
+                forward_input_shape = OrderedDict()
+                forward_input_type = OrderedDict()
+                forward_input_summery = OrderedDict()
+                for k, v in api_io_dict[(api.dump_type, api.api_name)][0].items():
+                    forward_input_shape[k] = api.forward_input_shape[v]
+                    forward_input_type[k] = api.forward_input_type[v]
+                    forward_input_summery[k] = api.forward_input_summery[v]
                 api.forward_input_shape = forward_input_shape
                 api.forward_input_type = forward_input_type
                 api.forward_input_summery = forward_input_summery
             if len(api_io_dict[(api.dump_type, api.api_name)][1]) != 0:
-                forward_output_shape = []
-                forward_output_type = []
-                forward_output_summery = []
-                for i in api_io_dict[(api.dump_type, api.api_name)][1]:
-                    forward_output_shape.append(api.forward_output_shape[i])
-                    forward_output_type.append(api.forward_output_type[i])
-                    forward_output_summery.append(api.forward_output_summery[i])
-
+                forward_output_shape = OrderedDict()
+                forward_output_type = OrderedDict()
+                forward_output_summery = OrderedDict()
+                for k, v in api_io_dict[(api.dump_type, api.api_name)][1].items():
+                    forward_output_shape[k] = api.forward_output_shape[v]
+                    forward_output_type[k] = api.forward_output_type[v]
+                    forward_output_summery[k] = api.forward_output_summery[v]
                 api.forward_output_shape = forward_output_shape
                 api.forward_output_type = forward_output_type
                 api.forward_output_summery = forward_output_summery
@@ -334,6 +325,7 @@ class GetMSUniName(object):
 
             pt_api_name, ms_api_name = pt_api[-1], ms_api[-1]
             pt_api_type, ms_api_type = pt_api[0].lower(), ms_api[0].lower()
+            ms_api_type = 'functional' if ms_api_type == 'ops' else ms_api_type
             ret.update({(pt_api_type, pt_api_name): (ms_api_type, ms_api_name)})
         return ret
 

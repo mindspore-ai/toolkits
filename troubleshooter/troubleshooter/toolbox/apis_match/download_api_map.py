@@ -15,13 +15,6 @@ class GetPTAPIDict:
                 response = requests.get(url, timeout=5)
                 content = response.content.decode("utf-8")
             except Exception as e:
-                # print('The mapping file download failed, use local.')
-                # with open(
-                #     os.path.join(os.path.dirname(__file__), 'pytorch_api_mapping.md'),
-                #     'r',
-                #     encoding='UTF-8',
-                # ) as f:
-                #     content = f.read()
                 print('The mapping file download failed.')
                 return None
             self._api_maps[version] = content
@@ -53,32 +46,3 @@ class GetPTAPIDict:
 
 
 get_pt_api_dict = GetPTAPIDict()
-
-# if __name__ == "__main__":
-#     import yaml
-
-#     ret = get_pt_api_dict()
-
-#     ms_ops = {}
-#     pt_ops = {}
-
-#     for i in ret.keys():
-#         ops = i.split('.')[-1]
-#         ops_type = '.'.join(i.split('.')[:-1])
-#         if ops_type in pt_ops:
-#             pt_ops[ops_type].append(ops)
-#         else:
-#             pt_ops[ops_type] = [ops]
-
-#     for i in ret.values():
-#         ops = i.split('.')[-1]
-#         ops_type = '.'.join(i.split('.')[:-1])
-#         if ops_type in ms_ops:
-#             ms_ops[ops_type].append(ops)
-#         else:
-#             ms_ops[ops_type] = [ops]
-#     # print(ms_ops)
-#     with open('./ms.yaml', 'w', encoding='utf-8') as f:
-#         yaml.dump(ms_ops, stream=f, allow_unicode=True)
-#     with open('./pt.yaml', 'w', encoding='utf-8') as f:
-#         yaml.dump(pt_ops, stream=f, allow_unicode=True)
