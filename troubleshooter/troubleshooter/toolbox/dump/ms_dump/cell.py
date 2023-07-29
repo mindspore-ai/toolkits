@@ -25,27 +25,26 @@ class HOOKCell(nn.Cell):
         super(HOOKCell, self).__init__()
         self.input_args = tuple()
         self.input_kwargs = dict()
-        prefix = ""
-        if hasattr(self, "prefix_op_name_"):
-            prefix = self.prefix_op_name_
+        self.changed_status = False
 
-        cell_count[prefix] += 1
-        prefix = prefix + str(cell_count[prefix] - 1) + '_'
+        global g_stop_hook
+        if not g_stop_hook:
+            g_stop_hook = True
+            prefix = ""
+            self.changed_status = True
+            if hasattr(self, "prefix_op_name_"):
+                prefix = self.prefix_op_name_
 
-        self.register_forward_hook(hook(prefix + "forward", forward=True))
-        self.register_backward_hook(hook(prefix + "backward", forward=False))
+            cell_count[prefix] += 1
+            prefix = prefix + str(cell_count[prefix] - 1) + '_'
+            self.register_forward_hook(hook(prefix + "forward", forward=True))
+            self.register_backward_hook(hook(prefix + "backward", forward=False))
 
     # 重载call，加全局标志。
     def __call__(self, *args, **kwargs):
-        changed = False
-        global g_stop_hook
-        if g_stop_hook:
-            self._enable_forward_hook = False
-            self._enable_backward_hook = False
-        else:
-            g_stop_hook = True
-            changed = True
         out = super(HOOKCell, self).__call__(*args, **kwargs)
-        if changed:
+        if self.changed_status:
+            self.changed_status = False
+            global g_stop_hook
             g_stop_hook = False
         return out
