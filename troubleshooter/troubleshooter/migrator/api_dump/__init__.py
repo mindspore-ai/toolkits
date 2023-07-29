@@ -12,3 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
+
+__all__ = ['api_dump_start', 'api_dump_init', 'api_dump_stop', 'APIDiffFinder']
+
+from .universal_interface import api_dump_start, api_dump_init, api_dump_stop
+from .api_diff_finder import APIDiffFinder

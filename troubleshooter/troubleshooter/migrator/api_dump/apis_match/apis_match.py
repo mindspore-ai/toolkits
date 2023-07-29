@@ -8,9 +8,9 @@ import numpy as np
 from prettytable import ALL as ALL
 from prettytable import PrettyTable
 
-from troubleshooter.toolbox.apis_match.api_io_dict import pt_io_dict
-from troubleshooter.toolbox.apis_match.api_name_dict import pt_name_dict
-from troubleshooter.toolbox.apis_match.download_api_map import get_pt_api_dict
+from .api_io_dict import pt_io_dict
+from .api_name_dict import pt_name_dict
+from .download_api_map import get_pt_api_dict
 
 __all__ = ['flow_match', 'APIList', 'print_apis_map_result']
 

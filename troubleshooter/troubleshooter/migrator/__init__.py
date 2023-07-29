@@ -16,19 +16,18 @@
 from __future__ import absolute_import
 
 from troubleshooter import FRAMEWORK_TYPE
-from troubleshooter.migrator import diff_handler
 from troubleshooter.migrator.save import save
+from troubleshooter.migrator import diff_handler, api_dump
 from troubleshooter.migrator.diff_handler import *
+from troubleshooter.migrator.api_dump import *
 
 __all__ = ["save",]
-
 __all__.extend(diff_handler.__all__)
+__all__.extend(api_dump.__all__)
 
 if {"torch", "mindspore"}.issubset(FRAMEWORK_TYPE):
-    from troubleshooter.migrator import net_diff_finder, api_diff_finder, weight_migrator
+    from troubleshooter.migrator import net_diff_finder, weight_migrator
     from troubleshooter.migrator.net_diff_finder import *
-    from troubleshooter.migrator.api_diff_finder import *
     from troubleshooter.migrator.weight_migrator import *
     __all__.extend(net_diff_finder.__all__)
-    __all__.extend(api_diff_finder.__all__)
     __all__.extend(weight_migrator.__all__)
