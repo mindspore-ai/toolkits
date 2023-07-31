@@ -139,9 +139,8 @@ setup(
         'protobuf >= 3.13.0, <= 3.20.1',
     ],
     package_data={
-        'troubleshooter': ['toolbox/dump/ms_dump/support_wrap_ops.yaml',
-                           'toolbox/dump/pt_dump/hook_module/support_wrap_ops.yaml',
-                           'toolbox/apis_match/pytorch_api_mapping.md',
+        'troubleshooter': ['migrator/api_dump/ms_dump/support_wrap_ops.yaml',
+                           'migrator/api_dump/pt_dump/support_wrap_ops.yaml',
                            ],
     },
     classifiers=[

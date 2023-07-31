@@ -32,8 +32,7 @@ for f in dir(ms.Tensor):
 def get_tensor_ops():
     global WrapTensorOps
     _tensor_ops = dir(ms.Tensor)
-    assert set(WrapTensorOps) <= set(_tensor_ops)
-    return WrapTensorOps
+    return set(WrapTensorOps) & set(_tensor_ops)
 
 
 class HOOKTensor(object):

@@ -32,8 +32,7 @@ for f in dir(ms.common._stub_tensor.StubTensor):
 def get_sub_tensor_ops():
     global WrapTensorOps
     _sub_tensor_ops = dir(ms.common._stub_tensor.StubTensor)
-    assert set(WrapTensorOps) <= set(_sub_tensor_ops)
-    return WrapTensorOps
+    return set(WrapTensorOps) & set(_sub_tensor_ops)
 
 
 class HOOKSubTensor(object):
