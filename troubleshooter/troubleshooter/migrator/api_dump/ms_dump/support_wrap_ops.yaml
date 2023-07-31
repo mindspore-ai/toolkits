@@ -286,7 +286,6 @@ ops:
   - isposinf
   - isreal
   - is_complex
-  - is_floating_point
   - le
   - less
   - less_equal
@@ -418,8 +417,6 @@ ops:
   - nansum
   - normal
   - nonzero
-  - numel
-  - permute
   - population_count
   - rank
   - repeat_elements
@@ -631,7 +628,6 @@ tensor:
   - isinf
   - isnan
   - is_complex
-  - is_floating_point
   - is_signed
   - isneginf
   - isposinf
@@ -687,8 +683,8 @@ tensor:
   - norm
   - nonzero
   - not_equal
-  - numel
   - ormqr
+  - permute
   - pow
   - prod
   - qr
