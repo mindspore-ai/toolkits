@@ -1,7 +1,5 @@
 import inspect
 import json
-import mindspore as ms
-import numpy as np
 import os
 import random
 import shutil
@@ -11,8 +9,11 @@ import threading
 from collections import defaultdict
 from pathlib import Path
 
-from .utils import Const, print_error_log, get_time, print_info_log, CompareException, \
-    modify_dump_path, check_mode_valid, __version__
+import mindspore as ms
+import numpy as np
+
+from .utils import (CompareException, Const, __version__, check_mode_valid, get_time,
+                    modify_dump_path, print_error_log, print_info_log)
 from .wrap_tensor import TensorFunc
 
 DumpCount = 0
@@ -170,8 +171,8 @@ def dump_tensor(x, prefix, dump_step, dump_file_name):
         for i, item in enumerate(x):
             dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name)
     elif isinstance(x, ms.Tensor):
-        # if x.numel() == 0 or len(x.shape) == 0 or not x.is_floating_point():
-        #     return
+        if x.numel() == 0 or len(x.shape) == 0 or not x.is_floating_point():
+            return
 
         with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
                        "a") as f:
