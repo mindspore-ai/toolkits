@@ -13,13 +13,18 @@
 # limitations under the License.
 # ============================================================================
 """compare tools"""
-import numpy as np
-import os
+import functools
 import math
+import multiprocessing
+import os
 from itertools import zip_longest
-from troubleshooter.common.format_msg import print_diff_result, print_diff_result_with_shape
-from troubleshooter.common.util import validate_and_normalize_path, find_file, none_and_isdir_check, type_check
+
+import numpy as np
+
 from troubleshooter import log as logger
+from troubleshooter.common.format_msg import print_diff_result, print_diff_result_with_shape
+from troubleshooter.common.util import (find_file, none_and_isdir_check, type_check,
+                                        validate_and_normalize_path)
 
 __all__ = [
     "get_name_map_list_by_name",
@@ -160,6 +165,27 @@ def get_name_map_list_by_shape_edit_distance(orig_dir, target_dir, *, del_cost=1
     return name_map_list
 
 
+def _cal_compare_npy_single_process(name, normal_orig_dir, normal_target_dir, rtol, atol, equal_nan, compare_shape):
+    def load_value(dir, name):
+        if name is None:
+            return None
+        file = os.path.join(dir, name)
+        if not os.path.isfile(file):
+            return None
+        return np.load(file)
+    orig_name, target_name = name
+    orig_value = load_value(normal_orig_dir, orig_name)
+    target_value = load_value(normal_target_dir, target_name)
+    result, rel_ratio, cosine_sim, diff_detail = cal_algorithm(
+        orig_value, target_value, rtol, atol, equal_nan)
+    if compare_shape:
+        orig_shape = orig_value.shape if orig_value is not None else None
+        target_shape = target_value.shape if target_value is not None else None
+        return (orig_name, target_name, orig_shape, target_shape, result, rel_ratio, cosine_sim, diff_detail)
+    else:
+        return (orig_name, target_name, result, rel_ratio, cosine_sim, diff_detail)
+
+
 def compare_npy_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, *, name_map_list=None, compare_shape=False):
     none_and_isdir_check(orig_dir, 'orig_dir')
     none_and_isdir_check(target_dir, 'target_dir')
@@ -168,33 +194,18 @@ def compare_npy_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False,
     type_check(equal_nan, 'atol', bool)
     type_check(compare_shape, 'compare_shape', bool)
 
-    def load_value(dir, name):
-        if name is None:
-            return None
-        file = os.path.join(dir, name)
-        if not os.path.isfile(file):
-            return None
-        return np.load(file)
-
     if name_map_list is None:
         name_map_list = get_name_map_list_by_name(orig_dir, target_dir)
 
-    result_list = []
     normal_orig_dir = validate_and_normalize_path(orig_dir)
     normal_target_dir = validate_and_normalize_path(target_dir)
 
-    for orig_name, target_name in name_map_list:
-        orig_value = load_value(normal_orig_dir, orig_name)
-        target_value = load_value(normal_target_dir, target_name)
-
-        result, rel_ratio, cosine_sim, diff_detail = cal_algorithm(orig_value, target_value, rtol, atol, equal_nan)
-
-        if compare_shape:
-            orig_shape = orig_value.shape if orig_value is not None else None
-            target_shape = target_value.shape if target_value is not None else None
-            result_list.append((orig_name, target_name, orig_shape, target_shape, result, rel_ratio, cosine_sim, diff_detail))
-        else:
-            result_list.append((orig_name, target_name, result, rel_ratio, cosine_sim, diff_detail))
+    with multiprocessing.Pool() as pool:
+        _compare_npy_single_process = functools.partial(_cal_compare_npy_single_process,
+                                          normal_orig_dir=normal_orig_dir, normal_target_dir=normal_target_dir,
+                                          rtol=rtol, atol=atol, equal_nan=equal_nan,
+                                          compare_shape=compare_shape)
+        result_list = pool.map(_compare_npy_single_process, name_map_list)
     logger.user_attention("The compare directory information:\n The orig dir: %s \n The target dir: %s",
                           orig_dir, target_dir)
     if compare_shape:

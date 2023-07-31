@@ -15,14 +15,14 @@
 setup script
 """
 import os
-import stat
 import shlex
 import shutil
+import stat
 import subprocess
-from setuptools import find_packages
-from setuptools import setup
-from setuptools.command.egg_info import egg_info
+
+from setuptools import find_packages, setup
 from setuptools.command.build_py import build_py
+from setuptools.command.egg_info import egg_info
 
 version = '1.0.12'
 
@@ -140,7 +140,7 @@ setup(
     ],
     package_data={
         'troubleshooter': ['migrator/api_dump/ms_dump/support_wrap_ops.yaml',
-                           'migrator/api_dump/pt_dump/support_wrap_ops.yaml',
+                           'migrator/api_dump/pt_dump/hook_module/support_wrap_ops.yaml',
                            ],
     },
     classifiers=[
