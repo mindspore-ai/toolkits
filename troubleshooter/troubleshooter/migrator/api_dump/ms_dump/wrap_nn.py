@@ -33,8 +33,7 @@ for f in dir(ms.nn):
 def get_nn_cell():
     global WrapNNCell
     _all_nn_cell = dir(ms.nn)
-    assert set(WrapNNCell) <= set(_all_nn_cell)
-    return WrapNNCell
+    return set(WrapNNCell) & set(_all_nn_cell)
 
 
 def call_decorator(cls, name):
@@ -60,7 +59,8 @@ def call_decorator(cls, name):
 
 
 def wrap_nn_cell_and_bind():
-    for name in WrapNNCell:
+    _nn_cell = get_nn_cell()
+    for name in _nn_cell:
         call_decorator(NNCell[name], name)
 
 

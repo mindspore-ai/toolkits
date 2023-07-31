@@ -34,8 +34,7 @@ for f in dir(nn):
 def get_nn_module():
     global WrapModuleOps
     _all_nn_module = dir(nn)
-    assert set(WrapModuleOps) <= set(_all_nn_module)
-    return WrapModuleOps
+    return set(WrapModuleOps) & set(_all_nn_module)
 
 
 def call_decorator(cls, name):
@@ -60,8 +59,6 @@ def call_decorator(cls, name):
 
 
 def wrap_nn_module_and_bind():
-    get_nn_module()
-    for name in WrapModuleOps:
+    _nn_module = get_nn_module()
+    for name in _nn_module:
         call_decorator(nn_module[name], name)
-
-

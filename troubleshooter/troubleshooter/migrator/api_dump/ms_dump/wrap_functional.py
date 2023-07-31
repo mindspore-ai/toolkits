@@ -32,8 +32,7 @@ for f in dir(ms.ops):
 def get_functional_ops():
     global WrapFunctionalOps
     _all_functional_ops = dir(ms.ops)
-    assert set(WrapFunctionalOps) <= set(_all_functional_ops)
-    return WrapFunctionalOps
+    return set(WrapFunctionalOps) & set(_all_functional_ops)
 
 
 class HOOKFunctionalOP(object):
