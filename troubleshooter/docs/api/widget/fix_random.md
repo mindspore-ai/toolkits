@@ -1,6 +1,6 @@
-## troubleshooter.migrator.fix_random
+## troubleshooter.widget.fix_random
 
-> troubleshooter.migrator.fix_random(seed)
+> troubleshooter.widget.fix_random(seed)
 
 固定python、numpy、pytorch、mindspore等随机性。
 

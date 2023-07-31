@@ -1,4 +1,4 @@
-from troubleshooter.toolbox.dump.pt_dump import *
+from troubleshooter.migrator import api_dump_init, api_dump_start
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -31,8 +31,8 @@ class Net(nn.Module):
 
 if __name__ == "__main__":
     net = Net()
-    register_hook(net, acc_cmp_dump)
-    set_dump_switch("ON", filter_switch="OFF")
+    api_dump_init(net)
+    api_dump_start()
     criterion = nn.MSELoss()   # 均方损失函数
     optimizer = optim.SGD(net.parameters(), lr=0.01)
 

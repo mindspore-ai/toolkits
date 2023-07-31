@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-from .initialize import register_hook
-from .hooks import set_dump_path, set_dump_switch, seed_all, acc_cmp_dump
 
-seed_all()
-__all__ = ["register_hook", "set_dump_path", "set_dump_switch", "seed_all", "acc_cmp_dump"]
+from .apis_match import *
+
+__all__ = ['flow_match', 'APIList', 'print_apis_map_result']

@@ -1,7 +1,7 @@
 import mindspore as ms
 import numpy as np
 from mindspore import Tensor, ops, nn
-from troubleshooter.toolbox.dump.ms_dump import register_hook, acc_cmp_dump, set_dump_switch
+from troubleshooter.migrator import api_dump_init, api_dump_start
 
 ms.set_context(mode=ms.PYNATIVE_MODE, device_target='CPU')
 
@@ -28,8 +28,8 @@ class Net(nn.Cell):
 
 if __name__ == "__main__":
     net = Net()
-    register_hook(net, acc_cmp_dump)
-    set_dump_switch("ON")
+    api_dump_init(net)
+    api_dump_start()
     grad_net = ms.grad(net, None, net.trainable_params())
     output = grad_net(ms.Tensor(np.random.random([1, 1, 2, 2]).astype(np.float32)))
     print(output)
