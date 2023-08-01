@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-from troubleshooter.toolbox import widget_pocket as widget
-from troubleshooter.toolbox.parse_pb import precision_tracker
+from . import widget_pocket
+from .parse_pb import precision_tracker
+from .widget_pocket import *
 
-__all__ = ["widget", "precision_tracker"]
+__all__ = ["precision_tracker"]
+__all__.extend(widget_pocket.__all__)

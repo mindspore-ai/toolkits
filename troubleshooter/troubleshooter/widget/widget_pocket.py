@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-import random
 import os
+import random
+
 import numpy as np
-from troubleshooter.common.util import validate_and_normalize_path, print_to_file
+
 from troubleshooter import FRAMEWORK_TYPE
+from troubleshooter.common.util import validate_and_normalize_path
 
 __all__ = [
     "fix_random",

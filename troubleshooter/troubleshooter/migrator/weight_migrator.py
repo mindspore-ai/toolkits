@@ -13,20 +13,25 @@
 # limitations under the License.
 # ============================================================================
 import os
-import torch
-import mindspore as ms
-import tempfile
 import shutil
+import tempfile
 from collections import OrderedDict
 from pprint import pprint
+
+import mindspore as ms
+import torch
+
 from troubleshooter import FRAMEWORK_TYPE
-from troubleshooter.common.format_msg import print_weight_compare_result, print_convert_result, print_diff_result
-from troubleshooter.migrator.mapping_relation.weight_mapping_lib import weight_name_map, weight_value_map
-from troubleshooter.migrator.diff_handler import cal_algorithm
-from troubleshooter.toolbox.widget_pocket import object_load, object_dump
 from troubleshooter import log as logger
-from troubleshooter.common.util import isfile_check, none_and_isfile_check, all_none_or_isfile_check,\
-    dir_exist_check, type_check, clear_tmp_file, generate_random_filename, print_to_file
+from troubleshooter.common.format_msg import (print_convert_result, print_diff_result,
+                                              print_weight_compare_result)
+from troubleshooter.common.util import (all_none_or_isfile_check, clear_tmp_file, dir_exist_check,
+                                        generate_random_filename, isfile_check,
+                                        none_and_isfile_check, print_to_file, type_check)
+from troubleshooter.migrator.diff_handler import cal_algorithm
+from troubleshooter.migrator.mapping_relation.weight_mapping_lib import (weight_name_map,
+                                                                         weight_value_map)
+from troubleshooter.widget import object_dump, object_load
 
 __all__ = ["get_weight_map",
            "convert_weight",

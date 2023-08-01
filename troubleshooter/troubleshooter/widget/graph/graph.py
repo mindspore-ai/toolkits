@@ -14,9 +14,10 @@
 # ============================================================================
 import time
 from collections import defaultdict
-from troubleshooter.toolbox.graph.mindinsight_anf_ir_pb2 import DataType
-from troubleshooter.toolbox.graph.node import Node
-from troubleshooter.toolbox.graph.util import NodeTypeEnum, PluginNameEnum, EdgeTypeEnum, check_invalid_character
+
+from .mindinsight_anf_ir_pb2 import DataType
+from .node import Node
+from .util import EdgeTypeEnum, NodeTypeEnum, PluginNameEnum, check_invalid_character
 
 
 class Graph:

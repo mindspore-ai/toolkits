@@ -16,10 +16,10 @@
 from __future__ import absolute_import
 
 from troubleshooter import FRAMEWORK_TYPE
-from troubleshooter.migrator.save import save
-from troubleshooter.migrator import diff_handler, api_dump
-from troubleshooter.migrator.diff_handler import *
+from troubleshooter.migrator import api_dump, diff_handler
 from troubleshooter.migrator.api_dump import *
+from troubleshooter.migrator.diff_handler import *
+from troubleshooter.migrator.save import save
 
 __all__ = ["save",]
 __all__.extend(diff_handler.__all__)

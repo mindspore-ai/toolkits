@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ============================================================================
-import os
-import json
 import csv
-from troubleshooter.toolbox.graph import mindinsight_anf_ir_pb2 as anf_ir_pb2
-from troubleshooter.toolbox.graph.graph import MSGraph, OptimizedGraph
-from troubleshooter.toolbox.graph.util import check_invalid_pb_file
+import json
+import os
+
+from .graph import mindinsight_anf_ir_pb2 as anf_ir_pb2
+from .graph.graph import MSGraph, OptimizedGraph
+from .graph.util import check_invalid_pb_file
 
 TITLE = ('算子名',
          '全名',

@@ -14,8 +14,6 @@
 # ============================================================================
 from __future__ import absolute_import
 
-from troubleshooter.common import framework_detection
 from troubleshooter.common.framework_detection import FRAMEWORK_TYPE
 
-__all__ = []
-__all__.extend(framework_detection.__all__)
+__all__ = ["FRAMEWORK_TYPE"]

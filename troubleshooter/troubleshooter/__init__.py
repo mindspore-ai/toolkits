@@ -23,10 +23,12 @@ Users can import the snooping, initialize the Snooper object to start debug,
 and use @snooping(...) to print the running result information of echo line code of neural networks.
 """
 from __future__ import absolute_import
+
+# The import of mindspore and torch has sequential requirements,
+# so the framework identification must be carried out first.
 from troubleshooter.common import FRAMEWORK_TYPE
-from troubleshooter import common, migrator, proposer, tracker
+from troubleshooter import common, migrator, proposer, tracker, widget
 from troubleshooter.migrator import save
 from troubleshooter.proposer import ProposalAction as proposal
 from troubleshooter.tracker import Tracker as tracking
-from troubleshooter.toolbox import widget
 from troubleshooter.version import __version__
