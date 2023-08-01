@@ -20,12 +20,12 @@ import os
 
 import torch
 
-from . import wrap_torch, wrap_functional, wrap_tensor, wrap_vf, wrap_module
-from .hook_module import HOOKModule
-from ..common.utils import check_file_or_directory_path, print_error_log, CompareException, Const, \
-    print_info_log, print_warn_log, get_process_rank
-from ..dump.utils import make_dump_dirs
 from ..common import global_manage
+from ..common.utils import (CompareException, Const, check_file_or_directory_path, get_process_rank,
+                            print_error_log, print_info_log, print_warn_log)
+from ..dump.utils import make_dump_dirs
+from . import wrap_functional, wrap_module, wrap_tensor, wrap_torch, wrap_vf
+from .hook_module import HOOKModule
 
 try:
     import torch_npu
@@ -113,7 +113,7 @@ def register_hook(model, hook, **kwargs):
         if hasattr(module, 'hook_name'):
             prefix_nn_name_ = "NN_" + str(module.hook_name[5:]) + "_"
             module.register_forward_hook(hook(prefix_nn_name_ + "{}_" + "forward"))
-            module.register_backward_hook(hook(prefix_nn_name_ + "{}_" + "backward"))
+            module.register_full_backward_hook(hook(prefix_nn_name_ + "{}_" + "backward"))
 
 
 def init_dump_config(kwargs):
