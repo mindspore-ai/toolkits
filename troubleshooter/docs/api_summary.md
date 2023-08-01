@@ -54,4 +54,4 @@
 | 接口名                                                       | 描述                    |
 | ------------------------------------------------------------ | ----------------------- |
 | [troubleshooter.widget.fix_random](api/widget/fix_random.md) | 固定随机性 |
-| [troubleshooter.toolbox.precision_tracker](api/toolbox/precision_tracker.md) | 算子升/降精度标识工具 |
+| [troubleshooter.widget.precision_tracker](api/widget/precision_tracker.md) | 算子升/降精度标识工具 |

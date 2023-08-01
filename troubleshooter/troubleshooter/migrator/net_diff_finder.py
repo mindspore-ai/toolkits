@@ -13,19 +13,19 @@
 # limitations under the License.
 # ============================================================================
 """compare tools"""
-import csv
 import os
 import random
-import time
 import shutil
 import tempfile
+import time
 
-import torch
 import mindspore as ms
 import numpy as np
+import torch
+
 from troubleshooter import log as logger
 from troubleshooter.common.format_msg import print_diff_result, print_separator_line
-from troubleshooter.common.util import validate_and_normalize_path, type_check
+from troubleshooter.common.util import type_check, validate_and_normalize_path
 from troubleshooter.migrator import weight_migrator
 from troubleshooter.migrator.diff_handler import cal_algorithm
 
