@@ -615,6 +615,58 @@ compiler_experience_list_cn = [
                     out = index_get(y)""",
          "Fault Case": """1.静态图Tensor索引语法支持： 
                        https://www.mindspore.cn/docs/zh-CN/master/note/static_graph_syntax_support.html#tuple"""},
+    {
+         "ID": "compiler_id_24",
+         "Fault Name": "静态图语法",
+         "Key Log Information": "The local variable.*?is not defined in false branch, but defined in true branch",
+         "Key Python Stack Information": "",
+         "Key C++ Stack Information": "",
+         "Fault Cause": "在静态图模式下，if控制流分支中的变量必须都有定义。",
+         "Error Case": """
+                    @jit
+                    def func(x):
+                        if x < 0:
+                            y = 0
+                            ^~~~~~~~~~~~~~变量y只有true分支有定义，else分支未定义。
+                        return y""",
+         "Modification Suggestion": "提前定义y，或在else分支定义。",
+         "Fixed Case": """
+                   @jit
+                    def func(x):
+                        y = 1
+                        ^~~~~~~~~~~~~~提前定义y，或在else分支定义。
+                        if x < 0:
+                            y = 0
+                        return y""",
+         "Fault Case": """1.静态图语法： 
+                       https://www.mindspore.cn/tutorials/experts/zh-CN/r2.0/network/control_flow.html#shapejoin%E8%A7%84%E5%88%99"""},
+    {
+         "ID": "compiler_id_25",
+         "Fault Name": "静态图语法",
+         "Key Log Information": "The local variable.*?defined in the.*?loop body cannot be used outside of the loop body. Please define variable.*?before.*?",
+         "Key Python Stack Information": "",
+         "Key C++ Stack Information": "",
+         "Fault Cause": "在静态图模式下，while/for控制流分支中的变量必须都有定义",
+         "Error Case": """
+                    @jit
+                    def func(x):
+                        while x > 0:
+                            x -= 1
+                            y = 0
+                            ^~~~~~~~~~~~~~变量y只有在循环体内有定义，循环体外未定义。
+                        return y""",
+         "Modification Suggestion": "提前定义y。",
+         "Fixed Case": """
+                   @jit
+                    def func(x):
+                        y = 1
+                        ^~~~~~~~~~~~~~提前定义y。
+                        while x > 0:
+                            x -= 1
+                            y = 0
+                        return y""",
+         "Fault Case": """1.静态图语法： 
+                       https://www.mindspore.cn/tutorials/experts/zh-CN/r2.0/network/control_flow.html#shapejoin%E8%A7%84%E5%88%99"""}
 ]
 
 compiler_general_experience_list_cn = [
