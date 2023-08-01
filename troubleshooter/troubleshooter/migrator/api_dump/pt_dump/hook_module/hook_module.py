@@ -21,6 +21,7 @@ import functools
 import torch
 import torch.nn as nn
 import torch.utils.hooks as full_hooks
+
 from ..common import global_manage
 
 module_count = {}
@@ -48,7 +49,7 @@ class HOOKModule(nn.Module):
                 prefix = prefix + str(module_count[prefix] - 1) + '_'
 
             self.register_forward_hook(hook(prefix + "forward"))
-            self.register_backward_hook(hook(prefix + "backward"))
+            self.register_full_backward_hook(hook(prefix + "backward"))
 
     def __call__(self, *input, **kwargs):
         changed = False
