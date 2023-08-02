@@ -28,7 +28,7 @@ def register_hook(net, hook, **kwargs):
     rank = kwargs.get('rank')
     if rank is None:
         rank = 0
-    make_dump_dirs(rank, pid)
+    make_dump_dirs(rank)
     hook_name = hook.__name__
 
     print_info_log("Start mounting the {} hook function to the model.".format(hook_name))

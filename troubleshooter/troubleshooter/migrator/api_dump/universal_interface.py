@@ -24,14 +24,17 @@ if "mindspore" in FRAMEWORK_TYPE:
 
 API_DUMP_FRAMEWORK_TYPE = None
 
-def api_dump_init(net):
+
+def api_dump_init(net, output_path):
     global API_DUMP_FRAMEWORK_TYPE
     if "torch" in FRAMEWORK_TYPE and isinstance(net, torch.nn.Module):
-        from troubleshooter.migrator.api_dump.pt_dump import register_hook, acc_cmp_dump
+        from troubleshooter.migrator.api_dump.pt_dump import register_hook, acc_cmp_dump, set_dump_path
         API_DUMP_FRAMEWORK_TYPE = "torch"
+        set_dump_path(output_path)
     elif "mindspore" in FRAMEWORK_TYPE and isinstance(net, mindspore.nn.Cell):
         API_DUMP_FRAMEWORK_TYPE = "mindspore"
-        from troubleshooter.migrator.api_dump.ms_dump import register_hook, acc_cmp_dump
+        from troubleshooter.migrator.api_dump.ms_dump import register_hook, acc_cmp_dump, set_dump_path
+        set_dump_path(output_path)
     else:
         raise TypeError(f"For 'troubleshooter.api_dump.init' function, the type of argument 'net' must be mindspore.nn.Cell or torch.nn.Module, but got {type(net)}.")
 

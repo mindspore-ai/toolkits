@@ -13,7 +13,10 @@ range_begin_flag, range_end_flag = False, False
 
 class DumpUtil(object):
     dump_data_dir = None
+    dump_ori_dir = None
     dump_path = None
+    dump_file_name = None
+    dump_stack_file = None
     dump_switch = None
     dump_switch_mode = Const.ALL
     dump_switch_scope = []
@@ -22,13 +25,18 @@ class DumpUtil(object):
     dump_filter_switch = None
     dump_mode = Const.ALL
     backward_input = {}
-    dump_dir_tag = 'torch_dump'
     dump_config = None
     dump_stack_dic = {}
 
     @staticmethod
-    def set_dump_path(save_path):
-        DumpUtil.dump_path = save_path
+    def set_ori_dir(path):
+        DumpUtil.dump_ori_dir = path
+
+    @staticmethod
+    def set_dump_path(dump_file_path, dump_file_name, dump_stack_file):
+        DumpUtil.dump_path = dump_file_path
+        DumpUtil.dump_file_name = dump_file_name
+        DumpUtil.dump_stack_file = dump_stack_file
         DumpUtil.dump_init_enable = True
 
     @staticmethod
@@ -95,8 +103,8 @@ class DumpUtil(object):
 
     @staticmethod
     def get_dump_path():
-        if DumpUtil.dump_path:
-            return DumpUtil.dump_path
+        if DumpUtil.dump_path and DumpUtil.dump_file_name and DumpUtil.dump_stack_file:
+            return DumpUtil.dump_path, DumpUtil.dump_file_name, DumpUtil.dump_stack_file
 
         if DumpUtil.dump_switch_mode == Const.ALL:
             raise RuntimeError("get_dump_path: the file path is empty,"
@@ -113,17 +121,15 @@ class DumpUtil(object):
         return DumpUtil.dump_switch == "ON"
 
 
-def set_dump_path(fpath=None, dump_tag='ptdbg_dump'):
+def set_dump_path(fpath=None):
     if fpath is None:
         raise RuntimeError("set_dump_path '{}' error, please set a valid filename".format(fpath))
         return
     real_path = os.path.realpath(fpath)
     if not os.path.isdir(real_path):
-        print_error_log(
-            "set_dump_path '{}' error, the path is not a directory please set a valid directory.".format(real_path))
-        raise DumpException(DumpException.INVALID_PATH_ERROR)
-    DumpUtil.set_dump_path(real_path)
-    DumpUtil.dump_dir_tag = dump_tag
+        print_info_log(
+            "The path '{}' does not exist, the path will be created automatically.".format(real_path))
+    DumpUtil.set_ori_dir(real_path)
 
 
 def generate_dump_path_str():
@@ -174,6 +180,7 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
         if mode == Const.LIST:
             print_info_log("The number of matched dump is {}".format(dump_count))
 
+
 def _set_dump_switch4api_list(name):
     if DumpUtil.dump_api_list:
         api_name = get_api_name_from_matcher(name)
@@ -198,16 +205,18 @@ def make_dump_data_dir(dump_file_name):
 
 
 def make_dump_dirs(rank):
-    dump_file_name, dump_file_name_body = "dump.pkl", "dump"
-    dump_root_dir = DumpUtil.dump_path if DumpUtil.dump_path else "./"
-    tag_dir = os.path.join(dump_root_dir, DumpUtil.dump_dir_tag)
-    Path(tag_dir).mkdir(mode=0o750, parents=True, exist_ok=True)
-    rank_dir = os.path.join(tag_dir, 'rank' + str(rank))
+    dump_file_name, dump_path = "torch_api_dump_info.pkl", "torch_api_dump"
+    dump_stack_file = "torch_api_dump_stack.json"
+    dump_root_dir = DumpUtil.dump_ori_dir if DumpUtil.dump_ori_dir else "./"
+    Path(dump_root_dir).mkdir(mode=0o750, parents=True, exist_ok=True)
+    rank_dir = os.path.join(dump_root_dir, 'rank' + str(rank))
     if not os.path.exists(rank_dir):
         os.mkdir(rank_dir, mode=0o750)
     DumpUtil.dump_dir = rank_dir
-    dump_file_path = os.path.join(rank_dir, dump_file_name)
-    DumpUtil.set_dump_path(dump_file_path)
+    dump_file_path = os.path.join(rank_dir, dump_path)
+    dump_file_name = os.path.join(rank_dir, dump_file_name)
+    dump_stack_path = os.path.join(rank_dir, dump_stack_file)
+    DumpUtil.set_dump_path(dump_file_path, dump_file_name, dump_stack_path)
 
 
 def check_writable(dump_file):
