@@ -34,7 +34,7 @@ if "torch" in FRAMEWORK_TYPE:
 if "mindspore" in FRAMEWORK_TYPE:
     import mindspore
 
-def fix_random(seed):
+def fix_random(seed=16):
     random.seed(seed)
     os.environ["PYTHONSEED"] = str(seed)
     np.random.seed(seed)
