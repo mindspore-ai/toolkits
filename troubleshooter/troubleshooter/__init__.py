@@ -29,6 +29,7 @@ from __future__ import absolute_import
 from troubleshooter.common import FRAMEWORK_TYPE
 from troubleshooter import common, migrator, proposer, tracker, widget
 from troubleshooter.migrator import save
+from troubleshooter.widget import fix_random
 from troubleshooter.proposer import ProposalAction as proposal
 from troubleshooter.tracker import Tracker as tracking
 from troubleshooter.version import __version__

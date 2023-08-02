@@ -1,6 +1,6 @@
 ## troubleshooter.widget.fix_random
 
-> troubleshooter.widget.fix_random(seed)
+> troubleshooter.widget.fix_random(seed=16)
 
 固定python、numpy、pytorch、mindspore等随机性。
 
@@ -21,4 +21,4 @@
 
 ### 参数
 
-- seed：随机数种子。
+- seed（`int`，可选）：随机数种子，默认值16。
