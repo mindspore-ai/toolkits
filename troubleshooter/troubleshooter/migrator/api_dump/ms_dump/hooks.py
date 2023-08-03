@@ -26,21 +26,28 @@ backward_threading_id = 0
 
 class DumpUtil(object):
     dump_data_dir = None
+    dump_ori_dir = None
     dump_path = None
+    dump_file_name = None
+    dump_stack_file = None
     dump_switch = None
     dump_switch_mode = Const.ALL
     dump_switch_scope = []
     dump_init_enable = False
     dump_api_list = []
     backward_input = {}
-    dump_dir_tag = 'ms_dump'
     dump_stack_dic = {}
 
     @staticmethod
-    def set_dump_path(save_path):
-        DumpUtil.dump_path = save_path
-        DumpUtil.dump_init_enable = True
+    def set_ori_dir(path):
+        DumpUtil.dump_ori_dir = path
 
+    @staticmethod
+    def set_dump_path(dump_file_path, dump_file_name, dump_stack_file):
+        DumpUtil.dump_path = dump_file_path
+        DumpUtil.dump_file_name = dump_file_name
+        DumpUtil.dump_stack_file = dump_stack_file
+        DumpUtil.dump_init_enable = True
     @staticmethod
     def set_dump_switch(switch, mode, scope, api_list):
         DumpUtil.dump_switch = switch
@@ -99,8 +106,8 @@ class DumpUtil(object):
 
     @staticmethod
     def get_dump_path():
-        if DumpUtil.dump_path:
-            return DumpUtil.dump_path
+        if DumpUtil.dump_path and DumpUtil.dump_file_name and DumpUtil.dump_stack_file:
+            return DumpUtil.dump_path, DumpUtil.dump_file_name, DumpUtil.dump_stack_file
 
         if DumpUtil.dump_switch_mode == Const.ALL:
             raise RuntimeError("get_dump_path: the file path is empty,"
@@ -119,18 +126,15 @@ class DumpUtil(object):
         return DumpUtil.dump_switch == "ON"
 
 
-def set_dump_path(fpath=None, dump_tag='ms_dump'):
+def set_dump_path(fpath=None):
     if fpath is None:
         raise RuntimeError("set_dump_path '{}' error, please set a valid filename".format(fpath))
         return
     real_path = os.path.realpath(fpath)
-    if os.path.isdir(real_path):
-        print_error_log("set_dump_path '{}' error, please set a valid filename.".format(real_path))
-        raise CompareException(CompareException.INVALID_PATH_ERROR)
-    if os.path.exists(real_path):
-        os.remove(real_path)
-    DumpUtil.set_dump_path(real_path)
-    DumpUtil.dump_dir_tag = dump_tag
+    if not os.path.isdir(real_path):
+        print_info_log(
+            "The path '{}' does not exist, the path will be created automatically.".format(real_path))
+    DumpUtil.set_ori_dir(real_path)
 
 
 def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[]):
@@ -219,22 +223,19 @@ def seed_all(seed=1234):
     ms.set_seed(seed)
 
 
-def make_dump_dirs(rank, pid):
-    if DumpUtil.dump_path is not None:
-        dump_root_dir, dump_file_name = os.path.split(DumpUtil.dump_path)
-        dump_file_name_body, _ = os.path.splitext(dump_file_name)
-    else:
-        dump_root_dir, dump_file_name, dump_file_name_body = './', 'dump.pkl', 'dump'
-    tag_dir = os.path.join(dump_root_dir, DumpUtil.dump_dir_tag)
-    Path(tag_dir).mkdir(mode=0o750, parents=True, exist_ok=True)
-    rank_dir = os.path.join(tag_dir, 'rank' + str(rank))
+def make_dump_dirs(rank):
+    dump_file_name, dump_path = "mindspore_api_dump_info.pkl", "mindspore_api_dump"
+    dump_stack_file = "mindspore_api_dump_stack.json"
+    dump_root_dir = DumpUtil.dump_ori_dir if DumpUtil.dump_ori_dir else "./"
+    Path(dump_root_dir).mkdir(mode=0o750, parents=True, exist_ok=True)
+    rank_dir = os.path.join(dump_root_dir, 'rank' + str(rank))
     if not os.path.exists(rank_dir):
         os.mkdir(rank_dir, mode=0o750)
     DumpUtil.dump_dir = rank_dir
-    dump_file_path = os.path.join(rank_dir, dump_file_name)
-    if os.path.exists(dump_file_path) and not os.path.isdir(dump_file_path):
-        os.remove(dump_file_path)
-    DumpUtil.set_dump_path(dump_file_path)
+    dump_file_path = os.path.join(rank_dir, dump_path)
+    dump_file_name = os.path.join(rank_dir, dump_file_name)
+    dump_stack_path = os.path.join(rank_dir, dump_stack_file)
+    DumpUtil.set_dump_path(dump_file_path, dump_file_name, dump_stack_path)
 
 
 def make_dump_data_dir(dump_file_name):
@@ -276,7 +277,6 @@ def dump_stack_info(name_template, dump_file):
         stack_str.append(stack_line)
 
     DumpUtil.dump_stack_dic[prefix] = stack_str
-    dump_file = dump_file.replace("pkl", "json")
     json_str = json.dumps(DumpUtil.dump_stack_dic, indent=4)
 
     with os.fdopen(os.open(dump_file, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "w") as f:
@@ -288,31 +288,28 @@ def dump_stack_info(name_template, dump_file):
 
 
 def dump_acc_cmp(name, in_feat, out_feat, dump_step):
-    dump_file = DumpUtil.get_dump_path()
+    dump_path, dump_file_name, dump_stack_file = DumpUtil.get_dump_path()
     _set_dump_switch4api_list(name)
-
-    dump_file = modify_dump_path(dump_file, DumpUtil.dump_switch_mode)
 
     if DumpUtil.get_dump_switch():
         if DumpUtil.dump_init_enable:
             DumpUtil.dump_init_enable = False
-            DumpUtil.dump_data_dir = make_dump_data_dir(dump_file) \
+            DumpUtil.dump_data_dir = make_dump_data_dir(dump_path) \
                 if DumpUtil.dump_switch_mode not in [Const.STACK, Const.ACL] else ""
-            if os.path.exists(dump_file) and not os.path.isdir(dump_file):
-                check_writable(dump_file)
-                os.remove(dump_file)
+            if os.path.exists(dump_file_name) and not os.path.isdir(dump_file_name):
+                os.remove(dump_file_name)
 
         name_prefix = name
         name_template = f"{name_prefix}" + "_{}"
         if DumpUtil.dump_switch_mode == Const.API_LIST:
-            dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file)
+            dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name)
         elif DumpUtil.dump_switch_mode == Const.ALL:
-            dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file)
-            dump_stack_info(name_template, dump_file)
+            dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name)
+            dump_stack_info(name_template, dump_stack_file)
         elif DumpUtil.check_switch_scope(name_prefix):
-            dump_stack_info(name_template, dump_file)
+            dump_stack_info(name_template, dump_stack_file)
             if DumpUtil.dump_switch_mode != Const.STACK:
-                dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file)
+                dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name)
 
 
 def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
