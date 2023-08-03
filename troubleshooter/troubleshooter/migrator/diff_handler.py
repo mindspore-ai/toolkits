@@ -195,7 +195,7 @@ def compare_npy_dir(
     *,
     name_map_list=None,
     compare_shape=False,
-    save_path=None
+    output_file=None
 ):
     none_and_isdir_check(orig_dir, 'orig_dir')
     none_and_isdir_check(target_dir, 'target_dir')
@@ -227,9 +227,9 @@ def compare_npy_dir(
         target_dir,
     )
     if compare_shape:
-        print_diff_result_with_shape(result_list, save_path=save_path)
+        print_diff_result_with_shape(result_list, output_file=output_file)
     else:
-        print_diff_result(result_list, save_path=save_path)
+        print_diff_result(result_list, output_file=output_file)
 
 
 def compare_grads_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, compare_shape=True):

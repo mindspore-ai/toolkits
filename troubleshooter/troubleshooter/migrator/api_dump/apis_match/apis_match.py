@@ -1,16 +1,50 @@
 import functools
 import json
+import os
 import re
 from collections import OrderedDict
 from typing import Any, List, Optional
 
 import numpy as np
+from prettytable import ALL, PrettyTable
 
 from .api_io_dict import pt_io_dict
 from .api_name_dict import pt_name_dict
 from .download_api_map import get_pt_api_dict
 
-__all__ = ['flow_match', 'APIList']
+__all__ = ['flow_match', 'APIList', '_print_apis_map_result']
+
+
+def _print_apis_map_result(
+    result_list, title=None, print_level=1, output_file=None, **kwargs
+):
+    # 0 Do not print
+    # Print All
+    # print False
+    if print_level == 0:
+        return
+    if not result_list:
+        return
+    field_names = kwargs.get('field_names', ["ORIG NET", "TARGET NET"])
+    x = PrettyTable(hrules=ALL)
+    if title is None:
+        x.title = 'The APIs mapping results of the two frameworks'
+    else:
+        x.title = title
+
+    x.field_names = field_names
+    for _orig, _target in result_list:
+        orig = [str(name) for name in _orig]
+        target = [str(name) for name in _target]
+        orig_str = "\n".join(orig) if orig else ""
+        target_str = "\n".join(target) if target else ""
+        x.add_row([orig_str, target_str])
+    print(x.get_string())
+    if output_file:
+        if not os.path.exists(os.path.dirname(output_file)):
+            raise ValueError(f"output_file {output_file} not exist")
+        with open(output_file, "w") as f:
+            f.write(x.get_csv_string() + os.linesep)
 
 
 def load_pkl(path: str):
@@ -312,10 +346,11 @@ def get_uni_name(framework: str, dump_type: str, name: str) -> str:
     Returns:
         str: 统一的算子名称
     """
-    assert framework in [
+    if framework not in [
         "pytorch",
         "mindspore",
-    ], "framework should be pytorch or mindspore."
+    ]:
+        raise NotImplementedError(f"not support {framework} now.")
     uni_name_map = get_uni_name_map()
     if (dump_type.lower(), name) in uni_name_map[framework]:
         return '_'.join(uni_name_map[framework][(dump_type.lower(), name)])

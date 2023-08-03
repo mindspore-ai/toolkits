@@ -13,6 +13,6 @@
 # limitations under the License.
 # ============================================================================
 
-from .apis_match import *
+from .apis_match import flow_match, APIList, _print_apis_map_result
 
-__all__ = ['flow_match', 'APIList']
+__all__ = ['flow_match', 'APIList', '_print_apis_map_result']
