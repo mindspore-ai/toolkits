@@ -20,6 +20,7 @@ import re
 from textwrap import fill
 import traceback
 from prettytable import PrettyTable
+from prettytable import ALL
 from troubleshooter.common.util import print_line
 from troubleshooter.common.ms_utils import get_errmsg_dict
 
@@ -128,7 +129,7 @@ def print_diff_result(result_list, title=None, print_level=1, **kwargs):
     print(x.get_string())
 
 
-def print_diff_result_with_shape(result_list, title=None, field_names=None, print_level=1, **kwargs):
+def print_diff_result_with_shape(result_list, title=None, field_names=None, print_level=1, save_path=None, **kwargs):
     # 0 Do not print
     # Print All
     # print False
@@ -156,6 +157,39 @@ def print_diff_result_with_shape(result_list, title=None, field_names=None, prin
         mean_max = ", ".join('%.5f' % r for r in result[7])
         x.add_row([result[0], result[1], result[2], result[3], result[4], ratio, cos_sim, mean_max])
     print(x.get_string())
+    if save_path:
+        assert os.path.exists(os.path.dirname(save_path)), f"save_path {save_path} not exist"
+        with open(save_path, "w") as f:
+            f.write(x.get_csv_string() + os.linesep)
+
+
+def print_apis_map_result(result_list, title=None, print_level=1, save_path=None, **kwargs):
+    # 0 Do not print
+    # Print All
+    # print False
+    if print_level == 0:
+        return
+    if not result_list:
+        return
+    field_names = kwargs.get('field_names', ["ORIG NET", "TARGET NET"])
+    x = PrettyTable(hrules=ALL)
+    if title is None:
+        x.title = 'The APIs mapping results of the two frameworks'
+    else:
+        x.title = title
+
+    x.field_names = field_names
+    for _orig, _target in result_list:
+        orig = [str(i) for i in _orig]
+        target = [str(i) for i in _target]
+        orig_str = "\n".join(orig) if orig else ""
+        target_str = "\n".join(target) if target else ""
+        x.add_row([orig_str, target_str])
+    print(x.get_string())
+    if save_path:
+        assert os.path.exists(os.path.dirname(save_path)), f"save_path {save_path} not exist"
+        with open(save_path, "w") as f:
+            f.write(x.get_csv_string() + os.linesep)
 
 
 def print_net_infer_diff_result(result_list):

@@ -186,7 +186,17 @@ def _cal_compare_npy_single_process(name, normal_orig_dir, normal_target_dir, rt
         return (orig_name, target_name, result, rel_ratio, cosine_sim, diff_detail)
 
 
-def compare_npy_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, *, name_map_list=None, compare_shape=False):
+def compare_npy_dir(
+    orig_dir,
+    target_dir,
+    rtol=1e-4,
+    atol=1e-4,
+    equal_nan=False,
+    *,
+    name_map_list=None,
+    compare_shape=False,
+    save_path=None
+):
     none_and_isdir_check(orig_dir, 'orig_dir')
     none_and_isdir_check(target_dir, 'target_dir')
     type_check(rtol, 'rtol', float)
@@ -201,17 +211,25 @@ def compare_npy_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False,
     normal_target_dir = validate_and_normalize_path(target_dir)
 
     with multiprocessing.Pool() as pool:
-        _compare_npy_single_process = functools.partial(_cal_compare_npy_single_process,
-                                          normal_orig_dir=normal_orig_dir, normal_target_dir=normal_target_dir,
-                                          rtol=rtol, atol=atol, equal_nan=equal_nan,
-                                          compare_shape=compare_shape)
+        _compare_npy_single_process = functools.partial(
+            _cal_compare_npy_single_process,
+            normal_orig_dir=normal_orig_dir,
+            normal_target_dir=normal_target_dir,
+            rtol=rtol,
+            atol=atol,
+            equal_nan=equal_nan,
+            compare_shape=compare_shape,
+        )
         result_list = pool.map(_compare_npy_single_process, name_map_list)
-    logger.user_attention("The compare directory information:\n The orig dir: %s \n The target dir: %s",
-                          orig_dir, target_dir)
+    logger.user_attention(
+        "The compare directory information:\n The orig dir: %s \n The target dir: %s",
+        orig_dir,
+        target_dir,
+    )
     if compare_shape:
-        print_diff_result_with_shape(result_list)
+        print_diff_result_with_shape(result_list, save_path=save_path)
     else:
-        print_diff_result(result_list)
+        print_diff_result(result_list, save_path=save_path)
 
 
 def compare_grads_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, compare_shape=True):

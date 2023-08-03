@@ -15,4 +15,4 @@
 
 from .apis_match import *
 
-__all__ = ['flow_match', 'APIList', 'print_apis_map_result']
+__all__ = ['flow_match', 'APIList']
