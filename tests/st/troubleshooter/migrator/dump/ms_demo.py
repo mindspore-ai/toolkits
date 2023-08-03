@@ -28,7 +28,7 @@ class Net(nn.Cell):
 
 if __name__ == "__main__":
     net = Net()
-    api_dump_init(net)
+    api_dump_init(net, "ms_dump")
     api_dump_start()
     grad_net = ms.grad(net, None, net.trainable_params())
     output = grad_net(ms.Tensor(np.random.random([1, 1, 2, 2]).astype(np.float32)))

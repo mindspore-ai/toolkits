@@ -39,8 +39,8 @@ def register_hook(net, hook, **kwargs):
     for _, cell in net.cells_and_names():
         if hasattr(cell, 'hook_name'):
             prefix_nn_name_ = "NN_" + str(cell.hook_name[5:]) + "_"
-            cell.register_forward_hook(hook(prefix_nn_name_ + "{}_" + "forward", forward=True))
-            cell.register_backward_hook(hook(prefix_nn_name_ + "{}_" + "backward", forward=False))
+            cell.register_forward_hook(hook(prefix_nn_name_ + "{}_" + "forward"))
+            cell.register_backward_hook(hook(prefix_nn_name_ + "{}_" + "backward"))
 
 
 def init_dump_config(kwargs):

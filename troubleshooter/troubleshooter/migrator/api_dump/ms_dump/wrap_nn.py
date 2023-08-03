@@ -43,10 +43,7 @@ def call_decorator(cls, name):
 
     def new_call(self, *args, **kwargs):
         changed = False
-        if _cell.g_stop_hook:
-            self._enable_forward_hook = False
-            self._enable_backward_hook = False
-        else:
+        if not _cell.g_stop_hook:
             _cell.g_stop_hook = True
             changed = True
 

@@ -19,7 +19,7 @@ def get_npy_map_list(
     target_npy_dir: str,
     ignore_backward: bool = False,
     ignore_unmatched: bool = False,
-) -> tuple[List, List]:
+):
     """covert apis_map to npy_map_list
 
     Args:

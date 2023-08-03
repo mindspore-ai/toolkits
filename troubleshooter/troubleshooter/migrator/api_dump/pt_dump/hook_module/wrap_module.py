@@ -40,15 +40,13 @@ def get_nn_module():
 def call_decorator(cls, name):
     original_call = cls.__call__
     cls.hook_name = "wrap_" + name
-    cls._enable_hook = True
 
     def new_call(self, *args, **kwargs):
         changed = False
-        if global_manage.get_value("g_stop_hook"):
-            self._enable_hook = False
-        else:
+        if not global_manage.get_value("g_stop_hook"):
             global_manage.set_value("g_stop_hook", True)
             changed = True
+
         result = original_call(self, *args, **kwargs)
         if changed:
             global_manage.set_value("g_stop_hook", False)
