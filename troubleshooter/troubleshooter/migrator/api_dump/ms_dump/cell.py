@@ -23,8 +23,6 @@ class HOOKCell(nn.Cell):
 
     def __init__(self, hook) -> None:
         super(HOOKCell, self).__init__()
-        self.input_args = tuple()
-        self.input_kwargs = dict()
         self.changed_status = False
 
         global g_stop_hook
@@ -37,8 +35,8 @@ class HOOKCell(nn.Cell):
 
             cell_count[prefix] += 1
             prefix = prefix + str(cell_count[prefix] - 1) + '_'
-            self.register_forward_hook(hook(prefix + "forward", forward=True))
-            self.register_backward_hook(hook(prefix + "backward", forward=False))
+            self.register_forward_hook(hook(prefix + "forward"))
+            self.register_backward_hook(hook(prefix + "backward"))
 
     # 重载call，加全局标志。
     def __call__(self, *args, **kwargs):

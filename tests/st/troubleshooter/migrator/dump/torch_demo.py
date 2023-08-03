@@ -31,7 +31,7 @@ class Net(nn.Module):
 
 if __name__ == "__main__":
     net = Net()
-    api_dump_init(net)
+    api_dump_init(net, "torch_dump")
     api_dump_start()
     criterion = nn.MSELoss()   # 均方损失函数
     optimizer = optim.SGD(net.parameters(), lr=0.01)
