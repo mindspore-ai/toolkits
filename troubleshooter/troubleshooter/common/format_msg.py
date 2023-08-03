@@ -128,7 +128,7 @@ def print_diff_result(result_list, title=None, print_level=1, **kwargs):
     print(x.get_string())
 
 
-def print_diff_result_with_shape(result_list, title=None, field_names=None, print_level=1, **kwargs):
+def print_diff_result_with_shape(result_list, title=None, field_names=None, print_level=1, output_file=None, **kwargs):
     # 0 Do not print
     # Print All
     # print False
@@ -156,6 +156,11 @@ def print_diff_result_with_shape(result_list, title=None, field_names=None, prin
         mean_max = ", ".join('%.5f' % r for r in result[7])
         x.add_row([result[0], result[1], result[2], result[3], result[4], ratio, cos_sim, mean_max])
     print(x.get_string())
+    if output_file:
+        if not os.path.exists(os.path.dirname(output_file)):
+            raise ValueError(f"output_file {output_file} not exist")
+        with open(output_file, "w") as f:
+            f.write(x.get_csv_string() + os.linesep)
 
 
 def print_net_infer_diff_result(result_list):

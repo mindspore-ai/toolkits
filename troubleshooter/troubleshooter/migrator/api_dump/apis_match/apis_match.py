@@ -1,21 +1,23 @@
 import functools
 import json
+import os
 import re
 from collections import OrderedDict
 from typing import Any, List, Optional
 
 import numpy as np
-from prettytable import ALL as ALL
-from prettytable import PrettyTable
+from prettytable import ALL, PrettyTable
 
 from .api_io_dict import pt_io_dict
 from .api_name_dict import pt_name_dict
 from .download_api_map import get_pt_api_dict
 
-__all__ = ['flow_match', 'APIList', 'print_apis_map_result']
+__all__ = ['flow_match', 'APIList', '_print_apis_map_result']
 
 
-def print_apis_map_result(result_list, title=None, print_level=1, **kwargs):
+def _print_apis_map_result(
+    result_list, title=None, print_level=1, output_file=None, **kwargs
+):
     # 0 Do not print
     # Print All
     # print False
@@ -32,12 +34,17 @@ def print_apis_map_result(result_list, title=None, print_level=1, **kwargs):
 
     x.field_names = field_names
     for _orig, _target in result_list:
-        orig = [str(i) for i in _orig]
-        target = [str(i) for i in _target]
+        orig = [str(name) for name in _orig]
+        target = [str(name) for name in _target]
         orig_str = "\n".join(orig) if orig else ""
         target_str = "\n".join(target) if target else ""
         x.add_row([orig_str, target_str])
     print(x.get_string())
+    if output_file:
+        if not os.path.exists(os.path.dirname(output_file)):
+            raise ValueError(f"output_file {output_file} not exist")
+        with open(output_file, "w") as f:
+            f.write(x.get_csv_string() + os.linesep)
 
 
 def load_pkl(path: str):
@@ -301,14 +308,10 @@ def GetUniIO(api_list: List, framework) -> Any:
                 api.forward_output_summery = forward_output_summery
 
 
-class GetMSUniName(object):
-    """获取框架之间的统一名字"""
-
-    def __init__(self) -> None:
-        _pt_dict = self._get_pt_api_dict()
-        self._uni_name_map = {"pytorch": _pt_dict, "mindspore": {}}
-
-    def _get_pt_api_dict(self):
+@functools.lru_cache()
+def get_uni_name_map():
+    # 在线获取pytorch字典
+    def _get_pt_api_dict():
         apis_dict = get_pt_api_dict()
         if apis_dict is None:
             print('load local pytorch name map.')
@@ -329,27 +332,29 @@ class GetMSUniName(object):
             ret.update({(pt_api_type, pt_api_name): (ms_api_type, ms_api_name)})
         return ret
 
-    def __call__(self, framework: str, dump_type: str, name: str) -> str:
-        """_summary_
-
-        Args:
-            framework (str): 框架
-            dump_type (str): 算子类型
-            name (str): 算子名称
-
-        Returns:
-            str: 统一的算子名称
-        """
-        assert framework in [
-            "pytorch",
-            "mindspore",
-        ], "framework should be pytorch or mindspore."
-        if (dump_type.lower(), name) in self._uni_name_map[framework]:
-            return '_'.join(self._uni_name_map[framework][(dump_type.lower(), name)])
-        return f'{dump_type.lower()}_{name}'
+    return {"pytorch": pt_name_dict, "mindspore": {}}
 
 
-get_uni_name = GetMSUniName()
+def get_uni_name(framework: str, dump_type: str, name: str) -> str:
+    """_summary_
+
+    Args:
+        framework (str): 框架
+        dump_type (str): 算子类型
+        name (str): 算子名称
+
+    Returns:
+        str: 统一的算子名称
+    """
+    if framework not in [
+        "pytorch",
+        "mindspore",
+    ]:
+        raise NotImplementedError(f"not support {framework} now.")
+    uni_name_map = get_uni_name_map()
+    if (dump_type.lower(), name) in uni_name_map[framework]:
+        return '_'.join(uni_name_map[framework][(dump_type.lower(), name)])
+    return f'{dump_type.lower()}_{name}'
 
 
 class APIsInterMatch:

@@ -1,17 +1,16 @@
 import glob
 import os
 
-from typing import List
+from typing import List, Optional
 import numpy as np
 from troubleshooter.migrator.diff_handler import compare_npy_dir, min_edit_distance
-
 from .apis_match import (
     APIList,
     flow_match,
-    print_apis_map_result,
+    _print_apis_map_result,
 )
 
-__all__ = ['APIDiffFinder']
+__all__ = ['api_dump_compare']
 
 
 def get_npy_map_list(
@@ -20,7 +19,7 @@ def get_npy_map_list(
     target_npy_dir: str,
     ignore_backward: bool = False,
     ignore_unmatched: bool = False,
-) -> List:
+) -> tuple[List, List]:
     """covert apis_map to npy_map_list
 
     Args:
@@ -165,63 +164,94 @@ def get_npy_map_list(
     return forward_list, backward_list
 
 
-class APIDiffFinder:
-    """API级别的精度比对工具，能够自动对API进行配对，然后比较两边算子输出的差异"""
+def get_dump_path(root_path):
+    if not os.path.exists(os.path.join(root_path, 'rank0')):
+        return None
 
-    def __init__(
-        self, print_api_map=True, ignore_backward=False, ignore_unmatched=False
+    if os.path.exists(
+        os.path.join(root_path, 'rank0', 'mindspore_api_dump')
+    ) and os.path.exists(
+        os.path.join(root_path, 'rank0', 'mindspore_api_dump_info.pkl')
     ):
-        self.print_api_map = print_api_map
-        self.ignore_backward = ignore_backward
-        self.ignore_unmatched = ignore_unmatched
-
-    def compare(
-        self,
-        orig_npy_dir: str,
-        target_npy_dir: str,
-        orig_pkl: str,
-        target_pkl: str,
-        orig_framework: str = 'pytorch',
-        target_framework: str = 'mindspore',
-    ):
-        """compare each api's output by the npy files dumped by the network.
-
-        Args:
-            orig_npy_dir (str): the directory of the npy files dumped by the original network.
-            target_npy_dir (str): the directory of the npy files dumped by the target network.
-            orig_pkl (str): the pkl file of the original network.
-            target_pkl (str): the pkl file of the target network.
-            orig_framework (str, optional): the framework used by the original network. Defaults to 'pytorch'.
-            target_framework (str, optional): the framework used by the target network. Defaults to 'mindspore'.
-        """
-        assert orig_framework in ['pytorch', 'mindspore'] and target_framework in [
-            'pytorch',
+        return (
+            os.path.join(root_path, 'rank0', 'mindspore_api_dump'),
+            os.path.join(root_path, 'rank0', 'mindspore_api_dump_info.pkl'),
             'mindspore',
-        ], "framework not supported"
-        orig_pkl_list = APIList(orig_framework)
-        target_pkl_list = APIList(target_framework)
-        orig_pkl_list.Construct(orig_pkl)
-        target_pkl_list.Construct(target_pkl)
-        apis_map = flow_match(orig_pkl_list, target_pkl_list, 1.0)
-        if self.print_api_map:
-            print_apis_map_result(apis_map)
-        npy_forward_list, npy_backward_list = get_npy_map_list(
-            apis_map,
-            orig_npy_dir,
-            target_npy_dir,
-            ignore_backward=self.ignore_backward,
-            ignore_unmatched=self.ignore_unmatched,
         )
+    elif os.path.exists(
+        os.path.join(root_path, 'rank0', 'torch_api_dump')
+    ) and os.path.exists(os.path.join(root_path, 'rank0', 'torch_api_dump_info.pkl')):
+        return (
+            os.path.join(root_path, 'rank0', 'torch_api_dump'),
+            os.path.join(root_path, 'rank0', 'torch_api_dump_info.pkl'),
+            'pytorch',
+        )
+    else:
+        return None
+
+
+def api_dump_compare(
+    orign_path: str, target_path: str, output_path: Optional[str] = None, **kwargs
+):
+    """compare each api's output by the npy files dumped by the network.
+
+    Args:
+        orign_path (str): the directory of original network's dump files.
+        target_path (str): the directory of target network's dump files.
+        output_path (Optional[str], optional): the directory to save the compare result. Defaults to None.
+        ignore_backward (bool, optional): whether to ignore the backward npy files. Defaults to False.
+        ignore_unmatched (bool, optional): whether to ignore the unmatched npy files. Defaults to False.
+    """
+    ignore_backward = kwargs.get('ignore_backward', False)
+    ignore_unmatched = kwargs.get('ignore_unmatched', False)
+
+    orign_ret = get_dump_path(orign_path)
+    if orign_ret is None:
+        raise ValueError("orign_path is not a valid dump path")
+    orign_npy_path, orign_pkl_path, orign_framework = orign_ret
+    target_ret = get_dump_path(target_path)
+    if target_ret is None:
+        raise ValueError("target_path is not a valid dump path")
+    target_npy_path, target_pkl_path, target_framework = target_ret
+    if output_path is None:
+        save_map_path = None
+        save_forward_path = None
+        save_backward_path = None
+        field_names = None
+    else:
+        os.makedirs(output_path, exist_ok=True)
+        save_map_path = os.path.join(output_path, 'ts_api_mapping.csv')
+        save_forward_path = os.path.join(output_path, 'ts_api_forward_compare.csv')
+        save_backward_path = os.path.join(output_path, 'ts_api_backward_compare.csv')
+        field_names = [
+            f"ORIG NET ({orign_framework})",
+            f"TARGET NET ({target_framework})",
+        ]
+    orig_pkl_list = APIList(orign_framework)
+    target_pkl_list = APIList(target_framework)
+    orig_pkl_list.Construct(orign_pkl_path)
+    target_pkl_list.Construct(target_pkl_path)
+    apis_map = flow_match(orig_pkl_list, target_pkl_list, 1.0)
+    _print_apis_map_result(apis_map, output_file=save_map_path, field_names=field_names)
+    npy_forward_list, npy_backward_list = get_npy_map_list(
+        apis_map,
+        orign_npy_path,
+        target_npy_path,
+        ignore_backward=ignore_backward,
+        ignore_unmatched=ignore_unmatched,
+    )
+    compare_npy_dir(
+        orign_npy_path,
+        target_npy_path,
+        name_map_list=npy_forward_list,
+        compare_shape=True,
+        output_file=save_forward_path,
+    )
+    if not ignore_backward:
         compare_npy_dir(
-            orig_npy_dir,
-            target_npy_dir,
-            name_map_list=npy_forward_list,
-            compare_shape=True
+            orign_npy_path,
+            target_npy_path,
+            name_map_list=npy_backward_list,
+            compare_shape=True,
+            output_file=save_backward_path,
         )
-        if not self.ignore_backward:
-            compare_npy_dir(
-                orig_npy_dir,
-                target_npy_dir,
-                name_map_list=npy_backward_list,
-                compare_shape=True
-            )
