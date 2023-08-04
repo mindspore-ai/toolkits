@@ -213,20 +213,19 @@ def api_dump_compare(
     if target_ret is None:
         raise ValueError("target_path is not a valid dump path")
     target_npy_path, target_pkl_path, target_framework = target_ret
+    field_names = [
+        f"ORIG NET ({orign_framework})",
+        f"TARGET NET ({target_framework})",
+    ]
     if output_path is None:
         save_map_path = None
         save_forward_path = None
         save_backward_path = None
-        field_names = None
     else:
         os.makedirs(output_path, exist_ok=True)
         save_map_path = os.path.join(output_path, 'ts_api_mapping.csv')
         save_forward_path = os.path.join(output_path, 'ts_api_forward_compare.csv')
         save_backward_path = os.path.join(output_path, 'ts_api_backward_compare.csv')
-        field_names = [
-            f"ORIG NET ({orign_framework})",
-            f"TARGET NET ({target_framework})",
-        ]
     orig_pkl_list = APIList(orign_framework)
     target_pkl_list = APIList(target_framework)
     orig_pkl_list.Construct(orign_pkl_path)
