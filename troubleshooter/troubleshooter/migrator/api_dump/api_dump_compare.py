@@ -191,12 +191,12 @@ def get_dump_path(root_path):
 
 
 def api_dump_compare(
-    orign_path: str, target_path: str, output_path: Optional[str] = None, **kwargs
+    origin_path: str, target_path: str, output_path: Optional[str] = None, **kwargs
 ):
     """compare each api's output by the npy files dumped by the network.
 
     Args:
-        orign_path (str): the directory of original network's dump files.
+        origin_path (str): the directory of original network's dump files.
         target_path (str): the directory of target network's dump files.
         output_path (Optional[str], optional): the directory to save the compare result. Defaults to None.
         ignore_backward (bool, optional): whether to ignore the backward npy files. Defaults to False.
@@ -205,16 +205,16 @@ def api_dump_compare(
     ignore_backward = kwargs.get('ignore_backward', False)
     ignore_unmatched = kwargs.get('ignore_unmatched', False)
 
-    orign_ret = get_dump_path(orign_path)
-    if orign_ret is None:
-        raise ValueError("orign_path is not a valid dump path")
-    orign_npy_path, orign_pkl_path, orign_framework = orign_ret
+    origin_ret = get_dump_path(origin_path)
+    if origin_ret is None:
+        raise ValueError("origin_path is not a valid dump path")
+    origin_npy_path, origin_pkl_path, origin_framework = origin_ret
     target_ret = get_dump_path(target_path)
     if target_ret is None:
         raise ValueError("target_path is not a valid dump path")
     target_npy_path, target_pkl_path, target_framework = target_ret
     field_names = [
-        f"ORIG NET ({orign_framework})",
+        f"ORIG NET ({origin_framework})",
         f"TARGET NET ({target_framework})",
     ]
     if output_path is None:
@@ -226,21 +226,21 @@ def api_dump_compare(
         save_map_path = os.path.join(output_path, 'ts_api_mapping.csv')
         save_forward_path = os.path.join(output_path, 'ts_api_forward_compare.csv')
         save_backward_path = os.path.join(output_path, 'ts_api_backward_compare.csv')
-    orig_pkl_list = APIList(orign_framework)
+    orig_pkl_list = APIList(origin_framework)
     target_pkl_list = APIList(target_framework)
-    orig_pkl_list.Construct(orign_pkl_path)
+    orig_pkl_list.Construct(origin_pkl_path)
     target_pkl_list.Construct(target_pkl_path)
     apis_map = flow_match(orig_pkl_list, target_pkl_list, 1.0)
     _print_apis_map_result(apis_map, output_file=save_map_path, field_names=field_names)
     npy_forward_list, npy_backward_list = get_npy_map_list(
         apis_map,
-        orign_npy_path,
+        origin_npy_path,
         target_npy_path,
         ignore_backward=ignore_backward,
         ignore_unmatched=ignore_unmatched,
     )
     compare_npy_dir(
-        orign_npy_path,
+        origin_npy_path,
         target_npy_path,
         name_map_list=npy_forward_list,
         compare_shape=True,
@@ -248,7 +248,7 @@ def api_dump_compare(
     )
     if not ignore_backward:
         compare_npy_dir(
-            orign_npy_path,
+            origin_npy_path,
             target_npy_path,
             name_map_list=npy_backward_list,
             compare_shape=True,
