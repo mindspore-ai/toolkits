@@ -14,14 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-
-
-import functools
-
-import torch
-import torch.nn as nn
-import torch.utils.hooks as full_hooks
 from collections import defaultdict
+
+import torch.nn as nn
+
+from ... import universal_interface
 from ..common import global_manage
 
 module_count = defaultdict(int)
@@ -43,7 +40,8 @@ class HOOKModule(nn.Module):
             prefix = prefix + str(module_count[prefix] - 1) + '_'
 
             self.register_forward_hook(hook(prefix + "forward"))
-            self.register_full_backward_hook(hook(prefix + "backward"))
+            if universal_interface.g_retain_backward:
+                self.register_full_backward_hook(hook(prefix + "backward"))
 
     def __call__(self, *input, **kwargs):
         result = super(HOOKModule, self).__call__(*input, **kwargs)
