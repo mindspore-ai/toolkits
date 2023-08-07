@@ -1,10 +1,13 @@
 import functools
-import mindspore as ms
 import os
 
-from . import wrap_functional, wrap_tensor, wrap_nn, wrap_sub_tensor
+import mindspore as ms
+
+from .. import universal_interface
+from . import wrap_functional, wrap_nn, wrap_sub_tensor, wrap_tensor
 from .hooks import make_dump_dirs
-from .utils import print_error_log, Const, CompareException, check_file_or_directory_path, print_info_log
+from .utils import (CompareException, Const, check_file_or_directory_path, print_error_log,
+                    print_info_log)
 
 
 def initialize_hook(hook):
@@ -40,7 +43,8 @@ def register_hook(net, hook, **kwargs):
         if hasattr(cell, 'hook_name'):
             prefix_nn_name_ = "NN_" + str(cell.hook_name[5:]) + "_"
             cell.register_forward_hook(hook(prefix_nn_name_ + "{}_" + "forward"))
-            cell.register_backward_hook(hook(prefix_nn_name_ + "{}_" + "backward"))
+            if universal_interface.g_retain_backward:
+                cell.register_backward_hook(hook(prefix_nn_name_ + "{}_" + "backward"))
 
 
 def init_dump_config(kwargs):

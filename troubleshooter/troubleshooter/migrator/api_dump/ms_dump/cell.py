@@ -13,7 +13,10 @@
 # limitations under the License.
 # ============================================================================
 from collections import defaultdict
+
 from mindspore import nn
+
+from .. import universal_interface
 
 cell_count = defaultdict(int)
 g_stop_hook = False
@@ -36,7 +39,8 @@ class HOOKCell(nn.Cell):
             cell_count[prefix] += 1
             prefix = prefix + str(cell_count[prefix] - 1) + '_'
             self.register_forward_hook(hook(prefix + "forward"))
-            self.register_backward_hook(hook(prefix + "backward"))
+            if universal_interface.g_retain_backward:
+                self.register_backward_hook(hook(prefix + "backward"))
 
     # 重载call，加全局标志。
     def __call__(self, *args, **kwargs):
