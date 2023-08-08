@@ -331,8 +331,8 @@ ts.save(file, x1)
 ts.save(file, x2)
 # /tmp/save/1_torch_tensor.npy
 ts.save(None, {"x1":x1, "x2":x2}, suffix="torch")
-# ./2_tensor_(2,)_x1_torch.npy
-# ./2_tensor_(2, 1)_x2_torch.npy
+# ./2_tensor_x1_(2,)_torch.npy
+# ./2_tensor_x2_(2, 1)_torch.npy
 ```
 
 ## 应用场景4：比较两组tensor值(npy文件)是否相等

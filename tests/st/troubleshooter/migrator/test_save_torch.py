@@ -168,34 +168,34 @@ def test_torch_save_none():
     # multi auto_id=True
     assert np.allclose(np.load("1_tensor_(2, 3).npy"),
                        x1.cpu().detach().numpy())
-    assert np.allclose(np.load("2_tensor_()_0.npy"),
+    assert np.allclose(np.load("2_tensor_0_().npy"),
                        x0.cpu().detach().numpy())
-    assert np.allclose(np.load("2_tensor_(2, 3)_1.npy"),
+    assert np.allclose(np.load("2_tensor_1_(2, 3).npy"),
                        x1.cpu().detach().numpy())
-    assert np.allclose(np.load("3_tensor_()_x0.npy"),
+    assert np.allclose(np.load("3_tensor_x0_().npy"),
                        x0.cpu().detach().numpy())
-    assert np.allclose(np.load("3_tensor_(2, 3)_x1.npy"),
+    assert np.allclose(np.load("3_tensor_x1_(2, 3).npy"),
                        x1.cpu().detach().numpy())
-    assert np.allclose(np.load("4_tensor_()_x0_torch.npy"),
+    assert np.allclose(np.load("4_tensor_x0_()_torch.npy"),
                        x0.cpu().detach().numpy())
-    assert np.allclose(np.load("4_tensor_(2, 3)_x1_torch.npy"),
+    assert np.allclose(np.load("4_tensor_x1_(2, 3)_torch.npy"),
                        x1.cpu().detach().numpy())
-    assert np.allclose(np.load("tensor_()_x0_torch.npy"),
+    assert np.allclose(np.load("tensor_x0_()_torch.npy"),
                        x0.cpu().detach().numpy())
-    assert np.allclose(np.load("tensor_(2, 3)_x1_torch.npy"),
+    assert np.allclose(np.load("tensor_x1_(2, 3)_torch.npy"),
                        x1.cpu().detach().numpy())
 
     os.remove("tensor_()_torch.npy")
     os.remove("0_tensor_().npy")
     os.remove("1_tensor_(2, 3).npy")
-    os.remove("2_tensor_()_0.npy")
-    os.remove("2_tensor_(2, 3)_1.npy")
-    os.remove("3_tensor_()_x0.npy")
-    os.remove("3_tensor_(2, 3)_x1.npy")
-    os.remove("4_tensor_()_x0_torch.npy")
-    os.remove("4_tensor_(2, 3)_x1_torch.npy")
-    os.remove("tensor_()_x0_torch.npy")
-    os.remove("tensor_(2, 3)_x1_torch.npy")
+    os.remove("2_tensor_0_().npy")
+    os.remove("2_tensor_1_(2, 3).npy")
+    os.remove("3_tensor_x0_().npy")
+    os.remove("3_tensor_x1_(2, 3).npy")
+    os.remove("4_tensor_x0_()_torch.npy")
+    os.remove("4_tensor_x1_(2, 3)_torch.npy")
+    os.remove("tensor_x0_()_torch.npy")
+    os.remove("tensor_x1_(2, 3)_torch.npy")
 
 
 @pytest.mark.level0
