@@ -212,38 +212,38 @@ def test_ms_save_none(mode):
                        x0.asnumpy())
     assert np.allclose(np.load("1_tensor_(2, 3).npy"),
                        x1.asnumpy())
-    assert np.allclose(np.load("2_tensor_()_0.npy"),
+    assert np.allclose(np.load("2_tensor_0_().npy"),
                        x0.asnumpy())
-    assert np.allclose(np.load("2_tensor_(2, 3)_1.npy"),
+    assert np.allclose(np.load("2_tensor_1_(2, 3).npy"),
                        x1.asnumpy())
-    assert np.allclose(np.load("3_tensor_()_x0.npy"),
+    assert np.allclose(np.load("3_tensor_x0_().npy"),
                        x0.asnumpy())
-    assert np.allclose(np.load("3_tensor_(2, 3)_x1.npy"),
+    assert np.allclose(np.load("3_tensor_x1_(2, 3).npy"),
                        x1.asnumpy())
     net = NetWorkSaveSimple(file, suffix="ms")
     net(x3)
     net(x3, auto_id=False)
     time.sleep(0.1)
-    assert np.allclose(np.load("4_tensor_()_x0_ms.npy"),
+    assert np.allclose(np.load("4_tensor_x0_()_ms.npy"),
                        x0.asnumpy())
-    assert np.allclose(np.load("4_tensor_(2, 3)_x1_ms.npy"),
+    assert np.allclose(np.load("4_tensor_x1_(2, 3)_ms.npy"),
                        x1.asnumpy())
-    assert np.allclose(np.load("tensor_()_x0_ms.npy"),
+    assert np.allclose(np.load("tensor_x0_()_ms.npy"),
                        x0.asnumpy())
-    assert np.allclose(np.load("tensor_(2, 3)_x1_ms.npy"),
+    assert np.allclose(np.load("tensor_x1_(2, 3)_ms.npy"),
                        x1.asnumpy())
 
     os.remove("tensor_()_ms.npy")
     os.remove("0_tensor_().npy")
     os.remove("1_tensor_(2, 3).npy")
-    os.remove("2_tensor_()_0.npy")
-    os.remove("2_tensor_(2, 3)_1.npy")
-    os.remove("3_tensor_()_x0.npy")
-    os.remove("3_tensor_(2, 3)_x1.npy")
-    os.remove("4_tensor_()_x0_ms.npy")
-    os.remove("4_tensor_(2, 3)_x1_ms.npy")
-    os.remove("tensor_()_x0_ms.npy")
-    os.remove("tensor_(2, 3)_x1_ms.npy")
+    os.remove("2_tensor_0_().npy")
+    os.remove("2_tensor_1_(2, 3).npy")
+    os.remove("3_tensor_x0_().npy")
+    os.remove("3_tensor_x1_(2, 3).npy")
+    os.remove("4_tensor_x0_()_ms.npy")
+    os.remove("4_tensor_x1_(2, 3)_ms.npy")
+    os.remove("tensor_x0_()_ms.npy")
+    os.remove("tensor_x1_(2, 3)_ms.npy")
 
 
 @pytest.mark.level0

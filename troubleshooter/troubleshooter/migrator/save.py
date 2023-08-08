@@ -187,23 +187,21 @@ def save(file, data, auto_id=True, suffix=None):
     if auto_id:
         _ts_save_cnt.add_one()
     cnt = _ts_save_cnt.get()
-    if isinstance(data, (list, tuple, dict, OrderedDict)):
-        for key, val in iterate_items(data):
-            item_name = name if name else "tensor_" + str(shape(val))
-            if val is None:
-                continue
-            if auto_id:
-                np.save(f"{path}{int(cnt)}_{item_name}_{key}_{suffix}" if suffix else
-                        f"{path}{int(cnt)}_{item_name}_{key}", numpy(val))
-            else:
-                np.save(f"{path}{item_name}_{key}_{suffix}" if suffix else
-                        f"{path}{item_name}_{key}", numpy(val))
-    else:
-        name = name if name else "tensor_" + str(shape(data))
-        if auto_id:
-            np.save(f"{path}{int(cnt)}_{name}_{suffix}" if suffix else
-                    f"{path}{int(cnt)}_{name}", numpy(data))
+    def _save(item_name, data):    
+        if isinstance(data, (list, tuple, dict, OrderedDict)):
+            for key, val in iterate_items(data):
+                _save(f"{item_name}_{key}", val)
         else:
-            np.save(f"{path}{name}_{suffix}" if suffix else f"{path}{name}",
-                    numpy(data))
+            if data is None:
+                return
+            if name == "":
+                item_name = f"{item_name}_{shape(data)}"
+            if auto_id:
+                np.save(f"{path}{int(cnt)}_{item_name}_{suffix}" if suffix else
+                        f"{path}{int(cnt)}_{item_name}", numpy(data))
+            else:
+                np.save(f"{path}{item_name}_{suffix}" if suffix else
+                        f"{path}{item_name}", numpy(data))
+    item_name = name if name else "tensor"
+    _save(item_name, data)
     return None
