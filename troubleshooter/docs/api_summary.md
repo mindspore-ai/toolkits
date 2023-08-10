@@ -48,6 +48,7 @@
 | 接口名                                                       | 描述                    |
 | ------------------------------------------------------------ | ----------------------- |
 | [troubleshooter.migrator.NetDifferenceFinder](api/migrator/NetDifferenceFinder.md) | 自动化比较网络输出结果 |
+| [troubleshooter.migrator.api_dump](api/migrator/api_dump.md) | API级别逐层比较网络结果 |
 
 ## 工具插件
 
