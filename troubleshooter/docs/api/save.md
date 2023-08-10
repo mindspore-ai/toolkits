@@ -10,7 +10,7 @@
 
 **文件保存格式**
 
-存储的文件名称为 **{id}\_name\_{idx/key}\_{suffix}.npy`**
+存储的文件名称为 **{id}\_name\_{idx/key}\_{suffix}.npy**
 
 > **Warning:**
 >
