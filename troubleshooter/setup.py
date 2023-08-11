@@ -131,6 +131,7 @@ setup(
     },
     install_requires=[
         'wheel',
+        'tdqm',
         'numpy',
         'pandas >= 1.3.5',
         'pyyaml',
