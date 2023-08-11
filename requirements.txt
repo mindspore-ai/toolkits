@@ -1,4 +1,5 @@
 wheel
+tqdm
 numpy
 pandas >= 1.3.5
 pyyaml

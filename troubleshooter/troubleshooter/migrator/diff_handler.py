@@ -20,6 +20,7 @@ import os
 from itertools import zip_longest
 
 import numpy as np
+from tqdm import tqdm
 
 from troubleshooter import log as logger
 from troubleshooter.common.format_msg import print_diff_result, print_diff_result_with_shape
@@ -209,7 +210,11 @@ def compare_npy_dir(
 
     normal_orig_dir = validate_and_normalize_path(orig_dir)
     normal_target_dir = validate_and_normalize_path(target_dir)
-
+    logger.user_attention(
+        "The compare directory information:\n The orig dir: %s \n The target dir: %s",
+        orig_dir,
+        target_dir,
+    )
     with multiprocessing.Pool() as pool:
         _compare_npy_single_process = functools.partial(
             _cal_compare_npy_single_process,
@@ -220,12 +225,8 @@ def compare_npy_dir(
             equal_nan=equal_nan,
             compare_shape=compare_shape,
         )
-        result_list = pool.map(_compare_npy_single_process, name_map_list)
-    logger.user_attention(
-        "The compare directory information:\n The orig dir: %s \n The target dir: %s",
-        orig_dir,
-        target_dir,
-    )
+        result_list = list(tqdm(pool.imap(_compare_npy_single_process, name_map_list), total=len(name_map_list)))
+
     if compare_shape:
         print_diff_result_with_shape(result_list, output_file=output_file)
     else:
