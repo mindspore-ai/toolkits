@@ -12,7 +12,7 @@ from .api_io_dict import pt_io_dict
 from .api_name_dict import pt_name_dict
 from .download_api_map import get_pt_api_dict
 
-__all__ = ['flow_match', 'APIList', '_print_apis_map_result']
+__all__ = ['flow_match', 'APIList', '_print_apis_map_result', 'load_pkl']
 
 
 def _print_apis_map_result(
@@ -25,7 +25,7 @@ def _print_apis_map_result(
         return
     if not result_list:
         return
-    field_names = kwargs.get('field_names', ["ORIG NET", "TARGET NET"])
+    field_names = kwargs.get('field_names', ["ORIGIN NET", "TARGET NET"])
     x = PrettyTable(hrules=ALL)
     if title is None:
         x.title = 'The APIs mapping results of the two frameworks'
@@ -33,12 +33,12 @@ def _print_apis_map_result(
         x.title = title
 
     x.field_names = field_names
-    for _orig, _target in result_list:
-        orig = [str(name) for name in _orig]
+    for _origin, _target in result_list:
+        origin = [str(name) for name in _origin]
         target = [str(name) for name in _target]
-        orig_str = "\n".join(orig) if orig else ""
+        origin_str = "\n".join(origin) if origin else ""
         target_str = "\n".join(target) if target else ""
-        x.add_row([orig_str, target_str])
+        x.add_row([origin_str, target_str])
     print(x.get_string())
     if output_file:
         if not os.path.exists(os.path.dirname(output_file)):
@@ -58,7 +58,15 @@ def load_pkl(path: str):
     return ret
 
 
-class APIDump:
+class APIDataNode:
+    def __init__(self, shape, dtype, summary) -> None:
+        # 此处大小需要作为key，需要转换为tuple
+        self.shape = tuple(shape)
+        self.dtype = dtype
+        self.summary = np.array(summary)
+
+
+class APINode:
     """单个API的对象，包含该api的基本信息，如名字、形状等。
     注意该对象名字、形状相同则认为相等，所以一个list里面可能有多个相等的对象但id并不相同。
     """
@@ -77,35 +85,30 @@ class APIDump:
         self.api_name = api_name
         self.api_id = api_id
         self.uni_name = get_uni_name(framework, dump_type, api_name)
-        self.dump_id = APIDump.api_dump_num
-        APIDump.api_dump_num += 1
+        self.dump_id = APINode.api_dump_num
+        APINode.api_dump_num += 1
 
-        # 此处大小需要作为key，需要转换为tuple
-        self.forward_input_shape = OrderedDict()
-        self.forward_output_shape = OrderedDict()
-        self.forward_input_type = OrderedDict()
-        self.forward_output_type = OrderedDict()
-        self.forward_input_summery = OrderedDict()
-        self.forward_output_summery = OrderedDict()
+        self.forward_input_data = OrderedDict()
+        self.forward_output_data = OrderedDict()
 
-        self.dump_list_index = index
+        self.l_index = index
 
     # def __hash__(self) -> int:
     #     return hash((self.uni_name, self.input_shape, self.output_shape))
     # NOTE 不要用list的index查找索引
     def __eq__(self, __value: object) -> bool:
-        def _eq_list(a, b):
+        def _eq_shape(a, b):
             if len(a) != len(b):
                 return False
-            for i, j in zip(a, b):
-                if i != j:
+            for i, j in zip(a.values(), b.values()):
+                if i.shape != j.shape:
                     return False
             return True
 
         return (
             self.uni_name == __value.uni_name
-            and _eq_list(self.forward_input_shape, __value.forward_input_shape)
-            and _eq_list(self.forward_output_shape, __value.forward_output_shape)
+            and _eq_shape(self.forward_input_data, __value.forward_input_data)
+            and _eq_shape(self.forward_output_data, __value.forward_output_data)
         )
 
     def __str__(self):
@@ -115,16 +118,7 @@ class APIDump:
         return f"{self.dump_type}_{self.api_name}_{self.api_id}"
 
     def update_api(
-        self,
-        dump_type,
-        api_name,
-        api_id,
-        direction,
-        data_io,
-        data_id,
-        data_type,
-        data_shape,
-        data_summery,
+        self, dump_type, api_name, api_id, direction, data_io, data_id, api_data
     ) -> bool:
         assert direction in [
             "forward",
@@ -138,13 +132,9 @@ class APIDump:
         ):
             if direction == "forward":
                 if data_io == "input":
-                    self.forward_input_type[data_id] = data_type
-                    self.forward_input_shape[data_id] = tuple(data_shape)
-                    self.forward_input_summery[data_id] = np.array(data_summery)
+                    self.forward_input_data[data_id] = api_data
                 else:
-                    self.forward_output_type[data_id] = data_type
-                    self.forward_output_shape[data_id] = tuple(data_shape)
-                    self.forward_output_summery[data_id] = np.array(data_summery)
+                    self.forward_output_data[data_id] = api_data
             else:
                 raise NotImplementedError("backward not implemented.")
         else:
@@ -168,7 +158,8 @@ class APIList:
         GetUniIO(self.api_list, self.framework)
 
     def _read_line(self, line):
-        prefix, dump_step, _, data_type, data_shape, data_summery = line
+        prefix, dump_step, _, data_type, data_shape, data_summary = line
+        api_data = APIDataNode(data_shape, data_type, data_summary)
 
         def _read_prefix(prefix):
             pattern = re.compile(
@@ -201,18 +192,16 @@ class APIList:
 
             if direction == "forward":
                 if len(self.api_list) == 0 or not self.api_list[-1].update_api(
-                    dump_type,
-                    api_name,
-                    api_id,
-                    direction,
-                    data_io,
-                    data_id,
-                    data_type,
-                    data_shape,
-                    data_summery,
+                    dump_type, api_name, api_id, direction, data_io, data_id, api_data
                 ):
                     self.api_list.append(
-                        APIDump(self.framework, dump_type, api_name, api_id)
+                        APINode(
+                            self.framework,
+                            dump_type,
+                            api_name,
+                            api_id,
+                            index=len(self.api_list),
+                        )
                     )
                     self.api_list[-1].update_api(
                         dump_type,
@@ -221,9 +210,7 @@ class APIList:
                         direction,
                         data_io,
                         data_id,
-                        data_type,
-                        data_shape,
-                        data_summery,
+                        api_data,
                     )
 
             # 忽略backward及其后面的内容
@@ -231,48 +218,50 @@ class APIList:
                 return False
         return True
 
+    def __iter__(self):
+        return iter(self.api_list)
 
-class APIInter:
+    def __next__(self):
+        return next(self.api_list)
+
+    def __getitem__(self, index):
+        return self.api_list[index]
+
+    def __len__(self):
+        return len(self.api_list)
+
+
+class APIInterNode:
     """API数据流之间的中间对象"""
 
     def __init__(
         self,
         output_api_name,
         input_api_name,
-        forward_output_shape,
-        forward_output_type,
-        forward_output_summery,
-        forward_input_shape,
-        forward_input_type,
-        forward_input_summery,
+        forward_output_data,
+        forward_input_data,
         index=[],
     ):
         self.output_api_name = output_api_name
         self.input_api_name = input_api_name
-        self.forward_input_shape = forward_input_shape
-        self.forward_output_shape = forward_output_shape
-        self.forward_input_type = forward_input_type
-        self.forward_output_type = forward_output_type
-        self.forward_input_summery = forward_input_summery
-        self.forward_output_summery = forward_output_summery
 
-        self.inter_list_index = index
+        self.forward_output_data = forward_output_data
+        self.forward_input_data = forward_input_data
 
-    def __repr__(self) -> str:
-        return f"{self.forward_output_shape}_{self.forward_input_shape}"
+        self.l_index = index
 
     def __eq__(self, __value: object) -> bool:
-        def _eq_list(a, b):
+        def _eq_shape(a, b):
             if len(a) != len(b):
                 return False
-            for i, j in zip(a, b):
-                if i != j:
+            for i, j in zip(a.values(), b.values()):
+                if i.shape != j.shape:
                     return False
             return True
 
-        return _eq_list(
-            self.forward_input_shape, __value.forward_input_shape
-        ) and _eq_list(self.forward_output_shape, __value.forward_output_shape)
+        return _eq_shape(
+            self.forward_input_data, __value.forward_input_data
+        ) and _eq_shape(self.forward_output_data, __value.forward_output_data)
 
 
 def GetUniIO(api_list: List, framework) -> Any:
@@ -285,27 +274,15 @@ def GetUniIO(api_list: List, framework) -> Any:
     for api in api_list:
         if (api.dump_type, api.api_name) in api_io_dict:
             if len(api_io_dict[(api.dump_type, api.api_name)][0]) != 0:
-                forward_input_shape = OrderedDict()
-                forward_input_type = OrderedDict()
-                forward_input_summery = OrderedDict()
+                forward_input_data = OrderedDict()
                 for k, v in api_io_dict[(api.dump_type, api.api_name)][0].items():
-                    forward_input_shape[k] = api.forward_input_shape[v]
-                    forward_input_type[k] = api.forward_input_type[v]
-                    forward_input_summery[k] = api.forward_input_summery[v]
-                api.forward_input_shape = forward_input_shape
-                api.forward_input_type = forward_input_type
-                api.forward_input_summery = forward_input_summery
+                    forward_input_data[k] = api.forward_input_data[v]
+                api.forward_input_data = forward_input_data
             if len(api_io_dict[(api.dump_type, api.api_name)][1]) != 0:
-                forward_output_shape = OrderedDict()
-                forward_output_type = OrderedDict()
-                forward_output_summery = OrderedDict()
+                forward_output_data = OrderedDict()
                 for k, v in api_io_dict[(api.dump_type, api.api_name)][1].items():
-                    forward_output_shape[k] = api.forward_output_shape[v]
-                    forward_output_type[k] = api.forward_output_type[v]
-                    forward_output_summery[k] = api.forward_output_summery[v]
-                api.forward_output_shape = forward_output_shape
-                api.forward_output_type = forward_output_type
-                api.forward_output_summery = forward_output_summery
+                    forward_output_data[k] = api.forward_output_data[v]
+                api.forward_output_data = forward_output_data
 
 
 @functools.lru_cache()
@@ -336,7 +313,7 @@ def get_uni_name_map():
 
 
 def get_uni_name(framework: str, dump_type: str, name: str) -> str:
-    """_summary_
+    """获取统一的算子名称
 
     Args:
         framework (str): 框架
@@ -372,151 +349,127 @@ class APIsInterMatch:
             ret = ret[:-1]
         return ret
 
-    def _get_map(self, orig_list, target_list, map_inter):
+    def _get_map(self, origin_list, target_list, map_inter):
         ret = []
-        orig_ptr = 0
+        origin_ptr = 0
         target_ptr = 0
-        for orig_idx, target_idx in map_inter:
+        for origin_idx, target_idx in map_inter:
             ret.append(
-                (orig_list[orig_ptr:orig_idx], target_list[target_ptr:target_idx])
+                (origin_list[origin_ptr:origin_idx], target_list[target_ptr:target_idx])
             )
-            orig_ptr, target_ptr = orig_idx, target_idx
-        ret.append((orig_list[orig_ptr:], target_list[target_ptr:]))
+            origin_ptr, target_ptr = origin_idx, target_idx
+        ret.append((origin_list[origin_ptr:], target_list[target_ptr:]))
         return ret
 
-    def _get_vertex(self, orig_list, target_list):
-        orig_inter = [
-            APIInter(
+    def _get_vertex(self, origin_list, target_list):
+        origin_inter = [
+            APIInterNode(
                 "",
-                orig_list[0].api_name,
-                [],
-                [],
-                [],
-                orig_list[0].forward_input_shape,
-                orig_list[0].forward_input_type,
-                orig_list[0].forward_input_summery,
+                origin_list[0].api_name,
+                OrderedDict(),
+                origin_list[0].forward_input_data,
                 index=0,
             )
         ]
-        for i in range(len(orig_list) - 1):
-            orig_inter.append(
-                APIInter(
-                    orig_list[i].api_name,
-                    orig_list[i + 1].api_name,
-                    orig_list[i].forward_output_shape,
-                    orig_list[i].forward_output_type,
-                    orig_list[i].forward_output_summery,
-                    orig_list[i + 1].forward_input_shape,
-                    orig_list[i + 1].forward_input_type,
-                    orig_list[i + 1].forward_input_summery,
+        for i in range(len(origin_list) - 1):
+            origin_inter.append(
+                APIInterNode(
+                    origin_list[i].api_name,
+                    origin_list[i + 1].api_name,
+                    origin_list[i].forward_output_data,
+                    origin_list[i + 1].forward_input_data,
                     index=i + 1,
                 )
             )
-        orig_inter.append(
-            APIInter(
-                orig_list[-1].api_name,
+        origin_inter.append(
+            APIInterNode(
+                origin_list[-1].api_name,
                 "",
-                orig_list[-1].forward_output_shape,
-                orig_list[-1].forward_output_type,
-                orig_list[-1].forward_output_summery,
-                [],
-                [],
-                [],
-                index=len(orig_list),
+                origin_list[-1].forward_output_data,
+                OrderedDict(),
+                index=len(origin_list),
             )
         )
         target_inter = [
-            APIInter(
+            APIInterNode(
                 "",
                 target_list[0].api_name,
-                [],
-                [],
-                [],
-                target_list[0].forward_input_shape,
-                target_list[0].forward_input_type,
-                target_list[0].forward_input_summery,
+                OrderedDict(),
+                target_list[0].forward_input_data,
                 index=0,
             )
         ]
         for i in range(len(target_list) - 1):
             target_inter.append(
-                APIInter(
+                APIInterNode(
                     target_list[i].api_name,
                     target_list[i + 1].api_name,
-                    target_list[i].forward_output_shape,
-                    target_list[i].forward_output_type,
-                    target_list[i].forward_output_summery,
-                    target_list[i + 1].forward_input_shape,
-                    target_list[i + 1].forward_input_type,
-                    target_list[i + 1].forward_input_summery,
+                    target_list[i].forward_output_data,
+                    target_list[i + 1].forward_input_data,
                     index=i + 1,
                 )
             )
         target_inter.append(
-            APIInter(
+            APIInterNode(
                 target_list[-1].api_name,
                 "",
-                target_list[-1].forward_output_shape,
-                target_list[-1].forward_output_type,
-                target_list[-1].forward_output_summery,
-                [],
-                [],
-                [],
+                target_list[-1].forward_output_data,
+                OrderedDict(),
                 index=len(target_list),
             )
         )
-        return orig_inter, target_inter
+        return origin_inter, target_inter
 
-    def _api_summery_sim(self, orig_inter, target_inter, err_threshold):
-        input_summery_diff = np.abs(
+    def _api_summary_sim(self, origin_inter, target_inter, err_threshold):
+        input_summary_diff = np.abs(
             np.array(
                 [
-                    i - j
+                    i.summary - j.summary
                     for i, j in zip(
-                        orig_inter.forward_input_summery,
-                        target_inter.forward_input_summery,
+                        origin_inter.forward_input_data.values(),
+                        target_inter.forward_input_data.values(),
                     )
                 ]
             )
         )
-        input_summery_sum = np.array(
+        input_summary_sum = np.array(
             [
-                np.abs(i) + np.abs(j)
+                np.abs(i.summary) + np.abs(j.summary)
                 for i, j in zip(
-                    orig_inter.forward_input_summery,
-                    target_inter.forward_input_summery,
+                    origin_inter.forward_input_data.values(),
+                    target_inter.forward_input_data.values(),
                 )
             ]
         )
-        output_summery_diff = np.abs(
+        output_summary_diff = np.abs(
             np.array(
                 [
-                    i - j
+                    i.summary - j.summary
                     for i, j in zip(
-                        orig_inter.forward_output_summery,
-                        target_inter.forward_output_summery,
+                        origin_inter.forward_output_data.values(),
+                        target_inter.forward_output_data.values(),
                     )
                 ]
             )
         )
-        output_summery_sum = np.array(
+        output_summary_sum = np.array(
             [
-                np.abs(i) + np.abs(j)
+                np.abs(i.summary) + np.abs(j.summary)
                 for i, j in zip(
-                    orig_inter.forward_output_summery,
-                    target_inter.forward_output_summery,
+                    origin_inter.forward_output_data.values(),
+                    target_inter.forward_output_data.values(),
                 )
             ]
         )
         if (
-            np.any(input_summery_diff / (input_summery_sum + 1e-6)) <= err_threshold
-            and np.any(output_summery_diff / (output_summery_sum + 1e-6))
+            np.any(input_summary_diff / (input_summary_sum + 1e-6)) <= err_threshold
+            and np.any(output_summary_diff / (output_summary_sum + 1e-6))
             <= err_threshold
         ):
             dist = (
                 np.arctan(
-                    np.linalg.norm(input_summery_diff)
-                    + np.linalg.norm(output_summery_diff)
+                    np.linalg.norm(input_summary_diff)
+                    + np.linalg.norm(output_summary_diff)
                 )
                 * 2
                 / np.pi
@@ -525,7 +478,7 @@ class APIsInterMatch:
             dist = 1
         return dist
 
-    def _api_name_sim(self, orig_inter, target_inter):
+    def _api_name_sim(self, origin_inter, target_inter):
         def _min_distance(word1: str, word2: str) -> int:
             @functools.lru_cache(None)
             def helper(i, j):
@@ -542,18 +495,22 @@ class APIsInterMatch:
             return helper(0, 0)
 
         input_dist = (
-            float(_min_distance(orig_inter.input_api_name, target_inter.input_api_name))
-            / max(len(orig_inter.input_api_name), len(target_inter.input_api_name))
-            if len(orig_inter.input_api_name) != 0
+            float(
+                _min_distance(origin_inter.input_api_name, target_inter.input_api_name)
+            )
+            / max(len(origin_inter.input_api_name), len(target_inter.input_api_name))
+            if len(origin_inter.input_api_name) != 0
             or len(target_inter.input_api_name) != 0
             else 1.0
         )
         output_dist = (
             float(
-                _min_distance(orig_inter.output_api_name, target_inter.output_api_name)
+                _min_distance(
+                    origin_inter.output_api_name, target_inter.output_api_name
+                )
             )
-            / max(len(orig_inter.output_api_name), len(target_inter.output_api_name))
-            if len(orig_inter.output_api_name) != 0
+            / max(len(origin_inter.output_api_name), len(target_inter.output_api_name))
+            if len(origin_inter.output_api_name) != 0
             or len(target_inter.output_api_name) != 0
             else 1.0
         )
@@ -561,34 +518,34 @@ class APIsInterMatch:
         # output_dist = 1. if output_dist > 0.5 else output_dist
         return (input_dist + output_dist) / 2
 
-    def _inter_match(self, orig_inter, target_inter, err_threshold):
+    def _inter_match(self, origin_inter, target_inter, err_threshold):
         dp = [
             [0 for _ in range(len(target_inter) + 1)]
-            for _ in range(len(orig_inter) + 1)
+            for _ in range(len(origin_inter) + 1)
         ]
         path = [
             [0 for _ in range(len(target_inter) + 1)]
-            for _ in range(len(orig_inter) + 1)
+            for _ in range(len(origin_inter) + 1)
         ]
 
         dp[0] = [i for i in range(len(target_inter) + 1)]
-        for i in range(len(orig_inter) + 1):
+        for i in range(len(origin_inter) + 1):
             dp[i][0] = i
 
-        for i in range(1, len(orig_inter) + 1):
+        for i in range(1, len(origin_inter) + 1):
             for j in range(1, len(target_inter) + 1):
                 dist = 1
-                if orig_inter[i - 1] == target_inter[j - 1]:
+                if origin_inter[i - 1] == target_inter[j - 1]:
                     if err_threshold < 1:
-                        dist = self._api_summery_sim(
-                            orig_inter[i - 1], target_inter[j - 1], err_threshold
+                        dist = self._api_summary_sim(
+                            origin_inter[i - 1], target_inter[j - 1], err_threshold
                         )
                     else:
                         dist = 0
 
                     if dist < 1:
                         name_dist = self._api_name_sim(
-                            orig_inter[i - 1], target_inter[j - 1]
+                            origin_inter[i - 1], target_inter[j - 1]
                         )
                         dist = (dist + name_dist) / 20
 
@@ -602,13 +559,13 @@ class APIsInterMatch:
                 path[i][j] = path_min[1]
 
         ret = []
-        i, j = len(orig_inter), len(target_inter)
+        i, j = len(origin_inter), len(target_inter)
         while i > 0 and j > 0:
             if path[i][j] == 1:
                 ret.append(
                     (
-                        orig_inter[i - 1].inter_list_index,
-                        target_inter[j - 1].inter_list_index,
+                        origin_inter[i - 1].l_index,
+                        target_inter[j - 1].l_index,
                     )
                 )
                 i -= 1
@@ -629,15 +586,9 @@ apis_match = APIsInterMatch()
 class FlowMatch:
     """用户匹配接口"""
 
-    def _set_api_index(self, orig_list, target_list):
-        for i, api in enumerate(orig_list):
-            api.index = i
-        for i, api in enumerate(target_list):
-            api.index = i
-
     def __call__(
         self,
-        orig_list: APIList,
+        origin_list: APIList,
         target_list: APIList,
         err_threshold: float = 1.0,
         ignore_shape=False,
@@ -645,11 +596,9 @@ class FlowMatch:
         assert (
             err_threshold >= 0 and err_threshold <= 1
         ), "err_threshold must be in [0., 1.]"
-        orig_list = orig_list.api_list
-        target_list = target_list.api_list
-        self._set_api_index(orig_list, target_list)
-        match = self._convinced_match(orig_list, target_list, ignore_shape)
-        unmatch = self._get_unmatch_api(orig_list, target_list, match)
+
+        match = self._convinced_match(origin_list, target_list, ignore_shape)
+        unmatch = self._get_unmatch_api(origin_list, target_list, match)
         unmatch_split = []
         for i in unmatch:
             if len(i[0]) == 0 or len(i[1]) == 0:
@@ -679,20 +628,26 @@ class FlowMatch:
                 ret += u
         return ret
 
-    def _convinced_match(self, orig_list, target_list, ignore_shape=False):
+    def _convinced_match(self, origin_list, target_list, ignore_shape=False):
         def _get_api_attr(api):
-            if ignore_shape:
+            if not ignore_shape:
+                forward_input_shape = tuple(
+                    [i.shape for i in api.forward_input_data.values()]
+                )
+                forward_output_shape = tuple(
+                    [i.shape for i in api.forward_output_data.values()]
+                )
                 return (
                     api.uni_name,
-                    tuple(api.forward_input_shape),
-                    tuple(api.forward_output_shape),
+                    forward_input_shape,
+                    forward_output_shape,
                 )
             else:
                 return api.uni_name
 
         api_count = {}
         api_match = []
-        for api in orig_list:
+        for api in origin_list:
             if api_count.get(_get_api_attr(api)):
                 api_count[_get_api_attr(api)] += 1
             else:
@@ -702,38 +657,30 @@ class FlowMatch:
                 api_count[_get_api_attr(api)] -= 1
         for k, v in api_count.items():
             if v == 0:
-                orig_api = [api for api in orig_list if _get_api_attr(api) == k]
+                origin_api = [api for api in origin_list if _get_api_attr(api) == k]
                 target_api = [api for api in target_list if _get_api_attr(api) == k]
-                api_match += list(zip(orig_api, target_api))
-        api_match = sorted(api_match, key=lambda x: x[0].index)
+                api_match += list(zip(origin_api, target_api))
+        api_match = sorted(api_match, key=lambda x: x[0].l_index)
         return api_match
 
-    def _get_unmatch_api(self, orig_list, target_list, conv_map):
-        last_orig = 0
+    def _get_unmatch_api(self, origin_list, target_list, conv_map):
+        last_origin = 0
         last_target = 0
-        unmatch_orig = []
+        unmatch_origin = []
         unmatch_target = []
-        for orig_api, target_api in conv_map:
-            if not isinstance(orig_api, list) and not isinstance(orig_api, tuple):
-                p_orig = orig_api.index
-                unmatch_orig.append(orig_list[last_orig:p_orig])
-                last_orig = p_orig + 1
-            else:
-                p_orig = orig_api[0].index
-                unmatch_orig.append(orig_list[last_orig:p_orig])
-                last_orig = orig_api[-1].index + 1
-            if not isinstance(target_api, list) and not isinstance(target_api, tuple):
-                p_target = target_api.index
-                unmatch_target.append(target_list[last_target:p_target])
-                last_target = p_target + 1
-            else:
-                p_target = target_api[0].index
-                unmatch_target.append(orig_list[last_target:p_target])
-                last_target = target_api[-1].index + 1
-        unmatch_orig.append(orig_list[last_orig:])
+        for origin_api, target_api in conv_map:
+            p_origin = origin_api.l_index
+            unmatch_origin.append(origin_list[last_origin:p_origin])
+            last_origin = p_origin + 1
+
+            p_target = target_api.l_index
+            unmatch_target.append(target_list[last_target:p_target])
+            last_target = p_target + 1
+
+        unmatch_origin.append(origin_list[last_origin:])
         unmatch_target.append(target_list[last_target:])
 
-        return list(zip(unmatch_orig, unmatch_target))
+        return list(zip(unmatch_origin, unmatch_target))
 
 
 flow_match = FlowMatch()
