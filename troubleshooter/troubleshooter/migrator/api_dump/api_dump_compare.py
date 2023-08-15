@@ -1,22 +1,20 @@
 import glob
 import os
+import re
 
 from typing import List, Optional
-import numpy as np
 from troubleshooter.migrator.diff_handler import compare_npy_dir, min_edit_distance
-from .apis_match import (
-    APIList,
-    flow_match,
-    _print_apis_map_result,
-)
+from .apis_match import APIList, flow_match, _print_apis_map_result, load_pkl
 
 __all__ = ['api_dump_compare']
 
 
 def get_npy_map_list(
     apis_map: List,
-    orig_npy_dir: str,
+    origin_npy_dir: str,
     target_npy_dir: str,
+    origin_pkl_path: str,
+    target_pkl_path: str,
     ignore_backward: bool = False,
     ignore_unmatched: bool = False,
 ):
@@ -24,8 +22,10 @@ def get_npy_map_list(
 
     Args:
         apis_map (List): 通过toolkit中的api_match生成的api映射表
-        orig_npy_dir (str): 原网络dump出的npy文件目录
+        origin_npy_dir (str): 原网络dump出的npy文件目录
         target_npy_dir (str): 目标网络dump出的npy文件目录
+        origin_pkl_path (str): 原网络dump出的pkl文件路径
+        target_pkl_path (str): 目标网络dump出的pkl文件路径
         ignore_backward (bool, optional): 是否忽略反向npy的比对. Defaults to False.
 
     Returns:
@@ -33,6 +33,26 @@ def get_npy_map_list(
     """
 
     def _get_npy_list(apis, io, npy_dir):
+        def _sorted_key(x):
+            pattern = re.compile(
+                r"^(\w+?)_(\w+)_(\d+)+_(\w+)_([io][nu]t?put)\.?(\d+)?\.?(\d+)?$"
+            )
+            prefix_con = re.findall(pattern, x[:-4])
+            if len(prefix_con) == 0:
+                print(f"ignore {x}")
+                return None
+            prefix_con = prefix_con[0]
+            if prefix_con[5] == "":
+                id0 = 0
+                id1 = 0
+            elif prefix_con[6] == "":
+                id0 = int(prefix_con[5])
+                id1 = 0
+            else:
+                id0 = int(prefix_con[5])
+                id1 = int(prefix_con[6])
+            return id0, id1
+
         npy_list = [
             os.path.basename(i)
             for i in glob.glob(os.path.join(npy_dir, f"{apis}_*{io}*"))
@@ -44,32 +64,53 @@ def get_npy_map_list(
                 forward_npy_list.append(i)
             elif "backward" in i:
                 backward_npy_list.append(i)
-        forward_npy_list = sorted(forward_npy_list)
-        backward_npy_list = sorted(backward_npy_list)
+        forward_npy_list = sorted(forward_npy_list, key=_sorted_key)
+        backward_npy_list = sorted(backward_npy_list, key=_sorted_key)
         return forward_npy_list, backward_npy_list
 
-    def _get_name_map_list(orig_name_list, target_name_list):
-        orig_shape_list = [
-            np.load(os.path.join(orig_npy_dir, orig_name)).shape
-            for orig_name in orig_name_list
+    def _get_npy_shape_map(pkl_path):
+        def _read_line(line):
+            prefix, dump_step, _, data_type, data_shape, data_summary = line
+            return {prefix: data_shape}
+
+        ret = {}
+
+        pkl = load_pkl(pkl_path)
+        for l in pkl:
+            shape = _read_line(l)
+            if shape:
+                ret.update(shape)
+        return ret
+
+    def _get_name_map_list(
+        origin_name_list, target_name_list, origin_shape_map, target_shape_map
+    ):
+        origin_shape_list = [
+            origin_shape_map[origin_name[:-4]] for origin_name in origin_name_list
         ]
         target_shape_list = [
-            np.load(os.path.join(target_npy_dir, target_name)).shape
-            for target_name in target_name_list
+            target_shape_map[target_name[:-4]] for target_name in target_name_list
         ]
-        _, index_map_list = min_edit_distance(orig_shape_list, target_shape_list)
+        _, index_map_list = min_edit_distance(origin_shape_list, target_shape_list)
+        # print(index_map_list)
 
         name_map_list = [
             (
-                orig_name_list[a] if a is not None else None,
+                origin_name_list[a] if a is not None else None,
                 target_name_list[b] if b is not None else None,
             )
             for a, b in index_map_list
         ]
         return name_map_list
 
-    def _get_npy_map(orig_npy_list, target_npy_list, ignore_unmatched):
-        if len(orig_npy_list) == 0:
+    def _get_npy_map(
+        origin_npy_list,
+        target_npy_list,
+        origin_shape_map,
+        target_shape_map,
+        ignore_unmatched,
+    ):
+        if len(origin_npy_list) == 0:
             if len(target_npy_list) == 0:
                 return []
             else:
@@ -80,28 +121,33 @@ def get_npy_map_list(
             if len(target_npy_list) == 0:
                 if ignore_unmatched:
                     return []
-                return [(i, None) for i in orig_npy_list]
+                return [(i, None) for i in origin_npy_list]
             else:
-                ret = _get_name_map_list(orig_npy_list, target_npy_list)
+                ret = _get_name_map_list(
+                    origin_npy_list, target_npy_list, origin_shape_map, target_shape_map
+                )
                 if ignore_unmatched:
                     ret = [(i, j) for i, j in ret if i is not None and j is not None]
                 return ret
 
     forward_list = []
     backward_list = []
-    for orig_apis, target_apis in apis_map:
-        if len(orig_apis) != 0:
-            orig_input_forward, orig_input_backward = _get_npy_list(
-                orig_apis[0], 'input', orig_npy_dir
+    origin_shape_map = _get_npy_shape_map(origin_pkl_path)
+    target_shape_map = _get_npy_shape_map(target_pkl_path)
+
+    for origin_apis, target_apis in apis_map:
+        if len(origin_apis) != 0:
+            origin_input_forward, origin_input_backward = _get_npy_list(
+                origin_apis[0], 'input', origin_npy_dir
             )
-            orig_output_forward, orig_output_backward = _get_npy_list(
-                orig_apis[-1], 'output', orig_npy_dir
+            origin_output_forward, origin_output_backward = _get_npy_list(
+                origin_apis[-1], 'output', origin_npy_dir
             )
         else:
-            orig_input_forward = []
-            orig_input_backward = []
-            orig_output_forward = []
-            orig_output_backward = []
+            origin_input_forward = []
+            origin_input_backward = []
+            origin_output_forward = []
+            origin_output_backward = []
         if len(target_apis) != 0:
             target_input_forward, target_input_backward = _get_npy_list(
                 target_apis[0], 'input', target_npy_dir
@@ -116,27 +162,37 @@ def get_npy_map_list(
             target_output_backward = []
 
         input_forward_map = _get_npy_map(
-            orig_input_forward, target_input_forward, ignore_unmatched
+            origin_input_forward,
+            target_input_forward,
+            origin_shape_map,
+            target_shape_map,
+            ignore_unmatched,
         )
         forward_list += input_forward_map
         if not ignore_backward:
             input_backward_map = _get_npy_map(
-                orig_input_backward, target_input_backward, ignore_unmatched
+                origin_input_backward,
+                target_input_backward,
+                origin_shape_map,
+                target_shape_map,
+                ignore_unmatched,
             )
             backward_list += input_backward_map
 
         if not ignore_unmatched:
-            if orig_apis[1:-1]:
-                orig_inter_forward, orig_inter_backward = zip(
-                    *[_get_npy_list(i, '', orig_npy_dir) for i in orig_apis[1:-1]]
+            if origin_apis[1:-1]:
+                origin_inter_forward, origin_inter_backward = zip(
+                    *[_get_npy_list(i, '', origin_npy_dir) for i in origin_apis[1:-1]]
                 )
-                orig_inter_forward = [(i, None) for j in orig_inter_forward for i in j]
-                orig_inter_backward = [
-                    (i, None) for j in orig_inter_backward for i in j
+                origin_inter_forward = [
+                    (i, None) for j in origin_inter_forward for i in j
                 ]
-                forward_list += orig_inter_forward
+                origin_inter_backward = [
+                    (i, None) for j in origin_inter_backward for i in j
+                ]
+                forward_list += origin_inter_forward
                 if not ignore_backward:
-                    backward_list += orig_inter_backward
+                    backward_list += origin_inter_backward
             if target_apis[1:-1]:
                 target_inter_forward, target_inter_backward = zip(
                     *[_get_npy_list(i, '', target_npy_dir) for i in target_apis[1:-1]]
@@ -152,12 +208,20 @@ def get_npy_map_list(
                     backward_list += target_inter_backward
 
         output_forward_map = _get_npy_map(
-            orig_output_forward, target_output_forward, ignore_unmatched
+            origin_output_forward,
+            target_output_forward,
+            origin_shape_map,
+            target_shape_map,
+            ignore_unmatched,
         )
         forward_list += output_forward_map
         if not ignore_backward:
             output_backward_map = _get_npy_map(
-                orig_output_backward, target_output_backward, ignore_unmatched
+                origin_output_backward,
+                target_output_backward,
+                origin_shape_map,
+                target_shape_map,
+                ignore_unmatched,
             )
             backward_list += output_backward_map
 
@@ -214,7 +278,7 @@ def api_dump_compare(
         raise ValueError("target_path is not a valid dump path")
     target_npy_path, target_pkl_path, target_framework = target_ret
     field_names = [
-        f"ORIG NET ({origin_framework})",
+        f"ORIGIN NET ({origin_framework})",
         f"TARGET NET ({target_framework})",
     ]
     if output_path is None:
@@ -226,16 +290,18 @@ def api_dump_compare(
         save_map_path = os.path.join(output_path, 'ts_api_mapping.csv')
         save_forward_path = os.path.join(output_path, 'ts_api_forward_compare.csv')
         save_backward_path = os.path.join(output_path, 'ts_api_backward_compare.csv')
-    orig_pkl_list = APIList(origin_framework)
+    origin_pkl_list = APIList(origin_framework)
     target_pkl_list = APIList(target_framework)
-    orig_pkl_list.Construct(origin_pkl_path)
+    origin_pkl_list.Construct(origin_pkl_path)
     target_pkl_list.Construct(target_pkl_path)
-    apis_map = flow_match(orig_pkl_list, target_pkl_list, 1.0)
+    apis_map = flow_match(origin_pkl_list, target_pkl_list, 1.0)
     _print_apis_map_result(apis_map, output_file=save_map_path, field_names=field_names)
     npy_forward_list, npy_backward_list = get_npy_map_list(
         apis_map,
         origin_npy_path,
         target_npy_path,
+        origin_pkl_path,
+        target_pkl_path,
         ignore_backward=ignore_backward,
         ignore_unmatched=ignore_unmatched,
     )
