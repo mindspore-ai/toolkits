@@ -64,7 +64,7 @@ if __name__ == '__main__':
 - **接口使用**
 ```python
 # 导入precision_tracker接口
-from troubleshooter.wigdet import precision_tracker
+from troubleshooter.widget import precision_tracker
 ......
 # 执行分析
 abs_pb_filepath = './graphs_path/xxx.pb'
