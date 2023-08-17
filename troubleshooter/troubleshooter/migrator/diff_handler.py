@@ -266,40 +266,54 @@ def cal_algorithm(orig_value, target_value, rtol, atol, equal_nan):
             return input.astype(float)
 
     if orig_value is None or target_value is None:
-        result = False
-        return result, rel_ratio, cosine_sim, diff_detail
+        allclose_result = False
+        return allclose_result, rel_ratio, cosine_sim, diff_detail
+
     if orig_value.shape == target_value.shape:
         orig_value = handle_dtype(orig_value)
         target_value = handle_dtype(target_value)
-        result = np.allclose(orig_value, target_value, rtol=rtol, atol=atol, equal_nan=equal_nan)
+
+        # For scalar
         if not orig_value.shape:
             value_diff = np.abs(orig_value - target_value) if orig_value != target_value else np.array([])
         else:
             unequal_indices = np.where(orig_value != target_value)
             value_diff = np.abs(orig_value[unequal_indices] - target_value[unequal_indices])
+
         if value_diff.size > 0:
             value_mean = value_diff.mean()
             value_max = value_diff.max()
             diff_detail = value_mean, value_max
             cosine_sim = cal_cosine_sim(orig_value, target_value)
-            rel_ratio = np.isclose(orig_value, target_value, rtol=rtol, atol=atol,
-                                   equal_nan=equal_nan).sum()/np.size(orig_value)
+            isclose_num = np.isclose(orig_value, target_value, rtol=rtol, atol=atol, equal_nan=equal_nan).sum()
+            rel_ratio = isclose_num / np.size(orig_value)
+            allclose_result = isclose_num == np.size(orig_value)
         else:
             diff_detail = (0, 0)
             cosine_sim = 1
             rel_ratio = 1
+            allclose_result = True
     else:
-        result = "Shape is inconsistent"
+        allclose_result = "Shape is inconsistent"
 
-    return result, rel_ratio, cosine_sim, diff_detail
+    return allclose_result, rel_ratio, cosine_sim, diff_detail
+
 
 def cal_cosine_sim(a, b):
+    np.seterr(divide='ignore', invalid='ignore')
     a, b = a.flatten(), b.flatten()
-    sim = 0.
+    eps = np.finfo(float).eps
+
     num = np.dot(a, b)
-    denom = np.linalg.norm(a) * np.linalg.norm(b)
-    if not denom == 0.:
-        sim = num / denom
-    elif np.allclose(a, b):
-        sim = 1.
-    return sim
+    a_norm = np.linalg.norm(a)
+    b_norm = np.linalg.norm(b)
+
+    if a_norm <= eps and b_norm <= eps:
+        result = np.array(1.)
+    elif a_norm <= eps or b_norm <= eps:
+        result = np.array(np.nan)
+    else:
+        result = num / (a_norm * b_norm)
+
+    result = float(result.clip(0, 1))
+    return result
