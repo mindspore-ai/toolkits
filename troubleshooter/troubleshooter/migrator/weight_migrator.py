@@ -20,6 +20,7 @@ from pprint import pprint
 
 import mindspore as ms
 import torch
+from tqdm import tqdm
 
 from troubleshooter import FRAMEWORK_TYPE
 from troubleshooter import log as logger
@@ -322,7 +323,7 @@ def compare_ms_ckpt(orig_file_path, target_file_path, **kwargs):
         name_map, _ = weight_map
         name_map = dict(zip(name_map.values(), name_map.keys()))
 
-    for orig_name, orig_parameter in orig_ckpt_dict.items():
+    for orig_name, orig_parameter in tqdm(orig_ckpt_dict.items()):
         if name_map:
             new_orig_name = name_map.get(orig_name)
         else:
