@@ -23,7 +23,7 @@ import numpy as np
 from tqdm import tqdm
 
 from troubleshooter import log as logger
-from troubleshooter.common.format_msg import print_diff_result, print_diff_result_with_shape
+from troubleshooter.common.format_msg import print_diff_result
 from troubleshooter.common.util import (find_file, none_and_isdir_check, type_check,
                                         validate_and_normalize_path)
 
@@ -227,10 +227,7 @@ def compare_npy_dir(
         )
         result_list = list(tqdm(pool.imap(_compare_npy_single_process, name_map_list), total=len(name_map_list)))
 
-    if compare_shape:
-        print_diff_result_with_shape(result_list, output_file=output_file)
-    else:
-        print_diff_result(result_list, output_file=output_file)
+    print_diff_result(result_list, output_file=output_file, show_shape_diff=compare_shape)
 
 
 def compare_grads_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, compare_shape=True):
@@ -289,9 +286,9 @@ def cal_algorithm(orig_value, target_value, rtol, atol, equal_nan):
             rel_ratio = isclose_num / np.size(orig_value)
             allclose_result = isclose_num == np.size(orig_value)
         else:
-            diff_detail = (0, 0)
-            cosine_sim = 1
-            rel_ratio = 1
+            diff_detail = (0., 0.)
+            cosine_sim = 1.
+            rel_ratio = 1.
             allclose_result = True
     else:
         allclose_result = "Shape is inconsistent"
@@ -315,5 +312,5 @@ def cal_cosine_sim(a, b):
     else:
         result = num / (a_norm * b_norm)
 
-    result = float(result.clip(0, 1))
+    result = float(result.clip(-1, 1))
     return result

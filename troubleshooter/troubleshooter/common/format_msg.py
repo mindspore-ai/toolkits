@@ -14,14 +14,16 @@
 # ============================================================================
 """format output"""
 
-import os
 import math
+import os
 import re
-from textwrap import fill
 import traceback
+from textwrap import fill
+
 from prettytable import PrettyTable
-from troubleshooter.common.util import print_line
+
 from troubleshooter.common.ms_utils import get_errmsg_dict
+from troubleshooter.common.util import print_line
 
 TABLE_WIDTH = 50
 DELIMITER_LEN = 100
@@ -99,7 +101,23 @@ def print_convert_result(result_list):
     print(x.get_string())
 
 
-def print_diff_result(result_list, title=None, print_level=1, **kwargs):
+def truncate_decimal(number, decimals):
+    if not math.isfinite(number):
+        return number
+    factor = 10 ** decimals
+    truncated_number = int(number * factor) / factor
+    return truncated_number
+
+
+def _format_compare_result(allclose_res, ratio, cos_sim, mean_max):
+    ratio = f"{truncate_decimal(ratio, 4):.2%}"
+    cos_sim = f"{truncate_decimal(cos_sim, 5):.5f}"
+    mean_max = f'{truncate_decimal(mean_max[0], 5):.5f}, {truncate_decimal(mean_max[1], 5):.5f}'
+    return [allclose_res, ratio, cos_sim, mean_max]
+
+
+def print_diff_result(result_list, title=None, print_level=1, field_names=None,
+                      show_shape_diff=False, output_file=None):
     # 0 Do not print
     # Print All
     # print False
@@ -107,59 +125,39 @@ def print_diff_result(result_list, title=None, print_level=1, **kwargs):
         return
     if not result_list:
         return
-    field_names = kwargs.get('field_names', ["orig array name", "target array name",
-                                             "results of comparison", "match ratio",
-                                             "cosine similarity", "(mean, max)"])
-    x = PrettyTable()
-    if title is None:
-        x.title = 'The list of comparison results'
-    else:
-        x.title = title
-
-    x.field_names = field_names
-
-    for result in result_list:
-        if print_level == 2 and result[2] is True:
-            continue
-        ratio = result[3] if math.isnan(result[3]) else "{:.2%}".format(result[3])
-        cos_sim = "%.5f" % float(result[4])
-        mean_max = result[5] if isinstance(result[5], str) else ", ".join('%.5f' % r for r in result[5])
-        x.add_row([result[0], result[1], result[2], ratio, cos_sim, mean_max])
-    print(x.get_string())
-
-
-def print_diff_result_with_shape(result_list, title=None, field_names=None, print_level=1, output_file=None, **kwargs):
-    # 0 Do not print
-    # Print All
-    # print False
-    if print_level == 0:
-        return
-    if not result_list:
-        return
+    if field_names is None:
+        field_names = ["orig array name", "target array name",
+                       "results of comparison", "match ratio",
+                       "cosine similarity", "(mean, max)"]
+    if show_shape_diff:
+        field_names = field_names[:2] + ["shape of orig", "shape of target"] + field_names[2:]
 
     x = PrettyTable()
     if title is None:
         x.title = 'The list of comparison results'
     else:
         x.title = title
-    field_names = kwargs.get('field_names', ["orig array name", "target array name",
-                                             "shape of orig", "shape of target",
-                                             "results of comparison",
-                                             "match ratio", "cosine similarity", "(mean, max)"])
     x.field_names = field_names
 
     for result in result_list:
-        if print_level == 2 and result[4] is True:
+        if show_shape_diff:
+            orig_name, target_name, orig_shape, target_shape, allclose_res, ratio, cos_sim, mean_max = result
+        else:
+            orig_name, target_name, allclose_res, ratio, cos_sim, mean_max = result
+        if print_level == 2 and allclose_res is True:
             continue
-        ratio = result[3] if math.isnan(result[5]) else "{:.2%}".format(result[5])
-        cos_sim = "%.5f" % float(result[6])
-        mean_max = ", ".join('%.5f' % r for r in result[7])
-        x.add_row([result[0], result[1], result[2], result[3], result[4], ratio, cos_sim, mean_max])
+        compare_res = _format_compare_result(allclose_res, ratio, cos_sim, mean_max)
+        if show_shape_diff:
+            basic_info = [orig_name, target_name, orig_shape, target_shape]
+        else:
+            basic_info = [orig_name, target_name]
+        x.add_row([*basic_info, *compare_res])
     print(x.get_string())
+
     if output_file:
         if not os.path.exists(os.path.dirname(output_file)):
             raise ValueError(f"output_file {output_file} not exist")
-        with open(output_file, "w") as f:
+        with os.fdopen(os.open(output_file, os.O_WRONLY | os.O_CREAT, 0o600), 'w') as f:
             f.write(x.get_csv_string() + os.linesep)
 
 
