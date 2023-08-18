@@ -291,8 +291,8 @@ def compare_ms_ckpt(orig_file_path, target_file_path, **kwargs):
     shape_field_names = kwargs.get('shape_field_names', None)
     value_field_names = kwargs.get('value_field_names', ["Parameter name of original ckpt",
                                                          "Parameter name of target ckpt",
-                                                         "results of comparison",
-                                                         "match ratio", "cosine similarity", "(mean, max)"])
+                                                         "result of allclose",
+                                                         "ratio of allclose", "cosine similarity", "mean & max diffs"])
     title = kwargs.get('title', 'The list of comparison results for values')
     compare_value = kwargs.get('compare_value', True)
     weight_map_path = kwargs.get('weight_map_path', None)
@@ -354,8 +354,8 @@ def compare_ms_ckpt(orig_file_path, target_file_path, **kwargs):
 def compare_pth_and_ckpt(weight_map_path, pt_file_path, ms_file_path, **kwargs):
     shape_field_names = ["Parameter name of torch", "Parameter name of MindSpore", "Whether shape are equal",
                          "Parameter shape of torch", "Parameter shape of MindSpore"]
-    value_field_names = ["Parameter name of torch", "Parameter name of MindSpore", "results of comparison",
-                         "match ratio", "cosine similarity", "(mean, max)"]
+    value_field_names = ["Parameter name of torch", "Parameter name of MindSpore", "result of allclose",
+                         "ratio of allclose", "cosine similarity", "mean & max diffs"]
     none_and_isfile_check(weight_map_path, 'weight_map_path')
     none_and_isfile_check(pt_file_path, 'pt_file_path')
     none_and_isfile_check(ms_file_path, 'ms_file_path')

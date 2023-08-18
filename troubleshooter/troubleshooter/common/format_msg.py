@@ -127,8 +127,8 @@ def print_diff_result(result_list, title=None, print_level=1, field_names=None,
         return
     if field_names is None:
         field_names = ["orig array name", "target array name",
-                       "results of comparison", "match ratio",
-                       "cosine similarity", "(mean, max)"]
+                       "result of allclose", "ratio of allclose",
+                       "cosine similarity", "mean & max diffs"]
     if show_shape_diff:
         field_names = field_names[:2] + ["shape of orig", "shape of target"] + field_names[2:]
 
@@ -165,7 +165,7 @@ def print_net_infer_diff_result(result_list):
     x = PrettyTable()
     x.title = 'The list of comparison results'
     x.field_names = ["Pytorch data", "MindSpore data",
-                     "results of comparison", "cosine similarity", "(mean, max)"]
+                     "result of allclose", "cosine similarity", "mean & max diffs"]
     for result in result_list:
         x.add_row([result[0], result[1], result[2], result[3], result[4]])
     print(x.get_string())
