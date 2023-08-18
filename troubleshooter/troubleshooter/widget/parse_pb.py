@@ -148,7 +148,8 @@ def precision_tracker(abs_pb_filepath, precision_flags=('normal', 'raise', 'redu
             output_index += 1
 
     output_file = os.path.join(output_path, output_filename)
-    with open(output_file, 'w', newline='') as fw:
+    flags = os.O_WRONLY | os.O_CREAT
+    with os.fdopen(os.open(output_file, flags, 0o400), 'w', newline='') as fw:
         writer = csv.writer(fw)
         writer.writerows(final_data)
 
