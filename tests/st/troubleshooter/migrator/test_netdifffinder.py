@@ -11,6 +11,8 @@ import mindspore.nn as m_nn
 import numpy as np
 from tests.util import check_delimited_list
 
+ts.fix_random()
+
 class TorchNet(t_nn.Module):
     def __init__(self) -> None:
         super().__init__()
