@@ -35,8 +35,8 @@ __all__ = ["NetDifferenceFinder", ]
 class NetDifferenceFinder:
     valid_kwargs = {"pt_params_path", "ms_params_path", "auto_conv_ckpt", "compare_params", "fix_seed"}
     TITLE = 'The comparison results of Net'
-    FIELD_NAMES = ["PyTorch out", "MindSpore out", "results of comparison", "match ratio", "cosine similarity",
-                   "(mean, max)"]
+    FIELD_NAMES = ["PyTorch out", "MindSpore out", "result of allclose", "ratio of allclose", "cosine similarity",
+                   "mean & max diffs"]
 
     def __init__(self, pt_net, ms_net, print_level=1, **kwargs):
         self.ms_net = ms_net
@@ -259,8 +259,8 @@ class NetDifferenceFinder:
                                                                "Whether shape are equal", "Parameter shape of torch",
                                                                "Parameter shape of MindSpore"],
                                             value_field_names=["Parameter name of torch", "Parameter name of MindSpore",
-                                                               "results of comparison", "match ratio",
-                                                               "cosine similarity", "(mean, max)"])
+                                                               "result of allclose", "ratio of allclose",
+                                                               "cosine similarity", "mean & max diffs"])
         else:
             print_separator_line("Start comparing PyTorch and MindSpore parameters", length=141)
             weight_map_path = os.path.join(self.out_path, "compare_convert.json")
