@@ -13,7 +13,7 @@ import mindspore as ms
 import numpy as np
 
 from .utils import (CompareException, Const, __version__, check_mode_valid, get_time,
-                    modify_dump_path, print_error_log, print_info_log)
+                    print_error_log, print_info_log, remove_dump_file)
 from .wrap_tensor import TensorFunc
 
 DumpCount = 0
@@ -37,6 +37,7 @@ class DumpUtil(object):
     dump_api_list = []
     backward_input = {}
     dump_stack_dic = {}
+    dump_filter_switch = None
 
     @staticmethod
     def set_ori_dir(path):
@@ -49,12 +50,14 @@ class DumpUtil(object):
         DumpUtil.dump_stack_file = dump_stack_file
         DumpUtil.dump_init_enable = True
     @staticmethod
-    def set_dump_switch(switch, mode, scope, api_list):
+    def set_dump_switch(switch, mode, scope, api_list, filter_switch, dump_mode):
         DumpUtil.dump_switch = switch
         DumpUtil.dump_switch_mode = mode
         DumpUtil.dump_init_enable = True
         DumpUtil.dump_switch_scope = scope
         DumpUtil.dump_api_list = [api.lower() for api in api_list]
+        DumpUtil.dump_filter_switch = filter_switch
+        DumpUtil.dump_mode = dump_mode
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
 
@@ -126,6 +129,59 @@ class DumpUtil(object):
         return DumpUtil.dump_switch == "ON"
 
 
+class DataInfo(object):
+    def __init__(self, data, save_data, summary_data, dtype, shape):
+        self.data = data
+        self.save_data = save_data
+        self.summary_data = summary_data
+        self.dtype = dtype
+        self.shape = shape
+
+
+def get_not_float_tensor_info(data):
+    summary_data = []
+    if data.numel() == 0 or data.dtype == ms.bool_:
+        tensor_max = []
+        tensor_min = []
+        tensor_mean = []
+    elif len(data.shape) == 0:
+        tensor_max = data.float().numpy().tolist()
+        tensor_min = data.float().numpy().tolist()
+        tensor_mean = data.float().numpy().tolist()
+    else:
+        tensor_max = TensorFunc["max"](data).float().numpy().tolist()
+        tensor_min = TensorFunc["min"](data).float().numpy().tolist()
+        tensor_mean = TensorFunc["mean"](data.float()).numpy().tolist()
+    saved_tensor = data.numpy()
+    summary_data.extend([tensor_max, tensor_min, tensor_mean])
+    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape))
+
+
+def get_scalar_data_info(data):
+    summary_data = [data, data, data]
+    return DataInfo(data, data, summary_data, str(type(data)), str([]))
+
+
+def get_float_tensor_info(data):
+    summary_data = []
+    tensor_max = TensorFunc["max"](data).float().numpy().tolist()
+    tensor_min = TensorFunc["min"](data).float().numpy().tolist()
+    tensor_mean = TensorFunc["mean"](data.float()).numpy().tolist()
+    saved_tensor = data.numpy()
+    summary_data.extend([tensor_max, tensor_min, tensor_mean])
+    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape))
+
+
+def check_in_api_list(name):
+    if not DumpUtil.dump_api_list:
+        return True
+    name = name.lower()
+    for v in DumpUtil.dump_api_list:
+        if v in name:
+            return True
+    return False
+
+
 def set_dump_path(fpath=None):
     if fpath is None:
         raise RuntimeError("set_dump_path '{}' error, please set a valid filename".format(fpath))
@@ -137,7 +193,7 @@ def set_dump_path(fpath=None):
     DumpUtil.set_ori_dir(real_path)
 
 
-def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[]):
+def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=Const.ALL):
     global DumpCount
     assert switch in ["ON", "OFF"], "Please set dump switch with 'ON' or 'OFF'."
     if mode == Const.LIST and switch == "ON":
@@ -162,7 +218,7 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[]):
     except (CompareException, AssertionError) as err:
         print_error_log(str(err))
         sys.exit()
-    DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list)
+    DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch, dump_mode=dump_mode)
 
 
 def set_backward_input(backward_input):
@@ -170,50 +226,37 @@ def set_backward_input(backward_input):
         DumpUtil.backward_input[api_name] = backward_input[index]
 
 
+def dump_data(dump_file_name, dump_step, prefix, data_info):
+    with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
+                   "a") as f:
+        if json_dump_condition(prefix):
+            output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
+            np.save(output_path, data_info.save_data)
+            json.dump([prefix, dump_step, [], data_info.dtype, data_info.shape, data_info.summary_data], f)
+            f.write('\n')
+
+
 def dump_tensor(x, prefix, dump_step, dump_file_name):
+    global data_info
     if isinstance(x, (tuple, list)) and x:
         for i, item in enumerate(x):
             dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name)
+        return
     elif isinstance(x, ms.Tensor):
         if x.numel() == 0 or len(x.shape) == 0 or not x.is_floating_point():
-            return
+            if DumpUtil.dump_filter_switch == Const.OFF:
+                data_info = get_not_float_tensor_info(x)
+                dump_data(dump_file_name, dump_step, prefix, data_info)
+            else:
+                return
+        else:
+            data_info = get_float_tensor_info(x)
+            dump_data(dump_file_name, dump_step, prefix, data_info)
 
-        with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
-                       "a") as f:
-            summery_data = []
-            tensor_max = TensorFunc["max"](x).float().numpy().tolist()
-            tensor_min = TensorFunc["min"](x).float().numpy().tolist()
-            tensor_mean = TensorFunc["mean"](x.float()).numpy().tolist()
-            dump_flag = Const.DUMP_RATIO_MAX + 1
-            saved_tensor = x.numpy()
-            summery_data.extend([tensor_max, tensor_min, tensor_mean])
-
-            output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
-            np.save(output_path, saved_tensor)
-            json.dump([prefix, dump_step, [], str(x.dtype), tuple(x.shape), summery_data], f)
-
-            f.write('\n')
-
-
-def _dump_tensor_completely(x, prefix, dump_file_name):
-    if "stack_info" in prefix:
-        with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "a") as f:
-            json.dump([prefix, x], f)
-            f.write('\n')
-        return
-
-    dump_flag = Const.DUMP_RATIO_MAX + 1
-    if isinstance(x, (tuple, list)) and x:
-        for i, item in enumerate(x):
-            _dump_tensor_completely(item, "{}.{}".format(prefix, i), dump_file_name)
-    elif isinstance(x, ms.Tensor):
-        with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "a") as f:
-            if x.numel() != 0:
-                output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
-                save_tensor = x.contiguous().cpu().detach().numpy()
-                np.save(output_path, save_tensor)
-                json.dump([prefix, dump_flag, [], str(x.dtype), tuple(x.shape)], f)
-            f.write('\n')
+    elif DumpUtil.dump_filter_switch == Const.OFF:
+        if isinstance(x, bool) or isinstance(x, int) or isinstance(x, float):
+            data_info = get_scalar_data_info(x)
+            dump_data(dump_file_name, dump_step, prefix, data_info)
 
 
 def seed_all(seed=1234):
@@ -250,17 +293,13 @@ def make_dump_data_dir(dump_file_name):
     return output_dir
 
 
-def _set_dump_switch4api_list(name):
-    if DumpUtil.dump_api_list:
-        api_name = name.rsplit("_", 2)[0].split("_", 1)[1].lower()
-        DumpUtil.dump_switch = "ON" if api_name in DumpUtil.dump_api_list else "OFF"
-
 def json_dump_condition(prefix):
     cur_threading_id = threading.current_thread().ident
     global backward_threading_id
     if not backward_threading_id and Const.BACKWARD in prefix:
         backward_threading_id = cur_threading_id
     return (Const.BACKWARD in prefix and backward_threading_id == cur_threading_id) or 'forward' in prefix
+
 
 def dump_stack_info(name_template, dump_file):
     stack_str = []
@@ -289,27 +328,24 @@ def dump_stack_info(name_template, dump_file):
 
 def dump_acc_cmp(name, in_feat, out_feat, dump_step):
     dump_path, dump_file_name, dump_stack_file = DumpUtil.get_dump_path()
-    _set_dump_switch4api_list(name)
+    if not check_in_api_list(name):
+        return
 
     if DumpUtil.get_dump_switch():
         if DumpUtil.dump_init_enable:
             DumpUtil.dump_init_enable = False
-            DumpUtil.dump_data_dir = make_dump_data_dir(dump_path) \
-                if DumpUtil.dump_switch_mode not in [Const.STACK, Const.ACL] else ""
-            if os.path.exists(dump_file_name) and not os.path.isdir(dump_file_name):
-                os.remove(dump_file_name)
+            DumpUtil.dump_data_dir = make_dump_data_dir(dump_path)
+            remove_dump_file(dump_file_name)
+            remove_dump_file(dump_stack_file)
 
         name_prefix = name
         name_template = f"{name_prefix}" + "_{}"
-        if DumpUtil.dump_switch_mode == Const.API_LIST:
-            dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name)
-        elif DumpUtil.dump_switch_mode == Const.ALL:
+        if DumpUtil.dump_switch_mode in [Const.ALL, Const.API_LIST]:
             dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name)
             dump_stack_info(name_template, dump_stack_file)
         elif DumpUtil.check_switch_scope(name_prefix):
+            dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name)
             dump_stack_info(name_template, dump_stack_file)
-            if DumpUtil.dump_switch_mode != Const.STACK:
-                dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name)
 
 
 def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):

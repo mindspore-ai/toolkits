@@ -226,3 +226,18 @@ def check_writable(dump_file):
                 dump_file))
         raise DumpException(DumpException.INVALID_PATH_ERROR)
 
+
+def remove_dump_file(dump_file):
+    if os.path.exists(dump_file) and not os.path.isdir(dump_file):
+        check_writable(dump_file)
+        os.remove(dump_file)
+
+
+def check_in_api_list(name):
+    if not DumpUtil.dump_api_list:
+        return True
+    name = name.lower()
+    for v in DumpUtil.dump_api_list:
+        if v in name:
+            return True
+    return False
