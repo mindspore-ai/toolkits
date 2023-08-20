@@ -1,6 +1,6 @@
 ## troubleshooter.migrator.compare_npy_dir
 
-> compare_npy_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, *, name_map_list=None, compare_shape=False)
+> troubleshooter.migrator.compare_npy_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, *, name_map_list=None, compare_shape=False, output_file=None)
 
 批量对比两个目录下名称**完全相同**的npy文件。
 
@@ -14,7 +14,8 @@
 - atol(`float`): 绝对误差，默认值为`1e-4`，内部调用`numpy.allclose`的参数。
 - equal_nan(`bool`): 是否将nan视为相等，默认值为 `False`，内部调用`numpy.allclose`的参数。
 - name_map_list(`list[tuple[str, str]]`): 自定义文件名映射列表，默认值为`None`。当需要指定源目录与目标目录的文件映射方式时，可以使用此参数。此参数类型为list[tuple[ori_file, target_file]]，例如`[(ms_file_0.npy, torch_file_0.npy),...]`
-- compare_shape(`bool`): 是否比较shape信息，默认值False。
+- compare_shape(`bool`): 是否比较shape信息，默认值`False`。
+- output_file(`str`): 比较结果导出为csv文件的路径，默认值`None`。
 
 ### 样例
 
