@@ -1,6 +1,6 @@
 ## troubleshooter.migrator.compare_grads_dir
 
-> troubleshooter.migrator.compare_grads_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, compare_shape=True)
+> troubleshooter.migrator.compare_grads_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, compare_shape=True, output_file=None)
 
 批量对比两个目录下使用[save](api/save.md)保存梯度得到的npy文件。
 
@@ -21,7 +21,8 @@
 - rtol(`float`): 相对误差，默认值为`1e-4`，内部调用`numpy.allclose`的参数。
 - atol(`float`): 绝对误差，默认值为`1e-4`，内部调用`numpy.allclose`的参数。
 - equal_nan(`bool`): 是否将nan视为相等，默认值为 `False`，内部调用`numpy.allclose`的参数。
-- compare_shape(`bool`): 是否比较shape信息，默认值True。
+- compare_shape(`bool`): 是否比较shape信息，默认值`True`。
+- output_file(`str`): 比较结果导出为csv文件的路径，默认值`None`。
 
 ### 样例
 

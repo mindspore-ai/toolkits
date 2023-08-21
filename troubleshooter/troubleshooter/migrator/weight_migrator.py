@@ -347,8 +347,9 @@ def compare_ms_ckpt(orig_file_path, target_file_path, **kwargs):
     for name, target_para in target_ckpt_dict.items():
         name_map_list.append((None, name, None, None, target_para.shape))
 
-    print_weight_compare_result(name_map_list, print_level=print_level, field_names=shape_field_names)
-    print_diff_result(value_map_list, title, print_level=print_level, field_names=value_field_names)
+    weight_compare_result = print_weight_compare_result(name_map_list, print_level=print_level, field_names=shape_field_names)
+    diff_result = print_diff_result(value_map_list, title, print_level=print_level, field_names=value_field_names)
+    return weight_compare_result + '\n' + diff_result
 
 
 def compare_pth_and_ckpt(weight_map_path, pt_file_path, ms_file_path, **kwargs):

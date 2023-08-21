@@ -87,6 +87,7 @@ def print_weight_compare_result(result_list, title=None, print_level=1, **kwargs
         elif print_level == 2 and result[2] is not True:
             x.add_row([result[0], result[1], result[2], result[3], result[4]])
     print(x.get_string())
+    return x.get_string()
 
 
 def print_convert_result(result_list):
@@ -159,6 +160,7 @@ def print_diff_result(result_list, title=None, print_level=1, field_names=None,
             raise ValueError(f"output_file {output_file} not exist")
         with os.fdopen(os.open(output_file, os.O_WRONLY | os.O_CREAT, 0o600), 'w') as f:
             f.write(x.get_csv_string() + os.linesep)
+    return x.get_string()
 
 
 def print_net_infer_diff_result(result_list):
