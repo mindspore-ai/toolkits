@@ -20,15 +20,15 @@ from .graph import mindinsight_anf_ir_pb2 as anf_ir_pb2
 from .graph.graph import MSGraph, OptimizedGraph
 from .graph.util import check_invalid_pb_file
 
-TITLE = ('算子名',
-         '全名',
-         '算子类型',
-         '升降精度标识',
-         '输入or输出',
-         '序号',
-         '输入or输出算子名',
-         '数据shape',
-         '数据dtype')
+TITLE = ('op_name',
+         'op_full_name',
+         'op_type',
+         'precision_flag',
+         'input or output',
+         'index',
+         'input from op or output to op',
+         'shape',
+         'dtype')
 
 
 class PbParser:
@@ -153,4 +153,4 @@ def precision_tracker(abs_pb_filepath, precision_flags=('normal', 'raise', 'redu
         writer = csv.writer(fw)
         writer.writerows(final_data)
 
-    print("文件分析完成，请查看结果文件：{output_file}")
+    print(f"文件分析完成，请查看结果文件：{output_file}")
