@@ -268,6 +268,8 @@ def api_dump_compare(
     """
     ignore_backward = kwargs.get('ignore_backward', False)
     ignore_unmatched = kwargs.get('ignore_unmatched', False)
+    convinced_match_method = kwargs.get('convinced_match_method', 'recursion')
+    min_recursion_len = kwargs.get('min_recursion_len', 50)
 
     origin_ret = get_dump_path(origin_path)
     if origin_ret is None:
@@ -292,9 +294,16 @@ def api_dump_compare(
         save_backward_path = os.path.join(output_path, 'ts_api_backward_compare.csv')
     origin_pkl_list = APIList(origin_framework)
     target_pkl_list = APIList(target_framework)
-    origin_pkl_list.Construct(origin_pkl_path)
-    target_pkl_list.Construct(target_pkl_path)
-    apis_map = flow_match(origin_pkl_list, target_pkl_list, 1.0)
+    origin_pkl_list.construct(origin_pkl_path)
+    target_pkl_list.construct(target_pkl_path)
+    apis_map = flow_match(
+        origin_pkl_list,
+        target_pkl_list,
+        err_threshold=1.0,
+        ignore_shape=False,
+        convinced_match_method=convinced_match_method,
+        min_recursion_len=min_recursion_len,
+    )
     _print_apis_map_result(apis_map, output_file=save_map_path, field_names=field_names)
     npy_forward_list, npy_backward_list = get_npy_map_list(
         apis_map,

@@ -154,3 +154,4 @@ cython_debug/
 *.xml
 .idea/
 .vscode
+troubleshooter/troubleshooter/version.py
