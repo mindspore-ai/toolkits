@@ -1,6 +1,6 @@
-## troubleshooter.widget.fix_random
+## troubleshooter.fix_random
 
-> troubleshooter.widget.fix_random(seed=16)
+> troubleshooter.fix_random(seed=16)
 
 固定python、numpy、pytorch、mindspore等随机性。
 
@@ -22,3 +22,21 @@
 ### 参数
 
 - seed（`int`，可选）：随机数种子，默认值16。
+
+### 用例
+
+```python
+# The following code runs repeatedly with the same result
+import troubleshooter as ts
+import numpy as np
+import mindspore as ms
+import torch
+ts.fix_random()
+
+np_a = np.random.rand(1, 3, 2)
+ms_a = ms.ops.rand(1, 3, 2)
+torch_a = torch.rand(1, 3, 2)
+print(np_a)
+print(ms_a)
+print(torch_a)
+```
