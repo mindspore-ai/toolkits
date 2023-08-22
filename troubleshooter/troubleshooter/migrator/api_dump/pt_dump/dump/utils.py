@@ -24,6 +24,7 @@ class DumpUtil(object):
     dump_api_list = []
     dump_filter_switch = None
     dump_mode = Const.ALL
+    dump_type = Const.ALL
     backward_input = {}
     dump_config = None
     dump_stack_dic = {}
@@ -44,7 +45,7 @@ class DumpUtil(object):
         DumpUtil.dump_config = dump_config
 
     @staticmethod
-    def set_dump_switch(switch, mode, scope, api_list, filter_switch, dump_mode):
+    def set_dump_switch(switch, mode, scope, api_list, filter_switch, dump_mode, dump_type):
         DumpUtil.dump_switch = switch
         DumpUtil.dump_switch_mode = mode
         DumpUtil.dump_init_enable = True
@@ -52,6 +53,7 @@ class DumpUtil(object):
         DumpUtil.dump_api_list = [api.lower() for api in api_list]
         DumpUtil.dump_filter_switch = filter_switch
         DumpUtil.dump_mode = dump_mode
+        DumpUtil.dump_type = dump_type
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
 
@@ -143,7 +145,8 @@ def generate_dump_path_str():
     return dump_path
 
 
-def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=Const.ALL):
+def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[],
+                    filter_switch=Const.ON, dump_mode=Const.ALL, dump_type=Const.ALL):
     try:
         check_mode_valid(mode)
         assert switch in ["ON", "OFF"], "Please set dump switch with 'ON' or 'OFF'."
@@ -166,7 +169,8 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
 
     if switch == "OFF":
         dump_path_str = generate_dump_path_str()
-    DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch, dump_mode=dump_mode)
+    DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list,
+                             filter_switch=filter_switch, dump_mode=dump_mode, dump_type=dump_type)
     if switch == "ON":
         dump_path_str = generate_dump_path_str()
 

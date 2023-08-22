@@ -32,6 +32,7 @@ class DumpUtil(object):
     dump_stack_file = None
     dump_switch = None
     dump_switch_mode = Const.ALL
+    dump_type = Const.ALL
     dump_switch_scope = []
     dump_init_enable = False
     dump_api_list = []
@@ -50,7 +51,7 @@ class DumpUtil(object):
         DumpUtil.dump_stack_file = dump_stack_file
         DumpUtil.dump_init_enable = True
     @staticmethod
-    def set_dump_switch(switch, mode, scope, api_list, filter_switch, dump_mode):
+    def set_dump_switch(switch, mode, scope, api_list, filter_switch, dump_mode, dump_type):
         DumpUtil.dump_switch = switch
         DumpUtil.dump_switch_mode = mode
         DumpUtil.dump_init_enable = True
@@ -58,6 +59,7 @@ class DumpUtil(object):
         DumpUtil.dump_api_list = [api.lower() for api in api_list]
         DumpUtil.dump_filter_switch = filter_switch
         DumpUtil.dump_mode = dump_mode
+        DumpUtil.dump_type = dump_type
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
 
@@ -193,7 +195,8 @@ def set_dump_path(fpath=None):
     DumpUtil.set_ori_dir(real_path)
 
 
-def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=Const.ALL):
+def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[],
+                    filter_switch=Const.ON, dump_mode=Const.ALL, dump_type=Const.ALL):
     global DumpCount
     assert switch in ["ON", "OFF"], "Please set dump switch with 'ON' or 'OFF'."
     if mode == Const.LIST and switch == "ON":
@@ -218,7 +221,8 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[], filter_switch
     except (CompareException, AssertionError) as err:
         print_error_log(str(err))
         sys.exit()
-    DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list, filter_switch=filter_switch, dump_mode=dump_mode)
+    DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list,
+                             filter_switch=filter_switch, dump_mode=dump_mode, dump_type=dump_type)
 
 
 def set_backward_input(backward_input):
@@ -226,37 +230,38 @@ def set_backward_input(backward_input):
         DumpUtil.backward_input[api_name] = backward_input[index]
 
 
-def dump_data(dump_file_name, dump_step, prefix, data_info):
+def dump_data(dump_file_name, dump_step, prefix, data_info, dump_type):
     with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
                    "a") as f:
         if json_dump_condition(prefix):
-            output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
-            np.save(output_path, data_info.save_data)
+            if dump_type == Const.ALL:
+                output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
+                np.save(output_path, data_info.save_data)
             json.dump([prefix, dump_step, [], data_info.dtype, data_info.shape, data_info.summary_data], f)
             f.write('\n')
 
 
-def dump_tensor(x, prefix, dump_step, dump_file_name):
+def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
     global data_info
     if isinstance(x, (tuple, list)) and x:
         for i, item in enumerate(x):
-            dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name)
+            dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name, dump_type)
         return
     elif isinstance(x, ms.Tensor):
         if x.numel() == 0 or len(x.shape) == 0 or not x.is_floating_point():
             if DumpUtil.dump_filter_switch == Const.OFF:
                 data_info = get_not_float_tensor_info(x)
-                dump_data(dump_file_name, dump_step, prefix, data_info)
+                dump_data(dump_file_name, dump_step, prefix, data_info, dump_type)
             else:
                 return
         else:
             data_info = get_float_tensor_info(x)
-            dump_data(dump_file_name, dump_step, prefix, data_info)
+            dump_data(dump_file_name, dump_step, prefix, data_info, dump_type)
 
     elif DumpUtil.dump_filter_switch == Const.OFF:
         if isinstance(x, bool) or isinstance(x, int) or isinstance(x, float):
             data_info = get_scalar_data_info(x)
-            dump_data(dump_file_name, dump_step, prefix, data_info)
+            dump_data(dump_file_name, dump_step, prefix, data_info, dump_type)
 
 
 def seed_all(seed=1234):
@@ -328,8 +333,6 @@ def dump_stack_info(name_template, dump_file):
 
 def dump_acc_cmp(name, in_feat, out_feat, dump_step):
     dump_path, dump_file_name, dump_stack_file = DumpUtil.get_dump_path()
-    if not check_in_api_list(name):
-        return
 
     if DumpUtil.get_dump_switch():
         if DumpUtil.dump_init_enable:
@@ -340,17 +343,26 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step):
 
         name_prefix = name
         name_template = f"{name_prefix}" + "_{}"
-        if DumpUtil.dump_switch_mode in [Const.ALL, Const.API_LIST]:
-            dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name)
+        if DumpUtil.dump_switch_mode == Const.ALL:
+            dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
             dump_stack_info(name_template, dump_stack_file)
-        elif DumpUtil.check_switch_scope(name_prefix):
-            dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name)
+        elif DumpUtil.dump_switch_mode == Const.API_LIST:
+            if not check_in_api_list(name):
+                return
+            dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
             dump_stack_info(name_template, dump_stack_file)
+        elif DumpUtil.dump_switch_mode in [Const.RANGE, Const.LIST]:
+            if DumpUtil.check_switch_scope(name_prefix):
+                dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
+                dump_stack_info(name_template, dump_stack_file)
+        else:
+            msg = f"Current mode '{DumpUtil.dump_switch_mode}' is not supported. Please use the field in {Const.DUMP_MODE}"
+            raise ValueError(msg)
 
 
-def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
-    dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file)
-    dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file)
+def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file, dump_type):
+    dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file, dump_type)
+    dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file, dump_type)
 
 
 def acc_cmp_dump(name, **kwargs):
