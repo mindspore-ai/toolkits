@@ -290,3 +290,8 @@ def get_time():
 
 def format_value(value):
     return '{:.6f}'.format(value)
+
+
+def remove_dump_file(dump_file):
+    if os.path.exists(dump_file) and not os.path.isdir(dump_file):
+        os.remove(dump_file)

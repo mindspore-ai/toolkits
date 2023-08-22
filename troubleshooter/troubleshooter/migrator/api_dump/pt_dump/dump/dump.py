@@ -31,10 +31,10 @@ except ImportError:
 else:
     is_gpu = False
 
-from .utils import DumpUtil, _set_dump_switch4api_list, make_dump_data_dir
+from .utils import DumpUtil, make_dump_data_dir
 
-from ..common.utils import print_warn_log, Const, print_info_log, modify_dump_path
-from ..dump.utils import check_writable
+from ..common.utils import print_warn_log, Const, print_info_log
+from ..dump.utils import check_in_api_list, remove_dump_file
 
 forward_init_status = False
 backward_init_status = False
@@ -42,6 +42,7 @@ backward_init_status = False
 backward_threading_id = 0
 
 NNCount = defaultdict(int)
+
 
 class DataInfo(object):
     def __init__(self, data, save_data, summary_data, dtype, shape):
@@ -163,30 +164,24 @@ def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file):
 
 def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
     dump_path, dump_file_name, dump_stack_file = DumpUtil.get_dump_path()
-    _set_dump_switch4api_list(name)
+    if not check_in_api_list(name):
+        return
 
     if DumpUtil.get_dump_switch():
         if DumpUtil.dump_init_enable:
             DumpUtil.dump_init_enable = False
-            DumpUtil.dump_data_dir = make_dump_data_dir(dump_path) \
-                if DumpUtil.dump_switch_mode not in [Const.STACK, Const.ACL] else ""
-            if os.path.exists(dump_file_name) and not os.path.isdir(dump_file_name):
-                check_writable(dump_file_name)
-                os.remove(dump_file_name)
+            DumpUtil.dump_data_dir = make_dump_data_dir(dump_path)
+            remove_dump_file(dump_file_name)
+            remove_dump_file(dump_stack_file)
 
         name_prefix = name
         name_template = f"{name_prefix}" + "_{}"
-        if DumpUtil.dump_switch_mode == Const.API_LIST:
-            dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name)
-        elif DumpUtil.dump_switch_mode == Const.ALL:
+        if DumpUtil.dump_switch_mode in [Const.ALL, Const.API_LIST]:
             dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name)
             dump_stack_info(name_template, dump_stack_file)
         elif DumpUtil.check_switch_scope(name_prefix):
+            dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name)
             dump_stack_info(name_template, dump_stack_file)
-            if DumpUtil.dump_switch_mode == Const.ACL:
-                acl_dump(module, name, name_prefix)
-            elif DumpUtil.dump_switch_mode != Const.STACK:
-                dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name)
 
 
 def acl_dump(module, module_name, name_prefix):

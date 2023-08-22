@@ -16,6 +16,7 @@ from __future__ import absolute_import
 
 import os
 from troubleshooter import FRAMEWORK_TYPE
+from troubleshooter.migrator.api_dump.pt_dump.common.utils import Const
 
 if "torch" in FRAMEWORK_TYPE:
     import torch
@@ -25,6 +26,7 @@ if "mindspore" in FRAMEWORK_TYPE:
 
 API_DUMP_FRAMEWORK_TYPE = None
 g_retain_backward  = None
+
 
 def api_dump_init(net, output_path=os.path.join(os.getcwd(), "ts_api_dump"), *, retain_backward=False):
     global API_DUMP_FRAMEWORK_TYPE
@@ -44,7 +46,8 @@ def api_dump_init(net, output_path=os.path.join(os.getcwd(), "ts_api_dump"), *, 
     g_retain_backward = retain_backward
     register_hook(net, acc_cmp_dump)
 
-def api_dump_start():
+
+def api_dump_start(mode=Const.ALL, scope=[], api_list=[], filter_switch=Const.ON, dump_mode=Const.ALL):
     if API_DUMP_FRAMEWORK_TYPE == "torch":
         from troubleshooter.migrator.api_dump.pt_dump import set_dump_switch
     elif API_DUMP_FRAMEWORK_TYPE == "mindspore":
@@ -52,7 +55,8 @@ def api_dump_start():
     else:
         raise RuntimeError("You must call 'troubleshooter.api_dump.init' before calling"
                            "'troubleshooter.api_dump.start' function.")
-    set_dump_switch("ON")
+    set_dump_switch("ON", mode, scope, api_list, filter_switch, dump_mode)
+
 
 def api_dump_stop():
     if API_DUMP_FRAMEWORK_TYPE == "torch":
