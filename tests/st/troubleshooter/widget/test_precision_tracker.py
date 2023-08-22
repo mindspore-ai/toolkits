@@ -25,7 +25,7 @@ def test_precision_tracker_all():
         with open(result_csv_path_list[0], 'r') as fr:
             reader = csv.DictReader(fr)
             for row in reader:
-                s2.add(row.get('升降精度标识'))
+                s2.add(row.get('precision_flag'))
         assert s1 == s2
 
 
@@ -49,5 +49,5 @@ def test_precision_tracker_part():
         with open(result_csv_path_list[0], 'r') as fr:
             reader = csv.DictReader(fr)
             for row in reader:
-                s2.add(row.get('升降精度标识'))
+                s2.add(row.get('precision_flag'))
         assert s1 == s2
