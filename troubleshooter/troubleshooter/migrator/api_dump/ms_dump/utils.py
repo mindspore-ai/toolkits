@@ -55,7 +55,7 @@ class Const:
     ACL = "acl"
     API_LIST = "api_list"
     API_STACK = "api_stack"
-    DUMP_MODE = [ALL, LIST, RANGE, STACK, ACL, API_LIST, API_STACK]
+    DUMP_MODE = [ALL, LIST, RANGE, API_LIST]
 
 
 class CompareException(Exception):
