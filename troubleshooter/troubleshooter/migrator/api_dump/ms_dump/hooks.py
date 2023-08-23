@@ -141,20 +141,20 @@ class DataInfo(object):
 
 
 def get_not_float_tensor_info(data):
+    saved_tensor = data.numpy()
     summary_data = []
-    if data.numel() == 0 or data.dtype == ms.bool_:
+    if saved_tensor.size == 0 or saved_tensor.dtype == np.bool_:
         tensor_max = []
         tensor_min = []
         tensor_mean = []
-    elif len(data.shape) == 0:
-        tensor_max = data.float().numpy().tolist()
-        tensor_min = data.float().numpy().tolist()
-        tensor_mean = data.float().numpy().tolist()
+    elif len(saved_tensor.shape) == 0:
+        tensor_max = saved_tensor.astype(np.float32).tolist()
+        tensor_min = saved_tensor.astype(np.float32).tolist()
+        tensor_mean = saved_tensor.astype(np.float32).tolist()
     else:
-        tensor_max = TensorFunc["max"](data).float().numpy().tolist()
-        tensor_min = TensorFunc["min"](data).float().numpy().tolist()
-        tensor_mean = TensorFunc["mean"](data.float()).numpy().tolist()
-    saved_tensor = data.numpy()
+        tensor_max = saved_tensor.max().astype(np.float32).tolist()
+        tensor_min = saved_tensor.min().astype(np.float32).tolist()
+        tensor_mean = saved_tensor.astype(np.float32).mean().tolist()
     summary_data.extend([tensor_max, tensor_min, tensor_mean])
     return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape))
 
@@ -166,10 +166,10 @@ def get_scalar_data_info(data):
 
 def get_float_tensor_info(data):
     summary_data = []
-    tensor_max = TensorFunc["max"](data).float().numpy().tolist()
-    tensor_min = TensorFunc["min"](data).float().numpy().tolist()
-    tensor_mean = TensorFunc["mean"](data.float()).numpy().tolist()
     saved_tensor = data.numpy()
+    tensor_max = saved_tensor.max().astype(np.float32).tolist()
+    tensor_min = saved_tensor.min().astype(np.float32).tolist()
+    tensor_mean = saved_tensor.mean().astype(np.float32).tolist()
     summary_data.extend([tensor_max, tensor_min, tensor_mean])
     return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape))
 
