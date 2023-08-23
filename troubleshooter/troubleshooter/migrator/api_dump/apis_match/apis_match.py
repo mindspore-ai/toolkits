@@ -338,12 +338,12 @@ def _get_uni_name(framework: str, dump_type: str, name: str) -> str:
 class APIsInterMatch:
     """核心匹配算法"""
 
-    def __call__(self, orig_list: List, target_list: List, err_threshold: float = 1.0):
-        orig_inter, target_inter = self._get_vertex(orig_list, target_list)
+    def __call__(self, origin_list: List, target_list: List, err_threshold: float = 1.0):
+        origin_inter, target_inter = self._get_vertex(origin_list, target_list)
         map_inter = self._inter_match(
-            orig_inter, target_inter, err_threshold=err_threshold
+            origin_inter, target_inter, err_threshold=err_threshold
         )
-        ret = self._get_map(orig_list, target_list, map_inter)
+        ret = self._get_map(origin_list, target_list, map_inter)
         if len(ret[0][0]) == 0 and len(ret[0][1]) == 0:
             ret = ret[1:]
         if len(ret[-1][0]) == 0 and len(ret[-1][1]) == 0:
