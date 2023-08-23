@@ -16,7 +16,7 @@ from __future__ import absolute_import
 
 import os
 from troubleshooter import FRAMEWORK_TYPE
-from troubleshooter.migrator.api_dump.pt_dump.common.utils import Const
+from troubleshooter.common.util import type_check
 
 if "torch" in FRAMEWORK_TYPE:
     import torch
@@ -47,7 +47,7 @@ def api_dump_init(net, output_path=os.path.join(os.getcwd(), "ts_api_dump"), *, 
     register_hook(net, acc_cmp_dump)
 
 
-def api_dump_start(mode='all', scope=[], dump_type="all", filter_switch='ON'):
+def api_dump_start(mode='all', scope=[], dump_type="all", filter_data=True):
     support_mode = {'all', 'list', 'api_list', 'range'}
     support_dump_type = {'all', 'statistics'}
     if mode not in support_mode:
@@ -56,9 +56,10 @@ def api_dump_start(mode='all', scope=[], dump_type="all", filter_switch='ON'):
         raise ValueError(msg)
     if dump_type not in support_dump_type:
         msg = "Current dump_type '%s' is not supported. Please use the field in %s" % \
-              (mode, support_dump_type)
+              (dump_type, support_dump_type)
         raise ValueError(msg)
-
+    type_check(filter_data, 'filter_data', bool)
+    filter_switch = 'ON' if filter_data else 'OFF'
     if API_DUMP_FRAMEWORK_TYPE == "torch":
         from troubleshooter.migrator.api_dump.pt_dump import set_dump_switch
     elif API_DUMP_FRAMEWORK_TYPE == "mindspore":
