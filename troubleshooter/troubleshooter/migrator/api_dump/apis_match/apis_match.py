@@ -2,7 +2,7 @@ import functools
 import json
 import os
 import re
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from typing import Any, List, Optional
 
 import numpy as np
@@ -84,7 +84,7 @@ class APINode:
         self.dump_type = dump_type
         self.api_name = api_name
         self.api_id = api_id
-        self.uni_name = get_uni_name(framework, dump_type, api_name)
+        self.uni_name = _get_uni_name(framework, dump_type, api_name)
         self.dump_id = APINode.api_dump_num
         APINode.api_dump_num += 1
 
@@ -94,7 +94,8 @@ class APINode:
         self.l_index = index
 
     # def __hash__(self) -> int:
-    #     return hash((self.uni_name, self.input_shape, self.output_shape))
+    #     return hash((self.uni_name, self.dump_id))
+
     # NOTE 不要用list的index查找索引
     def __eq__(self, __value: object) -> bool:
         def _eq_shape(a, b):
@@ -149,13 +150,13 @@ class APIList:
         self.api_list = []
         self.framework = framework
 
-    def Construct(self, pkl_path: str) -> Any:
+    def construct(self, pkl_path: str) -> Any:
         pkl = load_pkl(pkl_path)
         for l in pkl:
             ret = self._read_line(l)
             if not ret:
                 break
-        GetUniIO(self.api_list, self.framework)
+        _get_uni_io(self.api_list, self.framework)
 
     def _read_line(self, line):
         prefix, dump_step, _, data_type, data_shape, data_summary = line
@@ -264,7 +265,7 @@ class APIInterNode:
         ) and _eq_shape(self.forward_output_data, __value.forward_output_data)
 
 
-def GetUniIO(api_list: List, framework) -> Any:
+def _get_uni_io(api_list: List, framework) -> Any:
     if framework == 'mindspore':
         return
     elif framework == 'pytorch':
@@ -286,7 +287,7 @@ def GetUniIO(api_list: List, framework) -> Any:
 
 
 @functools.lru_cache()
-def get_uni_name_map():
+def _get_uni_name_map():
     # 在线获取pytorch字典
     def _get_pt_api_dict():
         apis_dict = get_pt_api_dict()
@@ -312,7 +313,7 @@ def get_uni_name_map():
     return {"pytorch": pt_name_dict, "mindspore": {}}
 
 
-def get_uni_name(framework: str, dump_type: str, name: str) -> str:
+def _get_uni_name(framework: str, dump_type: str, name: str) -> str:
     """获取统一的算子名称
 
     Args:
@@ -328,7 +329,7 @@ def get_uni_name(framework: str, dump_type: str, name: str) -> str:
         "mindspore",
     ]:
         raise NotImplementedError(f"not support {framework} now.")
-    uni_name_map = get_uni_name_map()
+    uni_name_map = _get_uni_name_map()
     if (dump_type.lower(), name) in uni_name_map[framework]:
         return '_'.join(uni_name_map[framework][(dump_type.lower(), name)])
     return f'{dump_type.lower()}_{name}'
@@ -337,12 +338,12 @@ def get_uni_name(framework: str, dump_type: str, name: str) -> str:
 class APIsInterMatch:
     """核心匹配算法"""
 
-    def __call__(self, orig_list: List, target_list: List, err_threshold: float = 1.0):
-        orig_inter, target_inter = self._get_vertex(orig_list, target_list)
+    def __call__(self, origin_list: List, target_list: List, err_threshold: float = 1.0):
+        origin_inter, target_inter = self._get_vertex(origin_list, target_list)
         map_inter = self._inter_match(
-            orig_inter, target_inter, err_threshold=err_threshold
+            origin_inter, target_inter, err_threshold=err_threshold
         )
-        ret = self._get_map(orig_list, target_list, map_inter)
+        ret = self._get_map(origin_list, target_list, map_inter)
         if len(ret[0][0]) == 0 and len(ret[0][1]) == 0:
             ret = ret[1:]
         if len(ret[-1][0]) == 0 and len(ret[-1][1]) == 0:
@@ -583,6 +584,266 @@ class APIsInterMatch:
 apis_match = APIsInterMatch()
 
 
+def get_convinced_match(method='global'):
+    if method == 'simple':
+        return convinced_match_simple
+    elif method == 'global':
+        return convinced_match_global
+    elif method == 'recursion':
+        return convinced_match_recursion
+    else:
+        raise NotImplementedError(f'Not support {method} now.')
+
+
+@functools.lru_cache()
+def _api_priority(api_attr, freq):
+    type_priority_map = {'nn': 0, 'functional': 1, 'tensor': 2}
+    dump_type = api_attr[0].split('_')[0]
+    dump_type_priority = (
+        type_priority_map[dump_type] if dump_type in type_priority_map else 3
+    )
+    input_data_size = functools.reduce(
+        lambda x, y: x * y, [i for ts in api_attr[1] for i in ts], 1
+    )
+    output_data_size = functools.reduce(
+        lambda x, y: x * y, [i for ts in api_attr[2] for i in ts], 1
+    )
+    shape_dim_priority = (
+        input_data_size / (output_data_size + 1e-6)
+        if input_data_size < output_data_size
+        else output_data_size / (input_data_size + 1e-6)
+    )
+    return dump_type_priority, shape_dim_priority, -freq
+
+
+def _get_api_attr(api, ignore_shape=False):
+    if ignore_shape:
+        return api.uni_name
+    else:
+        forward_input_shape = tuple([i.shape for i in api.forward_input_data.values()])
+        forward_output_shape = tuple(
+            [i.shape for i in api.forward_output_data.values()]
+        )
+        return (
+            api.uni_name,
+            forward_input_shape,
+            forward_output_shape,
+        )
+
+
+def convinced_match_simple(
+    origin_list,
+    target_list,
+    ignore_shape=False,
+    **kwargs,
+):
+    api_count = {}
+    api_match = []
+
+    api_count = defaultdict(int)
+    for api in origin_list:
+        api_count[_get_api_attr(api, ignore_shape)] += 1
+    for api in target_list:
+        api_count[_get_api_attr(api, ignore_shape)] -= 1
+
+    origin_api = [
+        api for api in origin_list if api_count[_get_api_attr(api, ignore_shape)] == 0
+    ]
+    target_api = [
+        api for api in target_list if api_count[_get_api_attr(api, ignore_shape)] == 0
+    ]
+    api_match = list(zip(origin_api, target_api))
+
+    return api_match
+
+
+def convinced_match_global(
+    origin_list,
+    target_list,
+    ignore_shape=False,
+    **kwargs,
+):
+    def _merge_api_list(origin_list, new_list):
+        if len(origin_list) == 0:
+            return new_list
+        elif len(new_list) == 0:
+            return origin_list
+
+        ret = []
+        i = 0
+        j = 0
+        while i < len(origin_list) and j < len(new_list):
+            if origin_list[i][0].l_index < new_list[j][0].l_index:
+                if (
+                    origin_list[i][1].l_index < new_list[j][1].l_index
+                    and j == 0
+                    or origin_list[i][1].l_index > new_list[j - 1][1].l_index
+                ):
+                    ret.append(origin_list[i])
+                    i += 1
+                else:
+                    return origin_list
+            elif origin_list[i][0].l_index > new_list[j][0].l_index:
+                if (
+                    origin_list[i][1].l_index > new_list[j][1].l_index
+                    and i == 0
+                    or origin_list[i - 1][1].l_index < new_list[j][1].l_index
+                ):
+                    ret.append(new_list[j])
+                    j += 1
+                else:
+                    return origin_list
+            else:
+                return origin_list
+
+        if len(origin_list[i:]) > 0:
+            if origin_list[i][1].l_index < new_list[j - 1][1].l_index:
+                return origin_list
+            else:
+                ret = ret + origin_list[i:]
+        else:
+            if origin_list[i - 1][1].l_index > new_list[j][1].l_index:
+                return origin_list
+            ret = ret + new_list[j:]
+        return ret
+
+    api_count = defaultdict(int)
+    for api in origin_list:
+        api_count[_get_api_attr(api, ignore_shape)] += 1
+    api_eq = api_count.copy()
+    for api in target_list:
+        api_eq[_get_api_attr(api, ignore_shape)] -= 1
+
+    origin_api_map = defaultdict(list)
+    target_api_map = defaultdict(list)
+    for api in origin_list:
+        if api_eq[_get_api_attr(api, ignore_shape)] == 0:
+            origin_api_map[_get_api_attr(api, ignore_shape)].append(api)
+    for api in target_list:
+        if api_eq[_get_api_attr(api, ignore_shape)] == 0:
+            target_api_map[_get_api_attr(api, ignore_shape)].append(api)
+
+    origin_api_map = OrderedDict(
+        sorted(
+            origin_api_map.items(),
+            key=lambda x: _api_priority(x[0], api_count[x[0]]),
+        )
+    )
+    target_api_map = OrderedDict(
+        sorted(
+            target_api_map.items(),
+            key=lambda x: _api_priority(x[0], api_count[x[0]]),
+        )
+    )
+
+    api_match = []
+    for origin_api, target_api in zip(origin_api_map.values(), target_api_map.values()):
+        api_match = _merge_api_list(api_match, list(zip(origin_api, target_api)))
+    return api_match
+
+
+def _convinced_match_recursion(
+    origin_list,
+    target_list,
+    origin_range,
+    target_range,
+    ignore_shape=False,
+    min_recursion_len=50,
+):
+    assert origin_range[1] <= len(origin_list) and target_range[1] <= len(
+        target_list
+    ), f"origin_range or target_range out of range."
+    if origin_range[0] >= len(origin_list) or target_range[0] >= len(target_list):
+        return []
+    if len(origin_list[origin_range[0] : origin_range[1]]) < max(
+        min_recursion_len, 1
+    ) or len(target_list[target_range[0] : target_range[1]]) < max(
+        min_recursion_len, 1
+    ):
+        return convinced_match_global(
+            origin_list[origin_range[0] : origin_range[1]],
+            target_list[target_range[0] : target_range[1]],
+            ignore_shape,
+        )
+
+    origin_api_map = defaultdict(list)
+    target_api_map = defaultdict(list)
+    for api in origin_list[origin_range[0] : origin_range[1]]:
+        origin_api_map[_get_api_attr(api, ignore_shape)].append(api)
+    for api in target_list[target_range[0] : target_range[1]]:
+        target_api_map[_get_api_attr(api, ignore_shape)].append(api)
+    common_api_names = origin_api_map.keys() & target_api_map.keys()
+    same_len_api_names = [
+        name
+        for name in common_api_names
+        if len(origin_api_map[name]) == len(target_api_map[name])
+    ]
+    if len(same_len_api_names) == 0:
+        return []
+
+    best_api_name = min(
+        same_len_api_names,
+        key=lambda name: _api_priority(name, len(origin_api_map[name])),
+    )
+    best_origin_list = origin_api_map[best_api_name]
+    best_target_list = target_api_map[best_api_name]
+
+    def _get_partition_range(best_list, global_range):
+        intervals = (
+            [(global_range[0], best_list[0].l_index)]
+            + [
+                (best_list[i].l_index + 1, best_list[i + 1].l_index)
+                for i in range(len(best_list) - 1)
+            ]
+            + [(best_list[-1].l_index + 1, global_range[1])]
+        )
+        return intervals
+
+    sub_origin_range = _get_partition_range(best_origin_list, origin_range)
+    sub_target_range = _get_partition_range(best_target_list, target_range)
+
+    ret = []
+    for i, bmatch in enumerate(zip(best_origin_list, best_target_list)):
+        sub_match = _convinced_match_recursion(
+            origin_list,
+            target_list,
+            sub_origin_range[i],
+            sub_target_range[i],
+            ignore_shape,
+            min_recursion_len,
+        )
+        ret.extend(sub_match)
+        ret.append(bmatch)
+    sub_match = _convinced_match_recursion(
+        origin_list,
+        target_list,
+        sub_origin_range[-1],
+        sub_target_range[-1],
+        ignore_shape,
+        min_recursion_len,
+    )
+    ret.extend(sub_match)
+
+    return ret
+
+
+def convinced_match_recursion(
+    origin_list,
+    target_list,
+    ignore_shape=False,
+    **kwargs,
+):
+    min_recursion_len = kwargs.get('min_recursion_len', 50)
+    return _convinced_match_recursion(
+        origin_list,
+        target_list,
+        (0, len(origin_list)),
+        (0, len(target_list)),
+        ignore_shape,
+        min_recursion_len,
+    )
+
+
 class FlowMatch:
     """用户匹配接口"""
 
@@ -590,14 +851,20 @@ class FlowMatch:
         self,
         origin_list: APIList,
         target_list: APIList,
-        err_threshold: float = 1.0,
-        ignore_shape=False,
+        **kwargs,
     ):
+        err_threshold = kwargs.get('err_threshold', 1.0)
+        ignore_shape = kwargs.get('ignore_shape', False)
+        convinced_match_method = kwargs.get('convinced_match_method', 'recursion')
+        min_recursion_len = kwargs.get('min_recursion_len', 50)
         assert (
             err_threshold >= 0 and err_threshold <= 1
         ), "err_threshold must be in [0., 1.]"
 
-        match = self._convinced_match(origin_list, target_list, ignore_shape)
+        convinced_match = get_convinced_match(convinced_match_method)
+        match = convinced_match(
+            origin_list, target_list, ignore_shape, min_recursion_len=min_recursion_len
+        )
         unmatch = self._get_unmatch_api(origin_list, target_list, match)
         unmatch_split = []
         for i in unmatch:
@@ -627,41 +894,6 @@ class FlowMatch:
             else:
                 ret += u
         return ret
-
-    def _convinced_match(self, origin_list, target_list, ignore_shape=False):
-        def _get_api_attr(api):
-            if not ignore_shape:
-                forward_input_shape = tuple(
-                    [i.shape for i in api.forward_input_data.values()]
-                )
-                forward_output_shape = tuple(
-                    [i.shape for i in api.forward_output_data.values()]
-                )
-                return (
-                    api.uni_name,
-                    forward_input_shape,
-                    forward_output_shape,
-                )
-            else:
-                return api.uni_name
-
-        api_count = {}
-        api_match = []
-        for api in origin_list:
-            if api_count.get(_get_api_attr(api)):
-                api_count[_get_api_attr(api)] += 1
-            else:
-                api_count[_get_api_attr(api)] = 1
-        for api in target_list:
-            if api_count.get(_get_api_attr(api)):
-                api_count[_get_api_attr(api)] -= 1
-        for k, v in api_count.items():
-            if v == 0:
-                origin_api = [api for api in origin_list if _get_api_attr(api) == k]
-                target_api = [api for api in target_list if _get_api_attr(api) == k]
-                api_match += list(zip(origin_api, target_api))
-        api_match = sorted(api_match, key=lambda x: x[0].l_index)
-        return api_match
 
     def _get_unmatch_api(self, origin_list, target_list, conv_map):
         last_origin = 0
