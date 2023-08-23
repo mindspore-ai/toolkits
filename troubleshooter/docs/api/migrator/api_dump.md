@@ -38,9 +38,19 @@ output_path # 输出目录
 
 ## troubleshooter.migrator.api_dump_start
 
-> troubleshooter.migrator.api_dump_start()
+> troubleshooter.migrator.api_dump_start(mode='all', scope=[], dump_type='all', filter_data=True)
 
 开启数据 dump。
+
+### 参数
+
+- mode(str)：dump模式，可选`'all'`、`'list'`、`'range'`、`'api_list'`，默认值`'all'`。`'all'`模式会dump全部API的数据；`'list'`、`'range'`、`'api_list'`模式通过配合`scope`参数可以实现dump特定API、范围、名称等功能。
+- scope(list)：dump范围。根据`mode`配置的模式选择dump的API范围。API范围中的名称可以通过输出目录下的`api_dump_info.pkl`文件获取）。
+  - `mode`为`'list'`时，`scope`为dump特定的文件列表，例如`['Functional_softmax_1_forward', 'NN_Dense_1_backward', 'Tensor___matmul___1_forward']`，只会dump列表中的三个API；
+  - `mode`为`'range'`时，`scope`为dump的区间范围，例如`['NN_Dense_1_backward', 'Tensor___matmul___1_forward']`，会dump从'NN_Dense_1_backward'直到'Tensor___matmul___1_forward'的所有API；
+  - `mode`为`'api_list'`时，`scope`为dump特定的API列表，例如`['relu', 'softmax', 'layernorm']`，会dump名称中含有relu、softmax、layernorm关键字的所有API，不区分`Tensor`、`Functional`等方法类型。
+- dump_type(str)：dump保存的数据类型，可选`'all'`、`'statistics'`，默认值为`'all'`。为`'all'`时会保存数据的统计信息和npy文件；为`'statistics'`时，只会保存数据的统计信息。
+- filter_data(bool)：是否开启dump数据过滤，默认值为`True`。为`True`时，非浮点类型的Tensor和标量将会被过滤，不会被保存。
 
 ## troubleshooter.migrator.api_dump_stop
 
