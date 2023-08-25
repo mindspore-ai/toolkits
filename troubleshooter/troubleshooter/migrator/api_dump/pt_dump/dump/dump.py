@@ -15,14 +15,18 @@
 # limitations under the License.
 """
 
+import functools
 import inspect
 import json
 import os
 import stat
-import numpy as np
-import torch
 import threading
 from collections import defaultdict
+
+import numpy as np
+import torch
+
+from ... import universal_interface
 
 try:
     import torch_npu
@@ -31,10 +35,9 @@ except ImportError:
 else:
     is_gpu = False
 
-from .utils import DumpUtil, make_dump_data_dir
-
-from ..common.utils import print_warn_log, Const, print_info_log
+from ..common.utils import Const, print_info_log, print_warn_log
 from ..dump.utils import check_in_api_list, remove_dump_file
+from .utils import DumpUtil, make_dump_data_dir
 
 forward_init_status = False
 backward_init_status = False
@@ -102,15 +105,26 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
             dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name, dump_type)
         return
     elif isinstance(x, torch.Tensor):
+        def backward_hook(grad, get_info):
+            nonlocal dump_file_name, dump_step, prefix, dump_type
+            prefix = prefix.replace('_forward_input', '_backward_output')
+            prefix = prefix.replace('_forward_output', '_backward_input')
+            data_info_ = get_info(grad)
+            dump_data(dump_file_name, dump_step, prefix, data_info_, dump_type)
+
         if x.numel() == 0 or len(x.shape) == 0 or not x.is_floating_point():
             if DumpUtil.dump_filter_switch == Const.OFF:
                 data_info = get_not_float_tensor_info(x)
                 dump_data(dump_file_name, dump_step, prefix, data_info, dump_type)
+                if universal_interface.g_retain_backward and x.requires_grad is True:
+                    x.register_hook(functools.partial(backward_hook, get_info=get_not_float_tensor_info))
             else:
                 return
         else:
             data_info = get_float_tensor_info(x)
             dump_data(dump_file_name, dump_step, prefix, data_info, dump_type)
+            if universal_interface.g_retain_backward and x.requires_grad is True:
+                x.register_hook(functools.partial(backward_hook, get_info=get_float_tensor_info))
 
     elif DumpUtil.dump_filter_switch == Const.OFF:
         if isinstance(x, bool) or isinstance(x, int) or isinstance(x, float):
@@ -155,12 +169,8 @@ def dump_stack_info(name_template, dump_file):
 
 
 def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file, dump_type):
-    if Const.BACKWARD in name_template and DumpUtil.dump_mode != Const.FORWARD:
-        dump_tensor(out_feat, name_template.format("input"), dump_step, dump_file, dump_type)
-        dump_tensor(in_feat, name_template.format("output"), dump_step, dump_file, dump_type)
-    elif Const.BACKWARD not in name_template and DumpUtil.dump_mode != Const.BACKWARD:
-        dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file, dump_type)
-        dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file, dump_type)
+    dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file, dump_type)
+    dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file, dump_type)
 
 
 def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
@@ -275,12 +285,8 @@ def acc_cmp_dump(name, **kwargs):
         global NNCount
         if "{}_" in name_template:
             nn_name = name_template.split("_")[1]
-            if "backward" in name_template:
-                id = NNCount[nn_name] - 1
-                NNCount[nn_name] = id
-            else:
-                id = NNCount[nn_name]
-                NNCount[nn_name] = id + 1
+            id = NNCount[nn_name]
+            NNCount[nn_name] = id + 1
             name = name_template.format(id)
         if pid == os.getpid():
             dump_acc_cmp(name, in_feat, out_feat, dump_step, module)

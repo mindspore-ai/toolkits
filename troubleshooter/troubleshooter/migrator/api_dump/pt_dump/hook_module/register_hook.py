@@ -113,8 +113,6 @@ def register_hook(model, hook, **kwargs):
         if hasattr(module, 'hook_name'):
             prefix_nn_name_ = "NN_" + str(module.hook_name[5:]) + "_"
             module.register_forward_hook(hook(prefix_nn_name_ + "{}_" + "forward"))
-            if universal_interface.g_retain_backward:
-                module.register_full_backward_hook(hook(prefix_nn_name_ + "{}_" + "backward"))
 
 
 def init_dump_config(kwargs):
