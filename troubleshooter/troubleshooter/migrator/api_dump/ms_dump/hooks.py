@@ -307,6 +307,8 @@ def json_dump_condition(prefix):
 
 
 def dump_stack_info(name_template, dump_file):
+    if name_template.endswith('_backward_{}'):
+        return
     stack_str = []
     prefix = name_template.format("stack_info")
     for (_, path, line, func, code, _) in inspect.stack()[3:]:

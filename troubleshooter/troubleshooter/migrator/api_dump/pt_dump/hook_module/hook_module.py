@@ -40,8 +40,6 @@ class HOOKModule(nn.Module):
             prefix = prefix + str(module_count[prefix] - 1) + '_'
 
             self.register_forward_hook(hook(prefix + "forward"))
-            if universal_interface.g_retain_backward:
-                self.register_full_backward_hook(hook(prefix + "backward"))
 
     def __call__(self, *input, **kwargs):
         result = super(HOOKModule, self).__call__(*input, **kwargs)
