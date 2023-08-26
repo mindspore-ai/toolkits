@@ -190,80 +190,38 @@ def get_npy_map_list(
             backward_list += input_backward_map
 
         if not ignore_unmatched:
-            if len(origin_apis) != 0:
-                origin_output_forward, origin_output_backward = _get_npy_list(
-                    origin_apis[0], 'output', origin_npy_files
-                )
-                origin_output_forward_map = [(i, None) for i in origin_output_forward]
-                forward_list.extend(origin_output_forward_map)
-                if not ignore_backward:
-                    origin_output_backward_map = [
-                        (i, None) for i in origin_output_backward
-                    ]
-                    backward_list.extend(origin_output_backward_map)
-            if len(target_apis) != 0:
-                target_output_forward, target_output_backward = _get_npy_list(
-                    target_apis[0], 'output', target_npy_files
-                )
-                target_output_forward_map = [(None, i) for i in target_output_forward]
-                forward_list.extend(target_output_forward_map)
-                if not ignore_backward:
-                    target_output_backward_map = [
-                        (None, i) for i in target_output_backward
-                    ]
-                    backward_list.extend(target_output_backward_map)
-
             if origin_apis[1:-1]:
                 origin_inter_forward, origin_inter_backward = zip(
-                    *[_get_npy_list(i, '', origin_npy_files) for i in origin_apis[1:-1]]
+                    # [([a_forward_output.0.npy, a_forward_output.1.npy], [a_backward_output.1.npy]),
+                    #  ([b_forward_output.npy], [b_backward_output.npy])]
+                    # -> ([a_forward_output.0.npy, a_forward_output.1.npy], [b_forward_output.npy])
+                    # -> ([a_backward_output.1.npy], [b_backward_output.npy])
+                    *[_get_npy_list(api, '', origin_npy_files) for api in origin_apis[1:-1]]
                 )
                 origin_inter_forward_map = [
-                    (i, None) for j in origin_inter_forward for i in j
+                    (origin, None) for origins in origin_inter_forward for origin in origins
                 ]
 
                 forward_list.extend(origin_inter_forward_map)
                 if not ignore_backward:
                     origin_inter_backward_map = [
-                        (i, None) for j in origin_inter_backward for i in j
+                        (origin, None) for origins in origin_inter_backward for origin in origins
                     ]
                     backward_list.extend(origin_inter_backward_map)
             if target_apis[1:-1]:
                 target_inter_forward, target_inter_backward = zip(
-                    *[_get_npy_list(i, '', target_npy_files) for i in target_apis[1:-1]]
+                    *[_get_npy_list(api, '', target_npy_files) for api in target_apis[1:-1]]
                 )
                 target_inter_forward_map = [
-                    (None, i) for j in target_inter_forward for i in j
+                    (None, target) for targets in target_inter_forward for target in targets
                 ]
 
                 forward_list.extend(target_inter_forward_map)
                 if not ignore_backward:
                     target_inter_backward_map = [
-                        (None, i) for j in target_inter_backward for i in j
+                        (None, target) for targets in target_inter_backward for target in targets
                     ]
                     backward_list.extend(target_inter_backward_map)
-
-            if len(origin_apis) != 0:
-                origin_input_forward, origin_input_backward = _get_npy_list(
-                    origin_apis[-1], 'input', origin_npy_files
-                )
-                origin_input_forward_map = [(i, None) for i in origin_input_forward]
-                forward_list.extend(origin_input_forward_map)
-                if not ignore_backward:
-                    origin_input_backward_map = [
-                        (i, None) for i in origin_input_backward
-                    ]
-                    backward_list.extend(origin_input_backward_map)
-            if len(target_apis) != 0:
-                target_input_forward, target_input_backward = _get_npy_list(
-                    target_apis[-1], 'input', target_npy_files
-                )
-                target_input_forward_map = [(None, i) for i in target_input_forward]
-                forward_list.extend(target_input_forward_map)
-                if not ignore_backward:
-                    target_input_backward_map = [
-                        (None, i) for i in target_input_backward
-                    ]
-                    backward_list.extend(target_input_backward_map)
 
         output_forward_map = _get_npy_map(
             origin_output_forward,
