@@ -117,7 +117,7 @@ def _format_compare_result(allclose_res, ratio, cos_sim, mean_max):
     return [allclose_res, ratio, cos_sim, mean_max]
 
 
-def print_diff_result(result_list, title=None, print_level=1, field_names=None,
+def print_diff_result(result_list, *, print_level=1, title=None, field_names=None,
                       show_shape_diff=False, output_file=None):
     # 0 Do not print
     # Print All

@@ -196,7 +196,8 @@ def compare_npy_dir(
     *,
     name_map_list=None,
     compare_shape=False,
-    output_file=None
+    output_file=None,
+    **kwargs
 ):
     none_and_isdir_check(orig_dir, 'orig_dir')
     none_and_isdir_check(target_dir, 'target_dir')
@@ -204,6 +205,21 @@ def compare_npy_dir(
     type_check(atol, 'atol', float)
     type_check(equal_nan, 'atol', bool)
     type_check(compare_shape, 'compare_shape', bool)
+    expected_kwargs = {
+        'title': '',
+        'field_names': [],
+    }
+
+    for key, value in kwargs.items():
+        if key in expected_kwargs:
+            expected_type = type(expected_kwargs[key])
+            if not isinstance(value, expected_type):
+                raise TypeError(f"Invalid type for '{key}'. Expected {expected_type}, but got {type(value)}.")
+        else:
+            raise ValueError(f"Unexpected keyword argument: '{key}'")
+
+    title = kwargs.get('title', None)
+    field_names = kwargs.get('field_names', None)
 
     if name_map_list is None:
         name_map_list = get_name_map_list_by_name(orig_dir, target_dir)
@@ -227,7 +243,8 @@ def compare_npy_dir(
         )
         result_list = list(tqdm(pool.imap(_compare_npy_single_process, name_map_list), total=len(name_map_list)))
 
-    return print_diff_result(result_list, output_file=output_file, show_shape_diff=compare_shape)
+    return print_diff_result(result_list, title=title, field_names=field_names,
+                             output_file=output_file, show_shape_diff=compare_shape)
 
 
 def compare_grads_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, compare_shape=True, output_file=None):

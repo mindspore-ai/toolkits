@@ -299,6 +299,8 @@ def api_dump_compare(
         f"ORIGIN NET ({origin_framework})",
         f"TARGET NET ({target_framework})",
     ]
+    diff_field_names = ["result of allclose", "ratio of allclose",
+                        "cosine similarity", "mean & max diffs"]
     if output_path is None:
         save_map_path = None
         save_forward_path = None
@@ -336,6 +338,8 @@ def api_dump_compare(
         name_map_list=npy_forward_list,
         compare_shape=True,
         output_file=save_forward_path,
+        title='The forward comparison results',
+        field_names=field_names + diff_field_names
     )
     if not ignore_backward:
         compare_npy_dir(
@@ -344,4 +348,6 @@ def api_dump_compare(
             name_map_list=npy_backward_list,
             compare_shape=True,
             output_file=save_backward_path,
+            title='The backward comparison results',
+            field_names=field_names + diff_field_names
         )
