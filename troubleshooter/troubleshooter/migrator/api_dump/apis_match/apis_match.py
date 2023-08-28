@@ -43,16 +43,16 @@ def _print_apis_map_result(
     if output_file:
         if not os.path.exists(os.path.dirname(output_file)):
             raise ValueError(f"output_file {output_file} not exist")
-        with open(output_file, "w") as f:
+        with os.fdopen(os.open(output_file, os.O_WRONLY | os.O_CREAT, 0o600), 'w') as f:
             f.write(x.get_csv_string() + os.linesep)
 
 
 def load_pkl(path: str):
     ret = []
-    with open(path, "rb") as f:
+    with open(path, "r") as f:
         while True:
             line = f.readline()
-            if line.strip() == b"":
+            if not line.strip():
                 break
             ret.append(json.loads(line))
     return ret
