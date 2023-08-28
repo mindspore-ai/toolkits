@@ -107,7 +107,6 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
     elif isinstance(x, torch.Tensor):
         def backward_hook(grad, get_info):
             nonlocal dump_file_name, dump_step, prefix, dump_type
-            prefix = prefix.replace('_forward_input', '_backward_output')
             prefix = prefix.replace('_forward_output', '_backward_input')
             data_info_ = get_info(grad)
             dump_data(dump_file_name, dump_step, prefix, data_info_, dump_type)
@@ -116,14 +115,14 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
             if DumpUtil.dump_filter_switch == Const.OFF:
                 data_info = get_not_float_tensor_info(x)
                 dump_data(dump_file_name, dump_step, prefix, data_info, dump_type)
-                if universal_interface.g_retain_backward and x.requires_grad is True:
+                if universal_interface.g_retain_backward and x.requires_grad is True and "_output" in prefix:
                     x.register_hook(functools.partial(backward_hook, get_info=get_not_float_tensor_info))
             else:
                 return
         else:
             data_info = get_float_tensor_info(x)
             dump_data(dump_file_name, dump_step, prefix, data_info, dump_type)
-            if universal_interface.g_retain_backward and x.requires_grad is True:
+            if universal_interface.g_retain_backward and x.requires_grad is True and "_output" in prefix:
                 x.register_hook(functools.partial(backward_hook, get_info=get_float_tensor_info))
 
     elif DumpUtil.dump_filter_switch == Const.OFF:

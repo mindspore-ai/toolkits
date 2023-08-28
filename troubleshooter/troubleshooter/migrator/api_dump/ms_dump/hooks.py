@@ -364,7 +364,8 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step):
 
 def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file, dump_type):
     dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file, dump_type)
-    dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file, dump_type)
+    if "_backward" not in name_template:
+        dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file, dump_type)
 
 
 def acc_cmp_dump(name, **kwargs):
@@ -390,9 +391,5 @@ def acc_cmp_dump(name, **kwargs):
             name = name_template.format(id)
         if pid == os.getpid():
             dump_acc_cmp(name, in_feat, out_feat, dump_step)
-        if hasattr(cell, "input_args"):
-            del cell.input_args
-        if hasattr(cell, "input_kwargs"):
-            del cell.input_kwargs
 
     return acc_cmp_hook
