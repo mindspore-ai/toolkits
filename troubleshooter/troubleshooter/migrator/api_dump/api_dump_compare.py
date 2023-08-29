@@ -306,7 +306,7 @@ def api_dump_compare(
         save_forward_path = None
         save_backward_path = None
     else:
-        os.makedirs(output_path, exist_ok=True)
+        os.makedirs(output_path, mode=0o700, exist_ok=True)
         save_map_path = os.path.join(output_path, 'ts_api_mapping.csv')
         save_forward_path = os.path.join(output_path, 'ts_api_forward_compare.csv')
         save_backward_path = os.path.join(output_path, 'ts_api_backward_compare.csv')

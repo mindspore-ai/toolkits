@@ -48,7 +48,6 @@ class DumpUtil(object):
     def set_dump_switch(switch, mode, scope, api_list, filter_switch, dump_mode, dump_type):
         DumpUtil.dump_switch = switch
         DumpUtil.dump_switch_mode = mode
-        DumpUtil.dump_init_enable = True
         DumpUtil.dump_switch_scope = scope
         DumpUtil.dump_api_list = [api.lower() for api in api_list]
         DumpUtil.dump_filter_switch = filter_switch
@@ -201,10 +200,10 @@ def make_dump_data_dir(dump_file_name):
     name_body, name_extension = os.path.splitext(file_name)
     output_dir = os.path.join(dump_path, f"{name_body}")
     if not os.path.exists(output_dir):
-        os.mkdir(output_dir, mode=0o750)
+        os.mkdir(output_dir, mode=0o700)
     else:
         shutil.rmtree(output_dir, ignore_errors=True)
-        os.mkdir(output_dir, mode=0o750)
+        os.mkdir(output_dir, mode=0o700)
     return output_dir
 
 
@@ -212,10 +211,10 @@ def make_dump_dirs(rank):
     dump_file_name, dump_path = "torch_api_dump_info.pkl", "torch_api_dump"
     dump_stack_file = "torch_api_dump_stack.json"
     dump_root_dir = DumpUtil.dump_ori_dir if DumpUtil.dump_ori_dir else "./"
-    Path(dump_root_dir).mkdir(mode=0o750, parents=True, exist_ok=True)
+    Path(dump_root_dir).mkdir(mode=0o700, parents=True, exist_ok=True)
     rank_dir = os.path.join(dump_root_dir, 'rank' + str(rank))
     if not os.path.exists(rank_dir):
-        os.mkdir(rank_dir, mode=0o750)
+        os.mkdir(rank_dir, mode=0o700)
     DumpUtil.dump_dir = rank_dir
     dump_file_path = os.path.join(rank_dir, dump_path)
     dump_file_name = os.path.join(rank_dir, dump_file_name)
