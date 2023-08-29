@@ -240,7 +240,7 @@ def save_numpy_data(file_path, data):
     save_numpy_data
     """
     if not os.path.exists(os.path.dirname(file_path)):
-        os.makedirs(os.path.dirname(file_path))
+        os.makedirs(os.path.dirname(file_path), mode=0o700)
     np.save(file_path, data)
 
 

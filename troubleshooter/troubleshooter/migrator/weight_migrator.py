@@ -258,7 +258,7 @@ def save_net_and_weight_params(net, path=os.getcwd(), weight_params_filename=Non
         import mindspore
 
     if not os.path.exists(path):
-        os.makedirs(path)
+        os.makedirs(path, mode=0o700)
 
     if "torch" in FRAMEWORK_TYPE and isinstance(net, torch.nn.Module):
         if weight_params_filename is None:

@@ -35,8 +35,7 @@ def create_save_path(data_save_path):
     """Get output path of data."""
     data_save_path = validate_and_normalize_path(data_save_path)
     if not os.path.exists(data_save_path):
-        os.makedirs(data_save_path, exist_ok=True)
-        os.chmod(data_save_path, stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
+        os.makedirs(data_save_path, mode=0o700, exist_ok=True)
     return data_save_path
 
 
@@ -134,10 +133,7 @@ def make_directory(path: str):
         real_path = path
     else:
         try:
-            permissions = os.R_OK | os.W_OK | os.X_OK
-            os.umask(permissions << 3 | permissions)
-            mode = permissions << 6
-            os.makedirs(path, mode=mode, exist_ok=True)
+            os.makedirs(path, mode=0o700, exist_ok=True)
             real_path = path
         except PermissionError:
             raise TypeError("No write permission on the directory `{path}`.")
@@ -146,7 +142,7 @@ def make_directory(path: str):
 
 def save_numpy_data(file_path, data):
     if not os.path.exists(os.path.dirname(file_path)):
-        os.makedirs(os.path.dirname(file_path))
+        os.makedirs(os.path.dirname(file_path), mode=0o700)
     np.save(file_path, data)
 
 def isfile_check(file_name, name_str):
