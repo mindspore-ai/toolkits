@@ -56,9 +56,20 @@ def call_decorator(cls, name):
     return cls
 
 
+def remove_dropout_randomness(cls):
+
+    def new_construct(self, x):
+        return x
+
+    cls.construct = new_construct
+    return cls
+
+
 def wrap_nn_cell_and_bind():
     _nn_cell = get_nn_cell()
     for name in _nn_cell:
+        if name.startswith('Dropout'):
+            remove_dropout_randomness(NNCell[name])
         call_decorator(NNCell[name], name)
 
 

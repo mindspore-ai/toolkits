@@ -46,6 +46,8 @@ class FunctionalOPTemplate(HOOKCell):
         super().__init__(hook)
 
     def construct(self, *args, **kwargs):
+        if self.op_name_.startswith('dropout'):
+            return args[0] if args else kwargs.get('input')
         return OpsFunc[self.op_name_](*args, **kwargs)
 
 
