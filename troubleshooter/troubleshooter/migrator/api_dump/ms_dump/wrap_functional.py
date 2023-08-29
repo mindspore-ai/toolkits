@@ -61,4 +61,5 @@ def wrap_functional_op(op_name, hook):
 def wrap_functional_ops_and_bind(hook):
     _functional_ops = get_functional_ops()
     for op_name in _functional_ops:
-        setattr(HOOKFunctionalOP, "wrap_" + op_name, wrap_functional_op(op_name, hook))
+        if callable(OpsFunc[op_name]):
+            setattr(HOOKFunctionalOP, "wrap_" + op_name, wrap_functional_op(op_name, hook))
