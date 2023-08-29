@@ -60,4 +60,5 @@ def wrap_sub_tensor_op(op_name, hook):
 def wrap_sub_tensor_ops_and_bind(hook):
     _tensor_ops = get_sub_tensor_ops()
     for op_name in _tensor_ops:
-        setattr(HOOKSubTensor, "wrap_" + str(op_name), wrap_sub_tensor_op(op_name, hook))
+        if callable(SubTensorFunc[op_name]):
+            setattr(HOOKSubTensor, "wrap_" + str(op_name), wrap_sub_tensor_op(op_name, hook))
