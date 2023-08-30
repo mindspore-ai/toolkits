@@ -342,6 +342,7 @@ def api_dump_compare(
         field_names=field_names + diff_field_names
     )
     if not ignore_backward:
+        npy_backward_list.reverse()
         compare_npy_dir(
             origin_npy_path,
             target_npy_path,
