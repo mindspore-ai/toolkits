@@ -10,7 +10,6 @@ from prettytable import ALL, PrettyTable
 
 from .api_io_dict import pt_io_dict
 from .api_name_dict import pt_name_dict
-from .download_api_map import get_pt_api_dict
 
 __all__ = ['flow_match', 'APIList', '_print_apis_map_result', 'load_pkl']
 
@@ -288,28 +287,6 @@ def _get_uni_io(api_list: List, framework) -> Any:
 
 @functools.lru_cache()
 def _get_uni_name_map():
-    # 在线获取pytorch字典
-    def _get_pt_api_dict():
-        apis_dict = get_pt_api_dict()
-        if apis_dict is None:
-            print('load local pytorch name map.')
-            return pt_name_dict
-        ret = {}
-        for k, v in apis_dict.items():
-            pt_api = k.split(".")[-2:]
-            ms_api = v.split(".")[-2:]
-
-            if ms_api[0] not in ["nn", "ops", "Tensor"]:
-                continue
-            if pt_api[0] not in ["torch", "functional", "Tensor", "Module", "nn"]:
-                continue
-
-            pt_api_name, ms_api_name = pt_api[-1], ms_api[-1]
-            pt_api_type, ms_api_type = pt_api[0].lower(), ms_api[0].lower()
-            ms_api_type = 'functional' if ms_api_type == 'ops' else ms_api_type
-            ret.update({(pt_api_type, pt_api_name): (ms_api_type, ms_api_name)})
-        return ret
-
     return {"pytorch": pt_name_dict, "mindspore": {}}
 
 
