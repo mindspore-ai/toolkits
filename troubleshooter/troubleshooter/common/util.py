@@ -15,9 +15,7 @@
 """util functions"""
 import os
 import re
-import stat
 import uuid
-from collections import OrderedDict
 
 import numpy as np
 
@@ -94,15 +92,18 @@ def compare_stack_words(err_msg, key_word):
         return False
     return True
 
+
 def extract_number(string):
     numbers = re.findall(r'\d+', string)
     return list(map(int, numbers))
+
 
 def extract_front_end_number(string):
     numbers = extract_number(string)
     if numbers:
         return numbers[0], numbers[-1]
     return []
+
 
 def find_file(dir, suffix=".npy"):
     file_list = []
@@ -116,7 +117,8 @@ def find_file(dir, suffix=".npy"):
             if suffix_name == suffix and root_path == normal_dir:
                 file_list.append(file)
     # First sort by generate time
-    file_list = sorted(file_list, key=lambda x: os.path.getctime(os.path.join(normal_dir, x)))
+    file_list = sorted(file_list, key=lambda x: os.path.getctime(
+        os.path.join(normal_dir, x)))
     # Second sort by number
     file_list = sorted(file_list, key=extract_front_end_number)
     return file_list
@@ -145,26 +147,33 @@ def save_numpy_data(file_path, data):
         os.makedirs(os.path.dirname(file_path), mode=0o700)
     np.save(file_path, data)
 
+
 def isfile_check(file_name, name_str):
     if file_name is not None:
         file_name = validate_and_normalize_path(file_name)
         if not os.path.isfile(file_name):
-           raise ValueError("The parameter '{0}' must be a file".format(name_str))
+            raise ValueError(
+                "The parameter '{0}' must be a file".format(name_str))
 
 
 def none_and_isfile_check(file_name, name_str):
     if file_name is None:
-        raise ValueError("The parameter '{0}' cannot be None.".format(name_str))
+        raise ValueError(
+            "The parameter '{0}' cannot be None.".format(name_str))
     else:
         file_name = validate_and_normalize_path(file_name)
         if not os.path.isfile(file_name):
-           raise ValueError("The parameter '{0}' must be a file".format(name_str))
+            raise ValueError(
+                "The parameter '{0}' must be a file".format(name_str))
+
 
 def all_none_or_isfile_check(file_name, file_name_str, obj, obj_str):
     if file_name is not None:
         isfile_check(file_name, file_name_str)
     elif file_name is None and obj is None:
-        raise ValueError("The parameters '{0}' or '{1}' must be set to one".format(file_name_str, obj_str))
+        raise ValueError("The parameters '{0}' or '{1}' must be set to one".format(
+            file_name_str, obj_str))
+
 
 def dir_exist_check(file_path, name_str):
     if file_path is not None:
@@ -174,10 +183,10 @@ def dir_exist_check(file_path, name_str):
                              "The dir '{1}' does not exist. Please create the path first.".format(name_str, file_dir))
 
 
-
 def none_and_isdir_check(file_dir, name_str):
     if file_dir is None:
-        raise ValueError("The parameter '{0}' cannot be None.".format(name_str))
+        raise ValueError(
+            "The parameter '{0}' cannot be None.".format(name_str))
     else:
         if not os.path.isdir(file_dir) or not os.path.exists(file_dir):
             raise ValueError("The parameter '{0}' error,"
@@ -188,13 +197,22 @@ def type_check(param, name_str, param_type):
     if param and not isinstance(param, param_type):
         raise TypeError(f"The parameter '{name_str}' must be {param_type}")
 
+
+def enum_check(param, name_str, valid_values):
+    if param not in valid_values:
+        raise ValueError(
+            f"For parameter '{name_str}', value '{param}' is illegal. Valid values are {valid_values}")
+
+
 def clear_tmp_file(file):
     if file:
         os.remove(file)
 
+
 def print_to_file(content, file_path, mode='w'):
     with open(file_path, mode) as f:
         print(content, file=f)
+
 
 def generate_random_filename(prefix='', suffix=''):
     random_uuid = uuid.uuid4()

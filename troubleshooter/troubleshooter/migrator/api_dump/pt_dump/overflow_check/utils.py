@@ -44,7 +44,7 @@ def set_overflow_check_switch(switch, filter_switch=Const.ON):
 def dump_overflow(module_name, in_feat, out_feat, dump_file):
     name_template = f"{module_name}" + "_{}"
     DumpUtil.dump_data_dir = make_dump_data_dir(dump_file)
-    dump_stack_info(name_template, dump_file)
+    dump_stack_info(name_template, dump_file, DumpUtil.dump_filter_stack)
     if "forward" in name_template:
         _dump_tensor_completely(in_feat, name_template.format("input"), dump_file)
         _dump_tensor_completely(out_feat, name_template.format("output"), dump_file)

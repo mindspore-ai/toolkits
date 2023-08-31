@@ -22,6 +22,7 @@ import os
 import stat
 import threading
 from collections import defaultdict
+from functools import lru_cache
 
 import numpy as np
 import torch
@@ -142,7 +143,20 @@ def dump_data(dump_file_name, dump_step, prefix, data_info, dump_type):
             f.write('\n')
 
 
-def dump_stack_info(name_template, dump_file):
+@lru_cache()
+def is_not_blacklisted(stack_path):
+    black_lists = ['/torch/autograd/', '/torch/backends/', '/torch/cuda/',
+                   '/torch/distributed/', '/torch/distributions/', '/torch/fft/',
+                   '/torch/fx/', '/torch/jit/', '/torch/linalg/', '/torch/nn/',
+                   '/torch/onnx/', '/torch/optim/', '/torch/profiler/', '/torch/quantization/'
+                   '/troubleshooter/migrator/api_dump/']
+    for black in black_lists:
+        if black in stack_path:
+            return False
+    return True
+
+
+def dump_stack_info(name_template, dump_file, filter_stack):
     stack_str = []
     prefix = name_template.format("stack_info")
     for (_, path, line, func, code, _) in inspect.stack()[3:]:
@@ -154,7 +168,8 @@ def dump_stack_info(name_template, dump_file):
             stack_line = " ".join([
                 "File", ", ".join([path, " ".join(["line", str(line)]), " ".join(["in", func]),
                                    " ".join(["\n", code])])])
-        stack_str.append(stack_line)
+        if not filter_stack or (filter_stack and is_not_blacklisted(path)):
+            stack_str.append(stack_line)
 
     DumpUtil.dump_stack_dic[prefix] = stack_str
     json_str = json.dumps(DumpUtil.dump_stack_dic, indent=4)
@@ -186,16 +201,16 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
         name_template = f"{name_prefix}" + "_{}"
         if DumpUtil.dump_switch_mode == Const.ALL:
             dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
-            dump_stack_info(name_template, dump_stack_file)
+            dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
         elif DumpUtil.dump_switch_mode == Const.API_LIST:
             if not check_in_api_list(name):
                 return
             dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
-            dump_stack_info(name_template, dump_stack_file)
+            dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
         elif DumpUtil.dump_switch_mode in [Const.RANGE, Const.LIST]:
             if DumpUtil.check_switch_scope(name_prefix):
                 dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
-                dump_stack_info(name_template, dump_stack_file)
+                dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
         else:
             msg = f"Current mode '{DumpUtil.dump_switch_mode}' is not supported. Please use the field in {Const.DUMP_MODE}"
             raise ValueError(msg)
