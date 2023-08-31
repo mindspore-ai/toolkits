@@ -1,10 +1,12 @@
-from pathlib import Path
 import os
 import re
 from collections import defaultdict
+from pathlib import Path
 from typing import List, Optional
+
 from troubleshooter.migrator.diff_handler import compare_npy_dir, min_edit_distance
-from .apis_match import APIList, flow_match, _print_apis_map_result, load_pkl
+
+from .apis_match import APIList, _print_apis_map_result, flow_match, load_pkl
 
 __all__ = ['api_dump_compare']
 
@@ -270,9 +272,9 @@ def get_dump_path(root_path):
         return None
 
 
-def api_dump_compare(
-    origin_path: str, target_path: str, output_path: Optional[str] = None, **kwargs
-):
+def api_dump_compare(origin_path: str, target_path: str, output_path: Optional[str] = None,
+                     *, rtol: float = 1e-4, atol: float = 1e-4, equal_nan: bool = False,
+                     ignore_unmatched: bool = False, **kwargs):
     """compare each api's output by the npy files dumped by the network.
 
     Args:
@@ -283,7 +285,6 @@ def api_dump_compare(
         ignore_unmatched (bool, optional): whether to ignore the unmatched npy files. Defaults to False.
     """
     ignore_backward = kwargs.get('ignore_backward', False)
-    ignore_unmatched = kwargs.get('ignore_unmatched', False)
     convinced_match_method = kwargs.get('convinced_match_method', 'recursion')
     min_recursion_len = kwargs.get('min_recursion_len', 50)
 
@@ -335,6 +336,9 @@ def api_dump_compare(
     compare_npy_dir(
         origin_npy_path,
         target_npy_path,
+        rtol=rtol,
+        atol=atol,
+        equal_nan=equal_nan,
         name_map_list=npy_forward_list,
         compare_shape=True,
         output_file=save_forward_path,
@@ -346,6 +350,9 @@ def api_dump_compare(
         compare_npy_dir(
             origin_npy_path,
             target_npy_path,
+            rtol=rtol,
+            atol=atol,
+            equal_nan=equal_nan,
             name_map_list=npy_backward_list,
             compare_shape=True,
             output_file=save_backward_path,
