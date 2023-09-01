@@ -28,6 +28,7 @@ class DumpUtil(object):
     backward_input = {}
     dump_config = None
     dump_stack_dic = {}
+    dump_filter_stack = True
 
     @staticmethod
     def set_ori_dir(path):
@@ -45,7 +46,8 @@ class DumpUtil(object):
         DumpUtil.dump_config = dump_config
 
     @staticmethod
-    def set_dump_switch(switch, mode, scope, api_list, filter_switch, dump_mode, dump_type):
+    def set_dump_switch(switch, mode, scope, api_list,
+                        filter_switch, dump_mode, dump_type, filter_stack):
         DumpUtil.dump_switch = switch
         DumpUtil.dump_switch_mode = mode
         DumpUtil.dump_switch_scope = scope
@@ -53,6 +55,7 @@ class DumpUtil(object):
         DumpUtil.dump_filter_switch = filter_switch
         DumpUtil.dump_mode = dump_mode
         DumpUtil.dump_type = dump_type
+        DumpUtil.dump_filter_stack = filter_stack
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
 
@@ -144,8 +147,13 @@ def generate_dump_path_str():
     return dump_path
 
 
-def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[],
-                    filter_switch=Const.ON, dump_mode=Const.ALL, dump_type=Const.ALL):
+def set_dump_switch(switch, mode=Const.ALL, scope=None, api_list=None,
+                    filter_switch=Const.ON, dump_mode=Const.ALL, dump_type=Const.ALL,
+                    filter_stack=True):
+    if scope is None:
+        scope = []
+    if api_list is None:
+        api_list = []
     try:
         check_mode_valid(mode)
         assert switch in ["ON", "OFF"], "Please set dump switch with 'ON' or 'OFF'."
@@ -169,7 +177,8 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[],
     if switch == "OFF":
         dump_path_str = generate_dump_path_str()
     DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list,
-                             filter_switch=filter_switch, dump_mode=dump_mode, dump_type=dump_type)
+                             filter_switch=filter_switch, dump_mode=dump_mode, dump_type=dump_type,
+                             filter_stack=filter_stack)
     if switch == "ON":
         dump_path_str = generate_dump_path_str()
 

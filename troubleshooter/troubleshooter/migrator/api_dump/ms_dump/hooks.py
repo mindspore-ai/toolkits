@@ -7,6 +7,7 @@ import stat
 import sys
 import threading
 from collections import defaultdict
+from functools import lru_cache
 from pathlib import Path
 
 import mindspore as ms
@@ -39,6 +40,7 @@ class DumpUtil(object):
     backward_input = {}
     dump_stack_dic = {}
     dump_filter_switch = None
+    dump_filter_stack = True
 
     @staticmethod
     def set_ori_dir(path):
@@ -51,7 +53,7 @@ class DumpUtil(object):
         DumpUtil.dump_stack_file = dump_stack_file
         DumpUtil.dump_init_enable = True
     @staticmethod
-    def set_dump_switch(switch, mode, scope, api_list, filter_switch, dump_mode, dump_type):
+    def set_dump_switch(switch, mode, scope, api_list, filter_switch, dump_mode, dump_type, filter_stack):
         DumpUtil.dump_switch = switch
         DumpUtil.dump_switch_mode = mode
         DumpUtil.dump_switch_scope = scope
@@ -59,6 +61,7 @@ class DumpUtil(object):
         DumpUtil.dump_filter_switch = filter_switch
         DumpUtil.dump_mode = dump_mode
         DumpUtil.dump_type = dump_type
+        DumpUtil.dump_filter_stack = filter_stack
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
 
@@ -194,8 +197,13 @@ def set_dump_path(fpath=None):
     DumpUtil.set_ori_dir(real_path)
 
 
-def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[],
-                    filter_switch=Const.ON, dump_mode=Const.ALL, dump_type=Const.ALL):
+def set_dump_switch(switch, mode=Const.ALL, scope=None, api_list=None,
+                    filter_switch=Const.ON, dump_mode=Const.ALL, dump_type=Const.ALL,
+                    filter_stack=True):
+    if scope is None:
+        scope = []
+    if api_list is None:
+        api_list = []
     global DumpCount
     assert switch in ["ON", "OFF"], "Please set dump switch with 'ON' or 'OFF'."
     if mode == Const.LIST and switch == "ON":
@@ -221,7 +229,8 @@ def set_dump_switch(switch, mode=Const.ALL, scope=[], api_list=[],
         print_error_log(str(err))
         sys.exit()
     DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list,
-                             filter_switch=filter_switch, dump_mode=dump_mode, dump_type=dump_type)
+                             filter_switch=filter_switch, dump_mode=dump_mode, dump_type=dump_type,
+                             filter_stack=filter_stack)
 
 
 def set_backward_input(backward_input):
@@ -305,7 +314,20 @@ def json_dump_condition(prefix):
     return (Const.BACKWARD in prefix and backward_threading_id == cur_threading_id) or 'forward' in prefix
 
 
-def dump_stack_info(name_template, dump_file):
+@lru_cache()
+def is_not_blacklisted(stack_path):
+    black_lists = ['/mindspore/ops/', '/mindspore/nn/', '/mindsproe/amp.py',
+                   '/mindspore/numpy/', '/mindspore/dataset/', '/mindspore/common/',
+                   '/mindspore/train/', '/mindspore/boost/', '/mindspore/parallel/'
+                   '/mindspore/profiler/', '/mindspore/rewrite/', '/mindspore/scipy/'
+                   '/troubleshooter/migrator/api_dump']
+    for black in black_lists:
+        if black in stack_path:
+            return False
+    return True
+
+
+def dump_stack_info(name_template, dump_file, filter_stack):
     if name_template.endswith('_backward_{}'):
         return
     stack_str = []
@@ -319,7 +341,8 @@ def dump_stack_info(name_template, dump_file):
             stack_line = " ".join([
                 "File", ", ".join([path, " ".join(["line", str(line)]), " ".join(["in", func]),
                                    " ".join(["\n", code])])])
-        stack_str.append(stack_line)
+        if not filter_stack or (filter_stack and is_not_blacklisted(path)):
+            stack_str.append(stack_line)
 
     DumpUtil.dump_stack_dic[prefix] = stack_str
     json_str = json.dumps(DumpUtil.dump_stack_dic, indent=4)
@@ -346,16 +369,16 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step):
         name_template = f"{name_prefix}" + "_{}"
         if DumpUtil.dump_switch_mode == Const.ALL:
             dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
-            dump_stack_info(name_template, dump_stack_file)
+            dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
         elif DumpUtil.dump_switch_mode == Const.API_LIST:
             if not check_in_api_list(name):
                 return
             dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
-            dump_stack_info(name_template, dump_stack_file)
+            dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
         elif DumpUtil.dump_switch_mode in [Const.RANGE, Const.LIST]:
             if DumpUtil.check_switch_scope(name_prefix):
                 dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
-                dump_stack_info(name_template, dump_stack_file)
+                dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
         else:
             msg = f"Current mode '{DumpUtil.dump_switch_mode}' is not supported. Please use the field in {Const.DUMP_MODE}"
             raise ValueError(msg)
