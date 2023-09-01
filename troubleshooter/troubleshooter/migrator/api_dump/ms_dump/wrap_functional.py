@@ -17,7 +17,7 @@ import mindspore as ms
 import os
 import yaml
 
-from .cell import HOOKCell
+from .hook_cell import HOOKCell
 from .utils import print_info_log
 
 print_info_log("For precision comparison, the probability p in the dropout method is set to 0.")

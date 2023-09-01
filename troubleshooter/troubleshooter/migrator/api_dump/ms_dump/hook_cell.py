@@ -44,9 +44,13 @@ class HOOKCell(nn.Cell):
 
     # 重载call，加全局标志。
     def __call__(self, *args, **kwargs):
-        out = super(HOOKCell, self).__call__(*args, **kwargs)
-        if self.changed_status:
-            self.changed_status = False
-            global g_stop_hook
-            g_stop_hook = False
+        try:
+            out = super(HOOKCell, self).__call__(*args, **kwargs)
+        except Exception as e:
+            raise e
+        finally:
+            if self.changed_status:
+                self.changed_status = False
+                global g_stop_hook
+                g_stop_hook = False
         return out

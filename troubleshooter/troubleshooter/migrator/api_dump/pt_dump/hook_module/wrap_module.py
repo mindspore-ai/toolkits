@@ -42,14 +42,17 @@ def call_decorator(cls, name):
     cls.hook_name = "wrap_" + name
 
     def new_call(self, *args, **kwargs):
-        changed = False
         if not global_manage.get_value("g_stop_hook"):
             global_manage.set_value("g_stop_hook", True)
-            changed = True
+            try:
+                result = original_call(self, *args, **kwargs)
+            except Exception as e:
+                raise e
+            finally:
+                global_manage.set_value("g_stop_hook", False)
+        else:
+            result = original_call(self, *args, **kwargs)
 
-        result = original_call(self, *args, **kwargs)
-        if changed:
-            global_manage.set_value("g_stop_hook", False)
         return result
 
     cls.__call__ = new_call
