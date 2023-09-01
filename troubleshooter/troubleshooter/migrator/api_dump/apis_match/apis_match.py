@@ -724,30 +724,19 @@ def _convinced_match_recursion(
     target_list,
     origin_range,
     target_range,
-    ignore_shape=False,
-    min_recursion_len=50,
+    ignore_shape=False
 ):
     assert origin_range[1] <= len(origin_list) and target_range[1] <= len(
         target_list
-    ), f"origin_range or target_range out of range."
+    ), "origin_range or target_range out of range."
     if origin_range[0] >= len(origin_list) or target_range[0] >= len(target_list):
         return []
-    if len(origin_list[origin_range[0] : origin_range[1]]) < max(
-        min_recursion_len, 1
-    ) or len(target_list[target_range[0] : target_range[1]]) < max(
-        min_recursion_len, 1
-    ):
-        return convinced_match_global(
-            origin_list[origin_range[0] : origin_range[1]],
-            target_list[target_range[0] : target_range[1]],
-            ignore_shape,
-        )
 
     origin_api_map = defaultdict(list)
     target_api_map = defaultdict(list)
-    for api in origin_list[origin_range[0] : origin_range[1]]:
+    for api in origin_list[origin_range[0]: origin_range[1]]:
         origin_api_map[_get_api_attr(api, ignore_shape)].append(api)
-    for api in target_list[target_range[0] : target_range[1]]:
+    for api in target_list[target_range[0]: target_range[1]]:
         target_api_map[_get_api_attr(api, ignore_shape)].append(api)
     common_api_names = origin_api_map.keys() & target_api_map.keys()
     same_len_api_names = [
@@ -787,7 +776,6 @@ def _convinced_match_recursion(
             sub_origin_range[i],
             sub_target_range[i],
             ignore_shape,
-            min_recursion_len,
         )
         ret.extend(sub_match)
         ret.append(bmatch)
@@ -797,7 +785,6 @@ def _convinced_match_recursion(
         sub_origin_range[-1],
         sub_target_range[-1],
         ignore_shape,
-        min_recursion_len,
     )
     ret.extend(sub_match)
 
@@ -810,14 +797,12 @@ def convinced_match_recursion(
     ignore_shape=False,
     **kwargs,
 ):
-    min_recursion_len = kwargs.get('min_recursion_len', 50)
     return _convinced_match_recursion(
         origin_list,
         target_list,
         (0, len(origin_list)),
         (0, len(target_list)),
         ignore_shape,
-        min_recursion_len,
     )
 
 
@@ -833,15 +818,12 @@ class FlowMatch:
         err_threshold = kwargs.get('err_threshold', 1.0)
         ignore_shape = kwargs.get('ignore_shape', False)
         convinced_match_method = kwargs.get('convinced_match_method', 'recursion')
-        min_recursion_len = kwargs.get('min_recursion_len', 50)
         assert (
             err_threshold >= 0 and err_threshold <= 1
         ), "err_threshold must be in [0., 1.]"
 
         convinced_match = get_convinced_match(convinced_match_method)
-        match = convinced_match(
-            origin_list, target_list, ignore_shape, min_recursion_len=min_recursion_len
-        )
+        match = convinced_match(origin_list, target_list, ignore_shape)
         unmatch = self._get_unmatch_api(origin_list, target_list, match)
         unmatch_split = []
         for i in unmatch:
