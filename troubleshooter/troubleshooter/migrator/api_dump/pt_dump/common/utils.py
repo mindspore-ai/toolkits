@@ -156,6 +156,7 @@ class CompareException(Exception):
     INVALID_DUMP_MODE = 15
     PARSE_FILE_ERROR = 16
     INVALID_COMPARE_MODE = 17
+    CALL_FAILED_ERROR = 18
 
     def __init__(self, code, error_info: str = ""):
         super(CompareException, self).__init__()

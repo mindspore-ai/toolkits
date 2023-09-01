@@ -22,14 +22,19 @@ import yaml
 
 from .hook_module import HOOKModule
 from ..common.utils import torch_device_guard
+from ..common.utils import print_info_log
+
+print_info_log("For precision comparison, the probability p in the dropout method is set to 0.")
 
 cur_path = os.path.dirname(os.path.realpath(__file__))
 yaml_path = os.path.join(cur_path, "support_wrap_ops.yaml")
 with open(yaml_path, 'r') as f:
     WrapFunctionalOps = yaml.safe_load(f).get('functional')
 
+
+FunctionalFunc = {}
 for f in dir(torch.nn.functional):
-    locals().update({f: getattr(torch.nn.functional, f)})
+    FunctionalFunc[f] = getattr(torch.nn.functional, f)
 
 
 def get_functional_ops():
@@ -50,7 +55,9 @@ class FunctionalOPTemplate(HOOKModule):
 
     @torch_device_guard
     def forward(self, *args, **kwargs):
-        return eval(self.op_name_)(*args, **kwargs)
+        if self.op_name_.startswith("dropout"):
+            return args[0] if args else kwargs.get("input")
+        return FunctionalFunc[str(self.op_name_)](*args, **kwargs)
 
 
 def wrap_functional_op(op_name, hook):
@@ -63,4 +70,5 @@ def wrap_functional_op(op_name, hook):
 def wrap_functional_ops_and_bind(hook):
     _functional_ops = get_functional_ops()
     for op_name in _functional_ops:
-        setattr(HOOKFunctionalOP, "wrap_" + op_name, wrap_functional_op(op_name, hook))
+        if callable(FunctionalFunc[op_name]):
+            setattr(HOOKFunctionalOP, "wrap_" + op_name, wrap_functional_op(op_name, hook))

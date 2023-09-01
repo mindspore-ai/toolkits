@@ -29,6 +29,11 @@ with open(yaml_path, 'r') as f:
     WrapNpuOps = yaml.safe_load(f).get('torch_npu')
 
 
+TorchNPUFunc = {}
+for f in dir(torch_npu):
+    TorchNPUFunc[f] = getattr(torch_npu, f)
+
+
 class HOOKNpuOP(object):
     pass
 
@@ -42,7 +47,7 @@ class NpuOPTemplate(HOOKModule):
 
     @torch_device_guard
     def forward(self, *args, **kwargs):
-        return getattr(torch_npu._C._VariableFunctionsClass, str(self.op_name_))(*args, **kwargs)
+        return TorchNPUFunc[str(self.op_name_)](*args, **kwargs)
 
 
 def wrap_npu_op(op_name, hook):
@@ -56,4 +61,5 @@ def wrap_npu_op(op_name, hook):
 def wrap_npu_ops_and_bind(hook):
     _npu_ops = WrapNpuOps
     for op_name in _npu_ops:
-        setattr(HOOKNpuOP, "wrap_" + str(op_name), wrap_npu_op(op_name, hook))
+        if callable(TorchNPUFunc[op_name]):
+            setattr(HOOKNpuOP, "wrap_" + str(op_name), wrap_npu_op(op_name, hook))

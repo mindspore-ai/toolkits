@@ -20,6 +20,7 @@ import torch.nn as nn
 
 from ... import universal_interface
 from ..common import global_manage
+from ..common.utils import (CompareException, print_error_log)
 
 module_count = defaultdict(int)
 
@@ -42,8 +43,12 @@ class HOOKModule(nn.Module):
             self.register_forward_hook(hook(prefix + "forward"))
 
     def __call__(self, *input, **kwargs):
-        result = super(HOOKModule, self).__call__(*input, **kwargs)
-        if self.changed_status:
-            self.changed_status = False
-            global_manage.set_value("g_stop_hook", False)
+        try:
+            result = super(HOOKModule, self).__call__(*input, **kwargs)
+        except Exception as e:
+            raise e
+        finally:
+            if self.changed_status:
+                self.changed_status = False
+                global_manage.set_value("g_stop_hook", False)
         return result

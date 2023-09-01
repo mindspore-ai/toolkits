@@ -29,9 +29,14 @@ with open(yaml_path, 'r') as f:
     WrapTensorOps = yaml.safe_load(f).get('tensor')
 
 
+TensorFunc = {}
+for f in dir(torch.Tensor):
+    TensorFunc[f] = getattr(torch.Tensor, f)
+
+
 def get_tensor_ops():
     global WrapTensorOps
-    _tensor_ops = dir(torch._C._TensorBase)
+    _tensor_ops = dir(torch.Tensor)
     return set(WrapTensorOps) & set(_tensor_ops)
 
 
@@ -47,9 +52,8 @@ class TensorOPTemplate(HOOKModule):
         super().__init__(hook)
 
     @torch_device_guard
-    @parameter_adapter
     def forward(self, *args, **kwargs):
-        return getattr(torch._C._TensorBase, str(self.op_name_))(*args, **kwargs)
+        return TensorFunc[str(self.op_name_)](*args, **kwargs)
 
 
 def wrap_tensor_op(op_name, hook):
@@ -63,4 +67,5 @@ def wrap_tensor_op(op_name, hook):
 def wrap_tensor_ops_and_bind(hook):
     _tensor_ops = get_tensor_ops()
     for op_name in _tensor_ops:
-        setattr(HOOKTensor, "wrap_" + str(op_name), wrap_tensor_op(op_name, hook))
+        if callable(TensorFunc[op_name]):
+            setattr(HOOKTensor, "wrap_" + str(op_name), wrap_tensor_op(op_name, hook))

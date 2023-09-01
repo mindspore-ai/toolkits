@@ -25,10 +25,10 @@ yaml_path = os.path.join(cur_path, "support_wrap_ops.yaml")
 with open(yaml_path, "r") as f:
     WrapModuleOps = yaml.safe_load(f).get("Module")
 
-nn_module = {}
+NNModule = {}
 
 for f in dir(nn):
-    nn_module[f] = getattr(nn, f)
+    NNModule[f] = getattr(nn, f)
 
 
 def get_nn_module():
@@ -56,7 +56,17 @@ def call_decorator(cls, name):
     return cls
 
 
+def remove_dropout_randomness(cls):
+    def new_forward(self, x):
+        return x
+
+    cls.forward = new_forward
+    return cls
+
+
 def wrap_nn_module_and_bind():
     _nn_module = get_nn_module()
     for name in _nn_module:
-        call_decorator(nn_module[name], name)
+        if name.startswith("Dropout"):
+            remove_dropout_randomness(NNModule[name])
+        call_decorator(NNModule[name], name)
