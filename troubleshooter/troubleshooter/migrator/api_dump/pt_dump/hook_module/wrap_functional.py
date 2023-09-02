@@ -22,9 +22,6 @@ import yaml
 
 from .hook_module import HOOKModule
 from ..common.utils import torch_device_guard
-from ..common.utils import print_info_log
-
-print_info_log("For precision comparison, the probability p in the dropout method is set to 0.")
 
 cur_path = os.path.dirname(os.path.realpath(__file__))
 yaml_path = os.path.join(cur_path, "support_wrap_ops.yaml")

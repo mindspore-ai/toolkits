@@ -15,8 +15,7 @@ import mindspore as ms
 import numpy as np
 
 from .utils import (CompareException, Const, __version__, check_mode_valid, get_time,
-                    print_error_log, print_info_log, remove_dump_file)
-from .wrap_tensor import TensorFunc
+                    print_attent_log, print_error_log, remove_dump_file)
 
 DumpCount = 0
 forward_init_status = False
@@ -201,10 +200,9 @@ def check_in_api_list(name):
 def set_dump_path(fpath=None):
     if fpath is None:
         raise RuntimeError("set_dump_path '{}' error, please set a valid filename".format(fpath))
-        return
     real_path = os.path.realpath(fpath)
     if not os.path.isdir(real_path):
-        print_info_log(
+        print_attent_log(
             "The path '{}' does not exist, the path will be created automatically.".format(real_path))
     DumpUtil.set_ori_dir(real_path)
 
@@ -216,12 +214,6 @@ def set_dump_switch(switch, mode=Const.ALL, scope=None, api_list=None,
         scope = []
     if api_list is None:
         api_list = []
-    global DumpCount
-    assert switch in ["ON", "OFF"], "Please set dump switch with 'ON' or 'OFF'."
-    if mode == Const.LIST and switch == "ON":
-        DumpCount = 0
-    if mode == Const.LIST and switch == "OFF":
-        print_info_log("The number of matched dump is {}".format(DumpCount))
     try:
         check_mode_valid(mode)
         assert switch in ["ON", "OFF"], "Please set dump switch with 'ON' or 'OFF'."
@@ -240,9 +232,20 @@ def set_dump_switch(switch, mode=Const.ALL, scope=None, api_list=None,
     except (CompareException, AssertionError) as err:
         print_error_log(str(err))
         sys.exit()
+
     DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list,
                              filter_switch=filter_switch, dump_mode=dump_mode, dump_type=dump_type,
                              filter_stack=filter_stack)
+
+    global DumpCount
+    if switch == "ON":
+        print_attent_log(f"API dump has started. Dump data will be saved to {DumpUtil.dump_ori_dir}. ")
+        if mode == Const.LIST:
+            DumpCount = 0
+    else:
+        print_attent_log(f"API dump has stopped. Dump data has been saved to {DumpUtil.dump_ori_dir}. ")
+        if mode == Const.LIST:
+            print_attent_log("The number of matched dump is {}".format(DumpCount))
 
 
 def set_backward_input(backward_input):
