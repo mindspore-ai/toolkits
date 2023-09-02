@@ -18,9 +18,7 @@ from collections import defaultdict
 
 import torch.nn as nn
 
-from ... import universal_interface
 from ..common import global_manage
-from ..common.utils import (CompareException, print_error_log)
 
 module_count = defaultdict(int)
 

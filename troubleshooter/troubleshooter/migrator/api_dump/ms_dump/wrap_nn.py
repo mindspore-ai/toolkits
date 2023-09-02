@@ -19,7 +19,7 @@ import numpy as np
 import yaml
 from mindspore import nn
 
-from . import cell as _cell
+from . import hook_cell as _cell
 
 cur_path = os.path.dirname(os.path.realpath(__file__))
 yaml_path = os.path.join(cur_path, "support_wrap_ops.yaml")
@@ -42,14 +42,16 @@ def call_decorator(cls, name):
     cls.hook_name = 'wrap_' + name
 
     def new_call(self, *args, **kwargs):
-        changed = False
         if not _cell.g_stop_hook:
             _cell.g_stop_hook = True
-            changed = True
-
-        result = original_call(self, *args, **kwargs)
-        if changed:
-            _cell.g_stop_hook = False
+            try:
+                result = original_call(self, *args, **kwargs)
+            except Exception as e:
+                raise e
+            finally:
+                _cell.g_stop_hook = False
+        else:
+            result = original_call(self, *args, **kwargs)
         return result
 
     cls.__call__ = new_call
