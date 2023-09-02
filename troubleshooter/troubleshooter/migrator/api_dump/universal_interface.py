@@ -58,7 +58,7 @@ def api_dump_start(mode='all', scope=None, dump_type="all", filter_data=True, fi
     if scope is None:
         scope = []
     support_mode = {'all', 'list', 'api_list', 'range'}
-    support_dump_type = {'all', 'statistics'}
+    support_dump_type = {'all', 'statistics', 'stack', 'npy'}
     enum_check(mode, 'mode', support_mode)
     enum_check(dump_type, 'support_dump_type', support_dump_type)
     type_check(filter_data, 'filter_data', bool)

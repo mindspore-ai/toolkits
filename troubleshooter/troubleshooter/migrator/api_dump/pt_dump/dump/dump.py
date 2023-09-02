@@ -18,6 +18,7 @@
 import functools
 import inspect
 import json
+import math
 import os
 import stat
 import threading
@@ -57,37 +58,48 @@ class DataInfo(object):
         self.shape = shape
 
 
-def get_not_float_tensor_info(data):
-    summary_data = []
-    if data.numel() == 0 or data.dtype == torch.bool:
-        tensor_max = []
-        tensor_min = []
-        tensor_mean = []
-    elif len(data.shape) == 0:
-        tensor_max = data.cpu().detach().float().numpy().tolist()
-        tensor_min = data.cpu().detach().float().numpy().tolist()
-        tensor_mean = data.cpu().detach().float().numpy().tolist()
-    else:
-        tensor_max = torch._C._VariableFunctionsClass.max(data).cpu().detach().float().numpy().tolist()
-        tensor_min = torch._C._VariableFunctionsClass.min(data).cpu().detach().float().numpy().tolist()
-        tensor_mean = torch._C._VariableFunctionsClass.mean(data.float()).cpu().detach().float().numpy().tolist()
+def get_not_float_tensor_info(data, compute_summary):
     saved_tensor = data.contiguous().cpu().detach().numpy()
-    summary_data.extend([tensor_max, tensor_min, tensor_mean])
+    if compute_summary:
+        if data.numel() == 0 or data.dtype == torch.bool:
+            tensor_max = math.nan
+            tensor_min = math.nan
+            tensor_mean = math.nan
+        elif len(data.shape) == 0:
+            tensor_max = data.cpu().detach().float().numpy().tolist()
+            tensor_min = data.cpu().detach().float().numpy().tolist()
+            tensor_mean = data.cpu().detach().float().numpy().tolist()
+        else:
+            tensor_max = torch._C._VariableFunctionsClass.max(data).cpu().detach().float().numpy().tolist()
+            tensor_min = torch._C._VariableFunctionsClass.min(data).cpu().detach().float().numpy().tolist()
+            tensor_mean = torch._C._VariableFunctionsClass.mean(data.float()).cpu().detach().float().numpy().tolist()
+    else:
+        tensor_max = math.nan
+        tensor_min = math.nan
+        tensor_mean = math.nan
+    summary_data = [tensor_max, tensor_min, tensor_mean]
     return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape))
 
 
-def get_scalar_data_info(data):
-    summary_data = [data, data, data]
+def get_scalar_data_info(data, compute_summary):
+    if compute_summary:
+        summary_data = [data, data, data]
+    else:
+        summary_data = [math.nan] * 3
     return DataInfo(data, data, summary_data, str(type(data)), str([]))
 
 
-def get_float_tensor_info(data):
-    summary_data = []
-    tensor_max = torch._C._VariableFunctionsClass.max(data).cpu().detach().float().numpy().tolist()
-    tensor_min = torch._C._VariableFunctionsClass.min(data).cpu().detach().float().numpy().tolist()
-    tensor_mean = torch._C._VariableFunctionsClass.mean(data).cpu().detach().float().numpy().tolist()
+def get_float_tensor_info(data, compute_summary):
     saved_tensor = data.contiguous().cpu().detach().numpy()
-    summary_data.extend([tensor_max, tensor_min, tensor_mean])
+    if compute_summary:
+        tensor_max = torch._C._VariableFunctionsClass.max(data).cpu().detach().float().numpy().tolist()
+        tensor_min = torch._C._VariableFunctionsClass.min(data).cpu().detach().float().numpy().tolist()
+        tensor_mean = torch._C._VariableFunctionsClass.mean(data).cpu().detach().float().numpy().tolist()
+    else:
+        tensor_max = math.nan
+        tensor_min = math.nan
+        tensor_mean = math.nan
+    summary_data = [tensor_max, tensor_min, tensor_mean]
     return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape))
 
 
@@ -106,37 +118,39 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
             dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name, dump_type)
         return
     elif isinstance(x, torch.Tensor):
+        compute_summary = True if dump_type in ['all', 'statistics'] else False
+        dump_npy = True if dump_type in ['all', 'npy'] else False
         def backward_hook(grad, get_info):
-            nonlocal dump_file_name, dump_step, prefix, dump_type
+            nonlocal dump_file_name, dump_step, prefix, dump_npy, compute_summary
             prefix = prefix.replace('_forward_output', '_backward_input')
-            data_info_ = get_info(grad)
-            dump_data(dump_file_name, dump_step, prefix, data_info_, dump_type)
+            data_info_ = get_info(grad, compute_summary)
+            dump_data(dump_file_name, dump_step, prefix, data_info_, dump_npy)
 
         if x.numel() == 0 or len(x.shape) == 0 or not x.is_floating_point():
             if DumpUtil.dump_filter_switch == Const.OFF:
-                data_info = get_not_float_tensor_info(x)
-                dump_data(dump_file_name, dump_step, prefix, data_info, dump_type)
+                data_info = get_not_float_tensor_info(x, compute_summary)
+                dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy)
                 if universal_interface.g_retain_backward and x.requires_grad is True and "_output" in prefix:
                     x.register_hook(functools.partial(backward_hook, get_info=get_not_float_tensor_info))
             else:
                 return
         else:
-            data_info = get_float_tensor_info(x)
-            dump_data(dump_file_name, dump_step, prefix, data_info, dump_type)
+            data_info = get_float_tensor_info(x, compute_summary)
+            dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy)
             if universal_interface.g_retain_backward and x.requires_grad is True and "_output" in prefix:
                 x.register_hook(functools.partial(backward_hook, get_info=get_float_tensor_info))
 
     elif DumpUtil.dump_filter_switch == Const.OFF:
         if isinstance(x, bool) or isinstance(x, int) or isinstance(x, float):
-            data_info = get_scalar_data_info(x)
-            dump_data(dump_file_name, dump_step, prefix, data_info, dump_type)
+            data_info = get_scalar_data_info(x, compute_summary)
+            dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy)
 
 
-def dump_data(dump_file_name, dump_step, prefix, data_info, dump_type):
+def dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy):
     with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
                    "a") as f:
         if json_dump_condition(prefix):
-            if dump_type == Const.ALL:
+            if dump_npy:
                 output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
                 np.save(output_path, data_info.save_data)
                 os.chmod(output_path, 0x600)
