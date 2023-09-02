@@ -139,6 +139,7 @@ def dump_data(dump_file_name, dump_step, prefix, data_info, dump_type):
             if dump_type == Const.ALL:
                 output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
                 np.save(output_path, data_info.save_data)
+                os.chmod(output_path, 0x600)
             json.dump([prefix, dump_step, [], data_info.dtype, data_info.shape, data_info.summary_data], f)
             f.write('\n')
 
@@ -148,7 +149,7 @@ def is_not_blacklisted(stack_path):
     black_lists = ['/torch/autograd/', '/torch/backends/', '/torch/cuda/',
                    '/torch/distributed/', '/torch/distributions/', '/torch/fft/',
                    '/torch/fx/', '/torch/jit/', '/torch/linalg/', '/torch/nn/',
-                   '/torch/onnx/', '/torch/optim/', '/torch/profiler/', '/torch/quantization/'
+                   '/torch/onnx/', '/torch/optim/', '/torch/profiler/', '/torch/quantization/',
                    '/troubleshooter/migrator/api_dump/']
     for black in black_lists:
         if black in stack_path:

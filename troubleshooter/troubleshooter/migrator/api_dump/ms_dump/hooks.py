@@ -245,6 +245,7 @@ def dump_data(dump_file_name, dump_step, prefix, data_info, dump_type):
             if dump_type == Const.ALL:
                 output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
                 np.save(output_path, data_info.save_data)
+                os.chmod(output_path, 0o600)
             json.dump([prefix, dump_step, [], data_info.dtype, data_info.shape, data_info.summary_data], f)
             f.write('\n')
 
@@ -318,9 +319,9 @@ def json_dump_condition(prefix):
 def is_not_blacklisted(stack_path):
     black_lists = ['/mindspore/ops/', '/mindspore/nn/', '/mindsproe/amp.py',
                    '/mindspore/numpy/', '/mindspore/dataset/', '/mindspore/common/',
-                   '/mindspore/train/', '/mindspore/boost/', '/mindspore/parallel/'
-                   '/mindspore/profiler/', '/mindspore/rewrite/', '/mindspore/scipy/'
-                   '/troubleshooter/migrator/api_dump']
+                   '/mindspore/train/', '/mindspore/boost/', '/mindspore/parallel/',
+                   '/mindspore/profiler/', '/mindspore/rewrite/', '/mindspore/scipy/',
+                   '/troubleshooter/migrator/api_dump/']
     for black in black_lists:
         if black in stack_path:
             return False
