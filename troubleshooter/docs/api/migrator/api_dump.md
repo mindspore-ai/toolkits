@@ -6,51 +6,80 @@
 
 ### 参数
 
-- net(torch.nn.Module/mindspore.nn.Cell): 需要保存数据的网络，支持MindSpore的Cell和Torch的Module。
-- output_path(str): 输出文件保存的路径，默认值为'./ts_api_dump'，即保存在当前路径下的'ts_api_dump'目录。
-- retain_backward(bool): 是否保存反向梯度数据，默认值为`False`，不保存反向数据。
+- net(`torch.nn.Module`/`mindspore.nn.Cell`): 需要保存数据的网络，支持 MindSpore 的 Cell 和 Torch 的 Module。
+- output_path(`str`):输出文件保存的路径。
+- retain_backward(`bool`): 是否保存反向梯度数据，默认值为 `False`，不保存反向数据。
 
-> 警告：
+> 注意：
 >
-> API级别数据保存依赖框架的hook机制，由于PyTorch对原地修改的API注册反向hook会抛异常（详细信息请参考[register_full_backward_hook](https://pytorch.org/docs/stable/generated/torch.nn.Module.html#torch.nn.Module.register_full_backward_hook)）。**因此在保存反向梯度数据时，需要将网络脚本中原地修改的操作替换为非原地修改**（例如将`relu_`替换为`relu`，`torch.nn.ReLU`的`inplace`参数设置为`False`等），并在`api_init_dump`中设置`retain_backward`参数为`True`。
+> 初始化时，工具会将`dropout`/`Dropout`相关API的`p`设置为0，即输出数据与输入数据相同，以固定不同框架的随机性。
 
-MindSpore生成的目录结构。
+MindSpore 生成的目录结构。
 
 ```
 output_path # 输出目录
-├── rank0
-│   ├── mindspore_api_dump # npy数据目录
-│   ├── mindspore_api_dump_info.pkl # dump的info信息
-│   └── mindspore_api_dump_stack.json # dump的堆栈信息
-└── rank1 # 多卡，暂不支持
+└── rank0
+    ├── mindspore_api_dump # npy数据目录
+    ├── mindspore_api_dump_info.pkl # dump的info信息
+    └── mindspore_api_dump_stack.json # dump的堆栈信息
 ```
 
 Torch 生成的目录结构。
 
 ```
 output_path # 输出目录
-├── rank0
-│   ├── torch_api_dump # npy数据目录
-│   ├── torch_api_dump_info.pkl # dump的info信息
-│   └── torch_api_dump_stack.json # dump的堆栈信息
-└── rank1 # 多卡，暂不支持
+└── rank0
+    ├── torch_api_dump # npy数据目录
+    ├── torch_api_dump_info.pkl # dump的info信息
+    └── torch_api_dump_stack.json # dump的堆栈信息
 ```
+
+- dump的数据为**正向输入与输出**，**反向梯度的输入**，每个数据单独保存到一个npy文件，数据名称格式如下：
+
+  ```
+  [NN,Tensor,Functional]_NAME_cnt_[forward,backward]_[input, output].[idx]
+  ```
+
+  其中[NN,Tensor,Functional]表示接口的类型；NAME表示API的名称；cnt表示API调用的顺序；[forward,backward]表示正/反向数据；[input, output]表示数据的输入，输出；idx表示多输入或输出时数据的编号。
+
+  例如"Functional_pad_0_forward_input.0.npy" 表示函数接口`pad`在正向第0次执行时输入的第0号位置元素的数据；
+
+  "Tensor_permute_3_backward_input" 表示`Tensor`接口`permute`在反向第3次执行时的输入的梯度数据。
+
+- `api_dump_info.pkl`文件为网络在dump时按照API的执行顺序保存的信息，文件项格式如下：
+  ```
+  [数据名称，保留字段，保留字段，数据类型，数据shape，[最大值，最小值，均值]]
+  ```
+  当数据为bool类型或关闭统计信息保存时，最大值/最小值/均值会显示为`NAN`。
+
+- `api_dump_stack.json`为网络dump时按照API的执行顺序保存的堆栈信息，在精度出现问题时，可以根据相应的文件名找到对应的代码行。由于网络反向堆栈信息过于单一，因此只保存了正向的堆栈信息。堆栈信息以API为单位，与npy数据名称不同，它不包含 [input, output].[idx] 字段。
 
 ## troubleshooter.migrator.api_dump_start
 
-> troubleshooter.migrator.api_dump_start(mode='all', scope=[], dump_type='all', filter_data=True)
+> troubleshooter.migrator.api_dump_start(mode='all', scope=None, dump_type='all', filter_data=True, filter_stack=True)
 
 开启数据 dump。
 
 ### 参数
 
-- mode(str)：dump模式，可选`'all'`、`'list'`、`'range'`、`'api_list'`，默认值`'all'`。`'all'`模式会dump全部API的数据；`'list'`、`'range'`、`'api_list'`模式通过配合`scope`参数可以实现dump特定API、范围、名称等功能。
-- scope(list)：dump范围。根据`mode`配置的模式选择dump的API范围。API范围中的名称可以通过输出目录下的`api_dump_info.pkl`文件获取）。
-  - `mode`为`'list'`时，`scope`为dump特定的文件列表，例如`['Functional_softmax_1_forward', 'NN_Dense_1_backward', 'Tensor___matmul___1_forward']`，只会dump列表中的三个API；
-  - `mode`为`'range'`时，`scope`为dump的区间范围，例如`['NN_Dense_1_backward', 'Tensor___matmul___1_forward']`，会dump从'NN_Dense_1_backward'直到'Tensor___matmul___1_forward'的所有API；
-  - `mode`为`'api_list'`时，`scope`为dump特定的API列表，例如`['relu', 'softmax', 'layernorm']`，会dump名称中含有relu、softmax、layernorm关键字的所有API，不区分`Tensor`、`Functional`等方法类型。
-- dump_type(str)：dump保存的数据类型，可选`'all'`、`'statistics'`，默认值为`'all'`。为`'all'`时会保存数据的统计信息和npy文件；为`'statistics'`时，只会保存数据的统计信息。
-- filter_data(bool)：是否开启dump数据过滤，默认值为`True`。为`True`时，非浮点类型的Tensor和标量将会被过滤，不会被保存。
+- mode(str)：dump 模式，可选 `'all'`、`'list'`、`'range'`、`'api_list'`，默认值 `'all'`。`'all'` 模式会 dump 全部 API 的数据；`'list'`、`'range'`、`'api_list'` 模式通过配合 `scope` 参数可以实现 dump 特定 API、范围、名称等功能。
+
+- scope(list)：dump 范围。根据 `mode` 配置的模式选择 dump 的 API 范围。API 范围中的名称可以通过输出目录下的 `api_dump_info.pkl` 文件获取）。
+
+  - `mode` 为 `'list'` 时，`scope` 为 dump 特定的文件列表，例如 `['Functional_softmax_1_forward', 'NN_Dense_1_backward', 'Tensor___matmul___1_forward']`，只会 dump 列表中的三个 API；
+  - `mode` 为 `'range'` 时，`scope` 为 dump 的区间范围，例如 `['NN_Dense_1_backward', 'Tensor___matmul___1_forward']`，会 dump 从'NN_Dense_1_backward'直到'Tensor__matmul___1_forward'的所有 API；
+  - `mode` 为 `'api_list'` 时，`scope` 为 dump 特定的 API 列表，例如 `['relu', 'softmax', 'layernorm']`，会 dump 名称中含有 relu、softmax、layernorm 关键字的所有 API，不区分 `Tensor`、`Functional` 等方法类型。
+
+- dump_type(`str`)：dump 保存的数据类型，可选 `'all'`、`'statistics'`、`'npy'`、`'stack'`， 默认值为 `'all'`。以下模式均会保存数据的执行顺序（`api_dump_info.pkl`）以及堆栈信息（`api_dump_stack.json`）。
+
+  - 为 `'all'`时会保存数据的统计信息（`api_dump_info.pkl`文件中数据的最大/最小/均值信息）和 npy 文件；
+  - 为 `'statistics'` 时，**不会保存npy文件**，会保存数据的统计信息；
+  - 为 `'npy'`时，**不会保存数据的统计信息**，会保存数据的npy文件；
+  - 为 `'stack'`时，只会保存数据的执行顺序与堆栈信息。
+
+- filter_data(`bool`)：是否开启 dump 数据过滤，默认值为 `True`。为 `True` 时，非浮点类型的 Tensor 和标量将会被过滤，不会被保存。
+
+- filter_stack(`bool`)：是否开启堆栈信息过滤，默认值为 `True`。为 `True`时，会过滤掉 `MindSpore`/`Pytorch`以及`Troubleshooter`dump功能的堆栈信息，只保留用户代码。
 
 ## troubleshooter.migrator.api_dump_stop
 
@@ -58,9 +87,11 @@ output_path # 输出目录
 
 停止数据 dump。
 
+可以通过与`api_dump_start`配合使用，在网络执行中调用，对特定的范围的数据进行dump。
+
 ## troubleshooter.migrator.api_dump_compare
 
-> troubleshooter.migrator.api_dump_compare(origin_path, target_path, output_path)
+> troubleshooter.migrator.api_dump_compare(origin_path, target_path, output_path, *, rtol=1e-4, atol=1e-4, equal_nan=False, ignore_unmatched=False)
 
 数据 dump 比对，支持 MindSpore 和 Torch 对比以及 MindSpore 同框架对比。
 
@@ -68,6 +99,17 @@ output_path # 输出目录
 
 ### 参数
 
-- origin_path(str)：原始目录，与 init 接口的 output_path 同级。
-- target_path(str)：目标目录，与 init 接口的 output_path 同级。
-- output_path(str，可选)：输出数据目录，默认值为None，不输出到文件。不为None时，输出目录下会保存 `ts_api_mapping.csv`（API映射文件）、 `ts_api_forward_compare.csv`（正向比对结果）、`ts_api_backward_compare.csv`（反向比对结果）。
+- origin_path(`str`)：原始目录，与 init 接口的 output_path 同级。
+- target_path(`str`)：目标目录，与 init 接口的 output_path 同级。
+- output_path(`str`，可选)：输出数据目录，默认值为None，不输出到文件。不为None时，输出目录下会保存 `ts_api_mapping.csv`（API映射文件）、 `ts_api_forward_compare.csv`（正向比对结果）、`ts_api_backward_compare.csv`（反向比对结果）。
+
+  ```
+  output_path # 输出目录
+  ├── ts_api_mapping.csv # api映射表
+  ├── ts_api_forward_compare.csv # 正向比对信息
+  └── ts_api_backward_compare.csv # 反向比对信息
+  ```
+
+- rtol(`float`): 相对误差，默认值为 `1e-4`，内部调用 `numpy.allclose`的参数。
+- atol(`float`): 绝对误差，默认值为 `1e-4`，内部调用 `numpy.allclose`的参数。
+- equal_nan(`bool`): 是否将nan视为相等，默认值为 `False`，内部调用 `numpy.allclose`的参数。
