@@ -72,15 +72,12 @@ def initialize_hook(hook):
 def register_hook(model, hook, **kwargs):
     global make_dir_flag
     assert hasattr(model, "named_modules"), "Please register hooks to nn.Module."
-    print_info_log("Please disable the shuffle function of the dataset "
-                   "and the dropout function of the model "
-                   "before running the program.")
     dump_step = kwargs.get('dump_step', 1)
     overflow_nums = kwargs.get('overflow_nums', 1)
     dump_mode, dump_config_file = init_dump_config(kwargs)
 
     pid = os.getpid()
-    rank = kwargs.get('rank')
+    rank = 0
     need_clear = True
     if rank is None:
         rank, need_clear = get_process_rank(model)
@@ -105,7 +102,6 @@ def register_hook(model, hook, **kwargs):
     print_info_log("Start mounting the {} hook function to the model.".format(hook_name))
     hook = functools.partial(hook, dump_step=dump_step, overflow_nums=overflow_nums, pid=pid,
                              dump_mode=dump_mode, dump_config=dump_config_file)
-    print_info_log("The {} hook function is successfully mounted to the model.".format(hook_name))
 
     initialize_hook(hook)
 
@@ -113,6 +109,7 @@ def register_hook(model, hook, **kwargs):
         if hasattr(module, 'hook_name'):
             prefix_nn_name_ = "NN_" + str(module.hook_name[5:]) + "_"
             module.register_forward_hook(hook(prefix_nn_name_ + "{}_" + "forward"))
+    print_info_log("The {} hook function is successfully mounted to the model.".format(hook_name))
 
 
 def init_dump_config(kwargs):

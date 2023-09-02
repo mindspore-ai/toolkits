@@ -3,7 +3,7 @@ import shutil
 import sys
 from pathlib import Path
 
-from ..common.utils import print_error_log, CompareException, DumpException, Const, get_time, print_info_log, \
+from ..common.utils import print_error_log, CompareException, DumpException, Const, get_time, print_attent_log, \
     check_mode_valid, get_api_name_from_matcher
 
 
@@ -131,7 +131,7 @@ def set_dump_path(fpath=None):
         return
     real_path = os.path.realpath(fpath)
     if not os.path.isdir(real_path):
-        print_info_log(
+        print_attent_log(
             "The path '{}' does not exist, the path will be created automatically.".format(real_path))
     DumpUtil.set_ori_dir(real_path)
 
@@ -143,7 +143,7 @@ def generate_dump_path_str():
             raise DumpException(DumpException.NONE_ERROR)
         dump_path = f"according to dump config {DumpUtil.dump_config}"
     else:
-        dump_path = f"to {DumpUtil.dump_path}"
+        dump_path = f"to {DumpUtil.dump_ori_dir}"
     return dump_path
 
 
@@ -174,23 +174,21 @@ def set_dump_switch(switch, mode=Const.ALL, scope=None, api_list=None,
         print_error_log(str(err))
         sys.exit()
 
-    if switch == "OFF":
-        dump_path_str = generate_dump_path_str()
     DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list,
                              filter_switch=filter_switch, dump_mode=dump_mode, dump_type=dump_type,
                              filter_stack=filter_stack)
-    if switch == "ON":
-        dump_path_str = generate_dump_path_str()
 
     global dump_count
     if switch == "ON":
-        print_info_log(f"Dump switch is turned on. Dump data will be saved {dump_path_str}. ")
+        dump_path_str = generate_dump_path_str()
+        print_attent_log(f"API dump has started. Dump data will be saved {dump_path_str}. ")
         if mode == Const.LIST:
             dump_count = 0
     else:
-        print_info_log(f"Dump switch is turned off. Dump data has been saved {dump_path_str}. ")
+        dump_path_str = generate_dump_path_str()
+        print_attent_log(f"API dump has stopped. Dump data has been saved {dump_path_str}. ")
         if mode == Const.LIST:
-            print_info_log("The number of matched dump is {}".format(dump_count))
+            print_attent_log("The number of matched dump is {}".format(dump_count))
 
 
 def _set_dump_switch4api_list(name):

@@ -206,6 +206,16 @@ def print_warn_log(warn_msg):
     _print_log("WARNING", warn_msg)
 
 
+def print_attent_log(attent_msg):
+    """
+    Function Description:
+        print attent log.
+    Parameter:
+        attent_msg: the attention message.
+    """
+    _print_log("ATTENTION", attent_msg)
+
+
 def check_mode_valid(mode):
     if mode not in Const.DUMP_MODE:
         msg = "Current mode '%s' is not supported. Please use the field in %s" % \
