@@ -286,7 +286,6 @@ def api_dump_compare(origin_path: str, target_path: str, output_path: Optional[s
     """
     ignore_backward = kwargs.get('ignore_backward', False)
     convinced_match_method = kwargs.get('convinced_match_method', 'recursion')
-    min_recursion_len = kwargs.get('min_recursion_len', 50)
 
     origin_ret = get_dump_path(origin_path)
     if origin_ret is None:
@@ -320,8 +319,7 @@ def api_dump_compare(origin_path: str, target_path: str, output_path: Optional[s
         target_pkl_list,
         err_threshold=1.0,
         ignore_shape=False,
-        convinced_match_method=convinced_match_method,
-        min_recursion_len=min_recursion_len,
+        convinced_match_method=convinced_match_method
     )
     _print_apis_map_result(apis_map, output_file=save_map_path, field_names=field_names)
     npy_forward_list, npy_backward_list = get_npy_map_list(

@@ -1,5 +1,6 @@
 import inspect
 import json
+import math
 import os
 import random
 import shutil
@@ -142,37 +143,48 @@ class DataInfo(object):
         self.shape = shape
 
 
-def get_not_float_tensor_info(data):
+def get_not_float_tensor_info(data, compute_summary):
     saved_tensor = data.numpy()
-    summary_data = []
-    if saved_tensor.size == 0 or saved_tensor.dtype == np.bool_:
-        tensor_max = []
-        tensor_min = []
-        tensor_mean = []
-    elif len(saved_tensor.shape) == 0:
-        tensor_max = saved_tensor.astype(np.float32).tolist()
-        tensor_min = saved_tensor.astype(np.float32).tolist()
-        tensor_mean = saved_tensor.astype(np.float32).tolist()
+    if compute_summary:
+        if saved_tensor.size == 0 or saved_tensor.dtype == np.bool_:
+            tensor_max = []
+            tensor_min = []
+            tensor_mean = []
+        elif len(saved_tensor.shape) == 0:
+            tensor_max = saved_tensor.astype(np.float32).tolist()
+            tensor_min = saved_tensor.astype(np.float32).tolist()
+            tensor_mean = saved_tensor.astype(np.float32).tolist()
+        else:
+            tensor_max = saved_tensor.max().astype(np.float32).tolist()
+            tensor_min = saved_tensor.min().astype(np.float32).tolist()
+            tensor_mean = saved_tensor.astype(np.float32).mean().tolist()
     else:
-        tensor_max = saved_tensor.max().astype(np.float32).tolist()
-        tensor_min = saved_tensor.min().astype(np.float32).tolist()
-        tensor_mean = saved_tensor.astype(np.float32).mean().tolist()
-    summary_data.extend([tensor_max, tensor_min, tensor_mean])
+        tensor_max = math.nan
+        tensor_min = math.nan
+        tensor_mean = math.nan
+    summary_data = [tensor_max, tensor_min, tensor_mean]
     return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape))
 
 
-def get_scalar_data_info(data):
-    summary_data = [data, data, data]
+def get_scalar_data_info(data, compute_summary):
+    if compute_summary:
+        summary_data = [data, data, data]
+    else:
+        summary_data = [math.nan] * 3
     return DataInfo(data, data, summary_data, str(type(data)), str([]))
 
 
-def get_float_tensor_info(data):
-    summary_data = []
+def get_float_tensor_info(data, compute_summary):
     saved_tensor = data.numpy()
-    tensor_max = saved_tensor.max().astype(np.float32).tolist()
-    tensor_min = saved_tensor.min().astype(np.float32).tolist()
-    tensor_mean = saved_tensor.mean().astype(np.float32).tolist()
-    summary_data.extend([tensor_max, tensor_min, tensor_mean])
+    if compute_summary:
+        tensor_max = saved_tensor.max().astype(np.float32).tolist()
+        tensor_min = saved_tensor.min().astype(np.float32).tolist()
+        tensor_mean = saved_tensor.mean().astype(np.float32).tolist()
+    else:
+        tensor_max = math.nan
+        tensor_min = math.nan
+        tensor_mean = math.nan
+    summary_data = [tensor_max, tensor_min, tensor_mean]
     return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape))
 
 
@@ -242,7 +254,7 @@ def dump_data(dump_file_name, dump_step, prefix, data_info, dump_type):
     with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
                    "a") as f:
         if json_dump_condition(prefix):
-            if dump_type == Const.ALL:
+            if dump_type:
                 output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
                 np.save(output_path, data_info.save_data)
                 os.chmod(output_path, 0o600)
@@ -257,20 +269,22 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
             dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name, dump_type)
         return
     elif isinstance(x, ms.Tensor):
+        compute_summary = True if dump_type in ['all', 'statistics'] else False
+        dump_npy = True if dump_type in ['all', 'npy'] else False
         if x.numel() == 0 or len(x.shape) == 0 or not x.is_floating_point():
             if DumpUtil.dump_filter_switch == Const.OFF:
-                data_info = get_not_float_tensor_info(x)
-                dump_data(dump_file_name, dump_step, prefix, data_info, dump_type)
+                data_info = get_not_float_tensor_info(x, compute_summary)
+                dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy)
             else:
                 return
         else:
-            data_info = get_float_tensor_info(x)
-            dump_data(dump_file_name, dump_step, prefix, data_info, dump_type)
+            data_info = get_float_tensor_info(x, compute_summary)
+            dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy)
 
     elif DumpUtil.dump_filter_switch == Const.OFF:
         if isinstance(x, bool) or isinstance(x, int) or isinstance(x, float):
-            data_info = get_scalar_data_info(x)
-            dump_data(dump_file_name, dump_step, prefix, data_info, dump_type)
+            data_info = get_scalar_data_info(x, compute_summary)
+            dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy)
 
 
 def seed_all(seed=1234):
