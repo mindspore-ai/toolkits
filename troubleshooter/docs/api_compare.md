@@ -17,9 +17,14 @@ PyTorch 网络迁移到 MindSpore，以及 MindSpore 不同后端/版本迁移�
 在满足三个条件后，就可以进行数据保存以及数据对比了。
 
 ### 数据保存
+
 在PyTorch迁移场景下，需要分别对 MindSpore 和 PyTorch 网络进行 API 级整网数据 dump。
 
-在MindSpore的不同版本/后端迁移场景下，需要对MindSpore网络进行API级整网数据dump。
+在MindSpore的不同版本/后端迁移场景下，需要对 MindSpore 网络进行 API 级整网数据dump。
+
+> 注意
+>
+> 当前没有针对优化器等接口进行特定处理，dump时接口的内部操作会被保存，由于PyTorch与MindSpore内部实现逻辑差异较大，导致对比时API映射困难。因此dump时需要跳过优化器，在反向执行后优化器执行前停止数据dump。
 
 **PyTorch 网络 dump**
 
@@ -55,8 +60,10 @@ pred = net(images)
 loss = loss_function(pred, labels)
 loss.backward()
 
-# 8. 在迭代结束后关闭dump
+# 8. 在反向计算结束，优化器更新前关闭dump
 ts.migrator.api_dump_stop()
+
+optimizer.step()
 ```
 
 **MindSpore 网络 dump**
@@ -72,9 +79,9 @@ net = create_net()
 loss = mindspore.nn.CrossEntropyLoss()
 optimizer = ms.nn.SGD(net.trainable_params(), learning_rate=args.lr, momentum=0.9, weight_decay=5E-5)
 def forward_fn(data, label):
-    logits = net(data)
-    loss = loss_function(logits, label)
-    return loss, logits
+    logits = net(data)
+    loss = loss_function(logits, label)
+    return loss, logits
 grad_fn = mindspore.value_and_grad(forward_fn, None, optimizer.parameters, has_aux=True)
 
 # 3. 统一数据样本
@@ -83,8 +90,8 @@ label = ms.Tensor(np.load('label.npy'))
 
 # 4. 保存权重和转换映射，用于在MindSpore加载
 ts.migrator.convert_weight_and_load(weight_map_path="pt_net_info/torch_net_map.json",
-                                    pt_file_path="pt_net_info/torch_troubleshooter_create.pth",
-                                    net=net)
+                                    pt_file_path="pt_net_info/torch_troubleshooter_create.pth",
+                                    net=net)
 
 # 5. 设置dump的网络
 ts.migrator.api_dump_init(net, output_path="ms_dump", retain_backward=True)
@@ -95,11 +102,13 @@ ts.migrator.api_dump_start()
 # 7. 执行训练流程
 (loss, pred), grads = grad_fn(image, label)
 
-# 8. 在迭代结束后关闭dump
+# 8. 在反向计算结束，优化器更新前关闭dump
 ts.migrator.api_dump_stop()
+
+optimizer(grads)
 ```
 
-#### 数据对比
+### 数据对比
 
 比较时是需要输入dump路径，即可自动识别是MindSpore还是PyTorch网络dump的数据，实现PyTorch或MindSpore迁移的对比。
 
