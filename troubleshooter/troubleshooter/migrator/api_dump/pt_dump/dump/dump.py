@@ -153,7 +153,7 @@ def dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy):
             if dump_npy:
                 output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
                 np.save(output_path, data_info.save_data)
-                os.chmod(output_path, 0x600)
+                os.chmod(output_path, 0o600)
             json.dump([prefix, dump_step, [], data_info.dtype, data_info.shape, data_info.summary_data], f)
             f.write('\n')
 

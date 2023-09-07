@@ -298,6 +298,8 @@ tensor:
   - exp2_
   - expm1
   - exp_
+  - expand
+  - expand_as
   - expm1_
   - exponential_
   - fill_
@@ -504,6 +506,7 @@ tensor:
   - softmax
   - solve
   - sort
+  - split
   - split_with_sizes
   - sqrt
   - sqrt_
@@ -846,6 +849,7 @@ torch:
   - maximum
   - mean
   - median
+  - meshgrid
   - min
   - minimum
   - mm
@@ -875,11 +879,11 @@ torch:
   - negative_
   - nextafter
   - nonzero
+  - norm
   - norm_except_dim
   - normal
   - not_equal
   - nuclear_norm
-  - ones_like
   - pairwise_distance
   - pdist
   - pinverse
@@ -943,6 +947,7 @@ torch:
   - sort
   - sparse_coo_tensor
   - square
+  - split
   - split_with_sizes
   - spmm
   - sqrt
