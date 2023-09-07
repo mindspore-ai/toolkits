@@ -59,7 +59,7 @@ image = torch.tensor(np.load('image.npy'))
 label = torch.tensor(np.load('label.npy'))
 
 # 4. 保存权重和转换映射，用于在MindSpore加载
-ts.save_net_and_weight_params(net, path='pt_net_info')
+ts.migrator.save_net_and_weight_params(net, path='pt_net_info')
 
 # 5. 设置dump的网络
 ts.migrator.api_dump_init(net, output_path="torch_dump", retain_backward=True)

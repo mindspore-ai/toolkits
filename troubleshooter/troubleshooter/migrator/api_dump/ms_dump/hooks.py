@@ -310,6 +310,7 @@ def make_dump_dirs(rank):
     dump_file_name = os.path.join(rank_dir, dump_file_name)
     dump_stack_path = os.path.join(rank_dir, dump_stack_file)
     DumpUtil.set_dump_path(dump_file_path, dump_file_name, dump_stack_path)
+    DumpUtil.dump_stack_dic = {}
 
 
 def make_dump_data_dir(dump_file_name):

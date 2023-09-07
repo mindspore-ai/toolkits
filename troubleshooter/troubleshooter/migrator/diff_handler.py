@@ -203,7 +203,7 @@ def compare_npy_dir(
     none_and_isdir_check(target_dir, 'target_dir')
     type_check(rtol, 'rtol', float)
     type_check(atol, 'atol', float)
-    type_check(equal_nan, 'atol', bool)
+    type_check(equal_nan, 'equal_nan', bool)
     type_check(compare_shape, 'compare_shape', bool)
     expected_kwargs = {
         'title': '',
