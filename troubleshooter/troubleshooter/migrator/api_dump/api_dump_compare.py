@@ -364,6 +364,11 @@ def compare_summary(
 
     origin_info_map = get_api_info(origin_pkl_path)
     target_info_map = get_api_info(target_pkl_path)
+    if all([np.all(np.isnan(i[1])) for i in origin_info_map.values()]) or all(
+        [np.all(np.isnan(i[1])) for i in target_info_map.values()]
+    ):
+        print('Warning: all the data in the pkl files are nan.')
+        return []
     result_list = []
     for origin_key, target_key in name_map_list:
         if origin_key is None:
@@ -481,14 +486,15 @@ def api_dump_compare(
         ignore_unmatched=ignore_unmatched,
     )
     if origin_npy_path is None or target_npy_path is None:
-        compare_summary(
+        print('Warning: npy files not found, use pkl files to compare.')
+        ret = compare_summary(
             origin_pkl_path,
             target_pkl_path,
             npy_forward_list,
             save_forward_path,
             'The forward comparison results',
         )
-        if not ignore_backward:
+        if not ignore_backward and len(ret) != 0:
             npy_backward_list.reverse()
             compare_summary(
                 origin_pkl_path,
