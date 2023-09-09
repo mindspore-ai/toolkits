@@ -41,7 +41,7 @@
 
 # 如何使用
 
-可以参考[test_netdifffinder.py](https://gitee.com/mindspore/toolkits/blob/master/tests/st/troubleshooter/diff_handler/test_netdifffinder.py)中的使用方法，以下为伪代码：
+可以参考[test_netdifffinder.py](https://gitee.com/mindspore/toolkits/blob/master/tests/st/troubleshooter/migrator/test_netdifffinder.py)中的使用方法，以下为伪代码：
 
 ```python
 pt_net = ConstTorch()

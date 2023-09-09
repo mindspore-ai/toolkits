@@ -64,24 +64,24 @@ output_path # 输出目录
 
 ### 参数
 
-- mode(str)：dump 模式，可选 `'all'`、`'list'`、`'range'`、`'api_list'`，默认值 `'all'`。`'all'` 模式会 dump 全部 API 的数据；`'list'`、`'range'`、`'api_list'` 模式通过配合 `scope` 参数可以实现 dump 特定 API、范围、名称等功能。
+- mode(str, 可选)：dump 模式，目前支持 `'all'`、`'list'`、`'range'`、`'api_list'`，默认值 `'all'`。`'all'` 模式会 dump 全部 API 的数据；`'list'`、`'range'`、`'api_list'` 模式通过配合 `scope` 参数可以实现 dump 特定 API、范围、名称等功能。
 
-- scope(list)：dump 范围。根据 `mode` 配置的模式选择 dump 的 API 范围。API 范围中的名称可以通过输出目录下的 `api_dump_info.pkl` 文件获取）。
+- scope(list, 可选)：dump 范围。根据 `mode` 配置的模式选择 dump 的 API 范围。API 范围中的名称可以通过输出目录下的 `api_dump_info.pkl` 文件获取）。
 
   - `mode` 为 `'list'` 时，`scope` 为 dump 特定的文件列表，例如 `['Functional_softmax_1_forward', 'NN_Dense_1_backward', 'Tensor___matmul___1_forward']`，只会 dump 列表中的三个 API；
   - `mode` 为 `'range'` 时，`scope` 为 dump 的区间范围，例如 `['NN_Dense_1_backward', 'Tensor___matmul___1_forward']`，会 dump 从`'NN_Dense_1_backward'`直到`'Tensor__matmul___1_forward'`的所有 API；
   - `mode` 为 `'api_list'` 时，`scope` 为 dump 特定的 API 列表，例如 `['relu', 'softmax', 'layernorm']`，会 dump 名称中含有 `relu`、`softmax`、`layernorm` 关键字的所有 API，不区分 `Tensor`、`Functional` 等方法类型。
 
-- dump_type(`str`)：dump 保存的数据类型，可选 `'all'`、`'statistics'`、`'npy'`、`'stack'`， 默认值为 `'all'`。以下模式均会保存数据的堆栈信息（`api_dump_stack.json`）与执行顺序（`api_dump_info.pkl`）。
+- dump_type(`str`, 可选)：dump 保存的数据类型，目前支持 `'all'`、`'statistics'`、`'npy'`、`'stack'`， 默认值为 `'all'`。以下模式均会保存数据的堆栈信息（`api_dump_stack.json`）与执行顺序（`api_dump_info.pkl`）。
 
   - 为 `'all'`时会保存数据的统计信息（`api_dump_info.pkl`文件中数据的最大/最小/均值信息）和 npy 文件，速度最慢，存储空间占用大；
   - 为 `'npy'`时，**不会保存数据的统计信息**，会保存数据的npy文件，速度较`'all'`模式快，存储空间占用大；
   - 为 `'statistics'` 时，**不会保存npy文件**，会保存数据的统计信息，存储空间占用小，结合`api_dump_compare`，可以根据统计信息初步定位精度问题；
   - 为 `'stack'`时，只会保存数据的堆栈信息（`api_dump_stack.json`）与执行顺序（`api_dump_info.pkl`），运行速度最快，存储空间占用最小，常用于快速验证`api_dump_compare`中API映射结果。
 
-- filter_data(`bool`)：是否开启 dump 数据过滤，默认值为 `True`。为 `True` 时，非浮点类型的 Tensor 和标量将会被过滤，不会被保存。
+- filter_data(`bool`, 可选)：是否开启 dump 数据过滤，默认值为 `True`。为 `True` 时，非浮点类型的 Tensor 和标量将会被过滤，不会被保存。
 
-- filter_stack(`bool`)：是否开启堆栈信息过滤，默认值为 `True`。为 `True`时，会过滤掉 `MindSpore`/`Pytorch`以及`Troubleshooter`dump功能的堆栈信息，只保留用户代码。
+- filter_stack(`bool`, 可选)：是否开启堆栈信息过滤，默认值为 `True`。为 `True`时，会过滤掉 `MindSpore`/`Pytorch`以及`Troubleshooter`dump功能的堆栈信息，只保留用户代码。
 
 ## troubleshooter.migrator.api_dump_stop
 
@@ -103,7 +103,7 @@ output_path # 输出目录
 
 - origin_path(`str`)：原始目录，与 init 接口的 output_path 同级。
 - target_path(`str`)：目标目录，与 init 接口的 output_path 同级。
-- output_path(`str`，可选)：输出数据目录，默认值为None，不输出到文件。不为None时，输出目录下会保存 `ts_api_mapping.csv`（API映射文件）、 `ts_api_forward_compare.csv`（正向比对结果）、`ts_api_backward_compare.csv`（反向比对结果）。
+- output_path(`str`, 可选)：输出数据目录，默认值为None，不输出到文件。不为None时，输出目录下会保存 `ts_api_mapping.csv`（API映射文件）、 `ts_api_forward_compare.csv`（正向比对结果）、`ts_api_backward_compare.csv`（反向比对结果）。
 
   ```
   output_path # 输出目录
@@ -112,7 +112,7 @@ output_path # 输出目录
   └── ts_api_backward_compare.csv # 反向比对信息
   ```
 
-- rtol(`float`，可选): 相对误差，默认值为 `1e-4`，内部调用 `numpy.allclose`的参数。
-- atol(`float`，可选): 绝对误差，默认值为 `1e-4`，内部调用 `numpy.allclose`的参数。
-- equal_nan(`bool`，可选): 是否将nan视为相等，默认值为 `False`，内部调用 `numpy.allclose`的参数。
-- ignore_unmatched(`bool`，可选): 是否忽略未匹配项，默认值 `False`。当原始目录和目标目录下API调用不一致时，可能会导致部分API未匹配，对于未匹配项，会显示为None。为`True`时，未匹配项不会显示。
+- rtol(`float`, 可选): 相对误差，默认值为 `1e-4`，内部调用 `numpy.allclose`的参数。
+- atol(`float`, 可选): 绝对误差，默认值为 `1e-4`，内部调用 `numpy.allclose`的参数。
+- equal_nan(`bool`, 可选): 是否将nan视为相等，默认值为 `False`，内部调用 `numpy.allclose`的参数。
+- ignore_unmatched(`bool`, 可选): 是否忽略未匹配项，默认值 `False`。当原始目录和目标目录下API调用不一致时，可能会导致部分API未匹配，对于未匹配项，会显示为None。为`True`时，未匹配项不会显示。

@@ -16,11 +16,13 @@
 """
 
 import functools
+from collections import defaultdict
 import os
 
 import torch
 
-from ... import universal_interface
+from . import hook_module
+from ..dump import dump
 from ..common import global_manage
 from ..common.utils import (CompareException, Const, check_file_or_directory_path, get_process_rank,
                             print_error_log, print_info_log, print_warn_log)
@@ -34,8 +36,6 @@ except ImportError:
 else:
     is_gpu = False
     from . import wrap_npu_custom
-
-make_dir_flag = True
 
 global_manage.init()
 
@@ -70,7 +70,6 @@ def initialize_hook(hook):
 
 
 def register_hook(model, hook, **kwargs):
-    global make_dir_flag
     assert hasattr(model, "named_modules"), "Please register hooks to nn.Module."
     dump_step = kwargs.get('dump_step', 1)
     overflow_nums = kwargs.get('overflow_nums', 1)
@@ -81,9 +80,10 @@ def register_hook(model, hook, **kwargs):
     need_clear = True
     if rank is None:
         rank, need_clear = get_process_rank(model)
-    if make_dir_flag:
-        make_dump_dirs(rank)
-        make_dir_flag = False
+    make_dump_dirs(rank)
+    hook_module.module_count.clear()
+    dump.NNCount.clear()
+
     hook_name = hook.__name__
 
     if "overflow_check" in hook_name and not is_gpu:

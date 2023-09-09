@@ -7,6 +7,7 @@ from typing import List, Optional
 from troubleshooter.migrator.diff_handler import compare_npy_dir, min_edit_distance
 
 from .apis_match import APIList, _print_apis_map_result, flow_match, load_pkl
+from ...common.util import type_check
 
 __all__ = ['api_dump_compare']
 
@@ -294,6 +295,9 @@ def api_dump_compare(origin_path: str, target_path: str, output_path: Optional[s
     target_ret = get_dump_path(target_path)
     if target_ret is None:
         raise ValueError("target_path is not a valid dump path")
+    type_check(rtol, 'rtol', float)
+    type_check(atol, 'atol', float)
+    type_check(equal_nan, 'equal_nan', bool)
     target_npy_path, target_pkl_path, target_framework = target_ret
     field_names = [
         f"ORIGIN NET ({origin_framework})",

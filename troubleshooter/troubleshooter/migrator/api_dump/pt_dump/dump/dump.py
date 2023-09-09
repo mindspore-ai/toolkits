@@ -147,6 +147,9 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
 
 
 def dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy):
+    if DumpUtil.dump_switch_mode in [Const.RANGE, Const.LIST] and not DumpUtil.check_switch_scope(prefix):
+        return
+
     with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
                    "a") as f:
         if json_dump_condition(prefix):
@@ -223,8 +226,8 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
             dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
             dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
         elif DumpUtil.dump_switch_mode in [Const.RANGE, Const.LIST]:
+            dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
             if DumpUtil.check_switch_scope(name_prefix):
-                dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
                 dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
         else:
             msg = f"Current mode '{DumpUtil.dump_switch_mode}' is not supported. Please use the field in {Const.DUMP_MODE}"

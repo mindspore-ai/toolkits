@@ -3,9 +3,10 @@ import os
 
 import mindspore as ms
 
+from . import hook_cell
+from . import hooks
 from .. import universal_interface
 from . import wrap_functional, wrap_nn, wrap_sub_tensor, wrap_tensor
-from .hooks import make_dump_dirs
 from .utils import (CompareException, Const, check_file_or_directory_path, print_error_log,
                     print_info_log)
 
@@ -31,11 +32,13 @@ def register_hook(net, hook, **kwargs):
     rank = kwargs.get('rank')
     if rank is None:
         rank = 0
-    make_dump_dirs(rank)
+    hooks.make_dump_dirs(rank)
 
     hook_name = hook.__name__
     print_info_log("Start mounting the {} hook function to the model.".format(hook_name))
     hook = functools.partial(hook, pid=pid, dump_mode=dump_mode, dump_config=dump_config_file)
+    hook_cell.cell_count.clear()
+    hooks.NNCount.clear()
 
     initialize_hook(hook)
     for _, cell in net.cells_and_names():

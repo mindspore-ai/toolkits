@@ -42,6 +42,7 @@ def api_dump_init(net, output_path=os.path.join(os.getcwd(), "ts_api_dump"), *, 
     global API_DUMP_FRAMEWORK_TYPE
     global g_retain_backward
     g_retain_backward = retain_backward
+    type_check(retain_backward, 'retain_backward', bool)
 
     print_attent_log("For precision comparison, the probability p in the dropout method is set to 0.")
     print_attent_log("Please disable the shuffle function of the dataset "
