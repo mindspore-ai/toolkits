@@ -22,7 +22,7 @@ import os
 import torch
 
 from . import hook_module
-from ..dump import dump
+from ..dump import dump, utils
 from ..common import global_manage
 from ..common.utils import (CompareException, Const, check_file_or_directory_path, get_process_rank,
                             print_error_log, print_info_log, print_warn_log)
@@ -83,6 +83,10 @@ def register_hook(model, hook, **kwargs):
     make_dump_dirs(rank)
     hook_module.module_count.clear()
     dump.NNCount.clear()
+    utils.dump_count = 0
+    utils.range_begin_flag = False
+    utils.range_end_flag = False
+    dump.backward_threading_id = 0
 
     hook_name = hook.__name__
 

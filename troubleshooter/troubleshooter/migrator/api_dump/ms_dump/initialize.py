@@ -39,6 +39,10 @@ def register_hook(net, hook, **kwargs):
     hook = functools.partial(hook, pid=pid, dump_mode=dump_mode, dump_config=dump_config_file)
     hook_cell.cell_count.clear()
     hooks.NNCount.clear()
+    hooks.DumpCount = 0
+    hooks.range_begin_flag = False
+    hooks.range_end_flag = False
+    hooks.backward_threading_id = 0
 
     initialize_hook(hook)
     for _, cell in net.cells_and_names():
