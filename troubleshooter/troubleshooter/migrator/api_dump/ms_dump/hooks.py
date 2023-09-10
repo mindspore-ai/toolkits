@@ -8,7 +8,7 @@ import stat
 import sys
 import threading
 from collections import defaultdict
-from functools import lru_cache
+from functools import lru_cache, partial
 from pathlib import Path
 
 import mindspore as ms
@@ -16,6 +16,7 @@ import numpy as np
 
 from .utils import (CompareException, Const, __version__, check_mode_valid, get_time,
                     print_attent_log, print_error_log, remove_dump_file)
+from .. import universal_interface
 
 DumpCount = 0
 forward_init_status = False
@@ -143,7 +144,7 @@ class DataInfo(object):
 
 
 def get_not_float_tensor_info(data, compute_summary):
-    saved_tensor = data.numpy()
+    saved_tensor = data.asnumpy()
     if compute_summary:
         if saved_tensor.size == 0 or saved_tensor.dtype == np.bool_:
             tensor_max = []
@@ -174,7 +175,7 @@ def get_scalar_data_info(data, compute_summary):
 
 
 def get_float_tensor_info(data, compute_summary):
-    saved_tensor = data.numpy()
+    saved_tensor = data.asnumpy()
     if compute_summary:
         tensor_max = saved_tensor.max().astype(np.float32).tolist()
         tensor_min = saved_tensor.min().astype(np.float32).tolist()
@@ -254,6 +255,8 @@ def set_backward_input(backward_input):
 
 
 def dump_data(dump_file_name, dump_step, prefix, data_info, dump_type):
+    if DumpUtil.dump_switch_mode in [Const.RANGE, Const.LIST] and not DumpUtil.check_switch_scope(prefix):
+        return
     with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
                    "a") as f:
         if json_dump_condition(prefix):
@@ -266,23 +269,44 @@ def dump_data(dump_file_name, dump_step, prefix, data_info, dump_type):
 
 
 def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
-    global data_info
     if isinstance(x, (tuple, list)) and x:
+        res = []
         for i, item in enumerate(x):
-            dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name, dump_type)
-        return
+            output_hook_tensor = dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name, dump_type)
+            if output_hook_tensor:
+                res.append(output_hook_tensor)
+        return res if res else None
     elif isinstance(x, ms.Tensor):
         compute_summary = True if dump_type in ['all', 'statistics'] else False
         dump_npy = True if dump_type in ['all', 'npy'] else False
+        def backward_hook(grad, get_info):
+            grad = grad[0]
+            nonlocal dump_file_name, dump_step, prefix, dump_npy, compute_summary
+            prefix = prefix.replace('_forward_output', '_backward_input')
+            data_info_ = get_info(grad, compute_summary)
+            dump_data(dump_file_name, dump_step, prefix, data_info_, dump_npy)
+
         if x.numel() == 0 or len(x.shape) == 0 or not x.is_floating_point():
             if DumpUtil.dump_filter_switch == Const.OFF:
                 data_info = get_not_float_tensor_info(x, compute_summary)
                 dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy)
+                if universal_interface.g_retain_backward and "_output" in prefix:
+                    def backward_hook_func(grad):
+                        return backward_hook(grad, get_not_float_tensor_info)
+                    hook = ms.ops.HookBackward(backward_hook_func)
+                    x = hook(x)
+                    return x
             else:
                 return
         else:
             data_info = get_float_tensor_info(x, compute_summary)
             dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy)
+            if universal_interface.g_retain_backward and "_output" in prefix:
+                def backward_hook_func(grad):
+                    return backward_hook(grad, get_float_tensor_info)
+                hook = ms.ops.HookBackward(backward_hook_func)
+                x = hook(x)
+                return x
 
     elif DumpUtil.dump_filter_switch == Const.OFF:
         if isinstance(x, bool) or isinstance(x, int) or isinstance(x, float):
@@ -387,17 +411,18 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step):
         name_prefix = name
         name_template = f"{name_prefix}" + "_{}"
         if DumpUtil.dump_switch_mode == Const.ALL:
-            dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
             dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
+            return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
         elif DumpUtil.dump_switch_mode == Const.API_LIST:
             if not check_in_api_list(name):
                 return
-            dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
             dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
+            return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
         elif DumpUtil.dump_switch_mode in [Const.RANGE, Const.LIST]:
+            output_hook_tensor = dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
             if DumpUtil.check_switch_scope(name_prefix):
-                dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
                 dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
+            return output_hook_tensor
         else:
             msg = f"Current mode '{DumpUtil.dump_switch_mode}' is not supported. Please use the field in {Const.DUMP_MODE}"
             raise ValueError(msg)
@@ -405,8 +430,7 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step):
 
 def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file, dump_type):
     dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file, dump_type)
-    if "_backward" not in name_template:
-        dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file, dump_type)
+    return dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file, dump_type)
 
 
 def acc_cmp_dump(name, **kwargs):
@@ -423,14 +447,10 @@ def acc_cmp_dump(name, **kwargs):
         if "{}_" in name_template:
             # name_template like 'NN_Conv2d_{}_forward'
             nn_name = name_template.split('_')[1]
-            if "backward" in name_template:
-                id = NNCount[nn_name] - 1
-                NNCount[nn_name] = id
-            else:
-                id = NNCount[nn_name]
-                NNCount[nn_name] = id + 1
+            id = NNCount[nn_name]
+            NNCount[nn_name] = id + 1
             name = name_template.format(id)
         if pid == os.getpid():
-            dump_acc_cmp(name, in_feat, out_feat, dump_step)
+            return dump_acc_cmp(name, in_feat, out_feat, dump_step)
 
     return acc_cmp_hook

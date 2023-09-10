@@ -39,8 +39,8 @@ def test_compare_api_dump_all(capsys):
         train_ms_one_step_all(data_path, ms_dump_path, torch_info_path)
         api_dump_compare(torch_dump_path, ms_dump_path, rtol=1e-3, atol=1e-3)
         result = capsys.readouterr().out
-        assert result.count("True") >= 20
-        assert result.count("False") <= 1
+        assert result.count("True") == 21
+        assert result.count("False") == 0
     finally:
         shutil.rmtree(torch_dump_path)
         shutil.rmtree(torch_info_path)
@@ -65,9 +65,8 @@ def test_compare_api_dump_part(capsys):
         api_dump_compare(torch_dump_path, ms_dump_path, rtol=1e-3, atol=1e-3)
 
         result = capsys.readouterr().out
-        # mindspore backward miss
-        assert result.count("True") >= 4
-        assert result.count("False") <= 2
+        assert result.count("True") == 6
+        assert result.count("False") == 0
     finally:
         shutil.rmtree(data_path)
         shutil.rmtree(torch_dump_path)
@@ -92,9 +91,8 @@ def test_compare_api_dump_api_list(capsys):
         api_dump_compare(torch_dump_path, ms_dump_path, rtol=1e-3, atol=1e-3)
 
         result = capsys.readouterr().out
-        # mindspore conv2d backward miss
-        assert result.count("True") >= 8
-        assert result.count("False") <= 1
+        assert result.count("True") == 9
+        assert result.count("False") == 0
     finally:
         shutil.rmtree(data_path)
         shutil.rmtree(torch_dump_path)
@@ -172,7 +170,7 @@ def test_compare_api_dump_statistics_statistics(capsys):
                               torch_info_path, dump_type='statistics')
         api_dump_compare(torch_dump_path, ms_dump_path, rtol=1e-3, atol=1e-3)
         result = capsys.readouterr().out
-        assert result.count("[1, 5, 30, 100]") >= 23
+        assert result.count("[1, 5, 30, 100]") == 24
     finally:
         shutil.rmtree(torch_dump_path)
         shutil.rmtree(torch_info_path)
@@ -198,7 +196,7 @@ def test_compare_api_dump_statistics_all(capsys):
                               torch_info_path, dump_type='all')
         api_dump_compare(torch_dump_path, ms_dump_path, rtol=1e-3, atol=1e-3)
         result = capsys.readouterr().out
-        assert result.count("[1, 5, 30, 100]") >= 23
+        assert result.count("[1, 5, 30, 100]") == 24
     finally:
         shutil.rmtree(torch_dump_path)
         shutil.rmtree(torch_info_path)
@@ -224,7 +222,7 @@ def test_compare_api_dump_all_statistics(capsys):
                               torch_info_path, dump_type='statistics')
         api_dump_compare(torch_dump_path, ms_dump_path, rtol=1e-3, atol=1e-3)
         result = capsys.readouterr().out
-        assert result.count("[1, 5, 30, 100]") >= 23
+        assert result.count("[1, 5, 30, 100]") == 24
     finally:
         shutil.rmtree(torch_dump_path)
         shutil.rmtree(torch_info_path)

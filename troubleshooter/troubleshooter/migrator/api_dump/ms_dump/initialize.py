@@ -49,8 +49,6 @@ def register_hook(net, hook, **kwargs):
         if hasattr(cell, 'hook_name'):
             prefix_nn_name_ = "NN_" + str(cell.hook_name[5:]) + "_"
             cell.register_forward_hook(hook(prefix_nn_name_ + "{}_" + "forward"))
-            if universal_interface.g_retain_backward:
-                cell.register_backward_hook(hook(prefix_nn_name_ + "{}_" + "backward"))
     print_info_log("The {} hook function is successfully mounted to the model.".format(hook_name))
 
 
