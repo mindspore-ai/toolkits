@@ -23,7 +23,7 @@ import os
 import stat
 import threading
 from collections import defaultdict
-from functools import lru_cache
+from functools import lru_cache, partial
 
 import numpy as np
 import torch
@@ -131,14 +131,14 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
                 data_info = get_not_float_tensor_info(x, compute_summary)
                 dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy)
                 if universal_interface.g_retain_backward and x.requires_grad is True and "_output" in prefix:
-                    x.register_hook(functools.partial(backward_hook, get_info=get_not_float_tensor_info))
+                    x.register_hook(partial(backward_hook, get_info=get_not_float_tensor_info))
             else:
                 return
         else:
             data_info = get_float_tensor_info(x, compute_summary)
             dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy)
             if universal_interface.g_retain_backward and x.requires_grad is True and "_output" in prefix:
-                x.register_hook(functools.partial(backward_hook, get_info=get_float_tensor_info))
+                x.register_hook(partial(backward_hook, get_info=get_float_tensor_info))
 
     elif DumpUtil.dump_filter_switch == Const.OFF:
         if isinstance(x, bool) or isinstance(x, int) or isinstance(x, float):
