@@ -4,6 +4,9 @@ from collections import defaultdict
 from pathlib import Path
 from typing import List, Optional
 
+import numpy as np
+from prettytable import PrettyTable
+
 from troubleshooter.migrator.diff_handler import compare_npy_dir, min_edit_distance
 
 from .apis_match import APIList, _print_apis_map_result, flow_match, load_pkl
@@ -40,7 +43,7 @@ def get_npy_map_list(
             pattern = re.compile(
                 r"^(\w+?)_(\w+)_(\d+)+_(\w+)_([io][nu]t?put)\.?(\d+)?\.?(\d+)?$"
             )
-            prefix_con = re.findall(pattern, x[:-4])
+            prefix_con = re.findall(pattern, x)
             if len(prefix_con) == 0:
                 print(f"ignore {x}")
                 return None
@@ -89,10 +92,10 @@ def get_npy_map_list(
         origin_name_list, target_name_list, origin_shape_map, target_shape_map
     ):
         origin_shape_list = [
-            origin_shape_map[origin_name[:-4]] for origin_name in origin_name_list
+            origin_shape_map[origin_name] for origin_name in origin_name_list
         ]
         target_shape_list = [
-            target_shape_map[target_name[:-4]] for target_name in target_name_list
+            target_shape_map[target_name] for target_name in target_name_list
         ]
         _, index_map_list = min_edit_distance(origin_shape_list, target_shape_list)
 
@@ -139,12 +142,16 @@ def get_npy_map_list(
 
     origin_npy_files = defaultdict(list)
     target_npy_files = defaultdict(list)
-    for name in Path(origin_npy_dir).glob('*.npy'):
-        name = name.name
+    if origin_npy_dir is None or target_npy_dir is None:
+        origin_all_npy = origin_shape_map.keys()
+        target_all_npy = target_shape_map.keys()
+    else:
+        origin_all_npy = [i.stem for i in Path(origin_npy_dir).glob('*.npy')]
+        target_all_npy = [i.stem for i in Path(target_npy_dir).glob('*.npy')]
+    for name in origin_all_npy:
         key = name[0 : name.rfind('_', 0, name.rfind('_'))]
         origin_npy_files[key].append(name)
-    for name in Path(target_npy_dir).glob('*.npy'):
-        name = name.name
+    for name in target_all_npy:
         key = name[0 : name.rfind('_', 0, name.rfind('_'))]
         target_npy_files[key].append(name)
 
@@ -199,30 +206,44 @@ def get_npy_map_list(
                     #  ([b_forward_output.npy], [b_backward_output.npy])]
                     # -> ([a_forward_output.0.npy, a_forward_output.1.npy], [b_forward_output.npy])
                     # -> ([a_backward_output.1.npy], [b_backward_output.npy])
-                    *[_get_npy_list(api, '', origin_npy_files) for api in origin_apis[1:-1]]
+                    *[
+                        _get_npy_list(api, '', origin_npy_files)
+                        for api in origin_apis[1:-1]
+                    ]
                 )
                 origin_inter_forward_map = [
-                    (origin, None) for origins in origin_inter_forward for origin in origins
+                    (origin, None)
+                    for origins in origin_inter_forward
+                    for origin in origins
                 ]
 
                 forward_list.extend(origin_inter_forward_map)
                 if not ignore_backward:
                     origin_inter_backward_map = [
-                        (origin, None) for origins in origin_inter_backward for origin in origins
+                        (origin, None)
+                        for origins in origin_inter_backward
+                        for origin in origins
                     ]
                     backward_list.extend(origin_inter_backward_map)
             if target_apis[1:-1]:
                 target_inter_forward, target_inter_backward = zip(
-                    *[_get_npy_list(api, '', target_npy_files) for api in target_apis[1:-1]]
+                    *[
+                        _get_npy_list(api, '', target_npy_files)
+                        for api in target_apis[1:-1]
+                    ]
                 )
                 target_inter_forward_map = [
-                    (None, target) for targets in target_inter_forward for target in targets
+                    (None, target)
+                    for targets in target_inter_forward
+                    for target in targets
                 ]
 
                 forward_list.extend(target_inter_forward_map)
                 if not ignore_backward:
                     target_inter_backward_map = [
-                        (None, target) for targets in target_inter_backward for target in targets
+                        (None, target)
+                        for targets in target_inter_backward
+                        for target in targets
                     ]
                     backward_list.extend(target_inter_backward_map)
 
@@ -248,34 +269,163 @@ def get_npy_map_list(
 
 
 def get_dump_path(root_path):
-    if not os.path.exists(os.path.join(root_path, 'rank0')):
-        return None
-
-    if os.path.exists(
-        os.path.join(root_path, 'rank0', 'mindspore_api_dump')
-    ) and os.path.exists(
-        os.path.join(root_path, 'rank0', 'mindspore_api_dump_info.pkl')
-    ):
+    root_path = Path(root_path)
+    if root_path.joinpath('rank0', 'mindspore_api_dump_info.pkl').exists():
         return (
-            os.path.join(root_path, 'rank0', 'mindspore_api_dump'),
-            os.path.join(root_path, 'rank0', 'mindspore_api_dump_info.pkl'),
+            str(root_path.joinpath('rank0', 'mindspore_api_dump'))
+            if root_path.joinpath('rank0', 'mindspore_api_dump').exists()
+            else None,
+            str(root_path.joinpath('rank0', 'mindspore_api_dump_info.pkl')),
             'mindspore',
         )
-    elif os.path.exists(
-        os.path.join(root_path, 'rank0', 'torch_api_dump')
-    ) and os.path.exists(os.path.join(root_path, 'rank0', 'torch_api_dump_info.pkl')):
+    elif root_path.joinpath('rank0', 'torch_api_dump_info.pkl').exists():
         return (
-            os.path.join(root_path, 'rank0', 'torch_api_dump'),
-            os.path.join(root_path, 'rank0', 'torch_api_dump_info.pkl'),
+            str(root_path.joinpath('rank0', 'torch_api_dump'))
+            if root_path.joinpath('rank0', 'torch_api_dump').exists()
+            else None,
+            str(root_path.joinpath('rank0', 'torch_api_dump_info.pkl')),
             'pytorch',
         )
     else:
         return None
 
 
-def api_dump_compare(origin_path: str, target_path: str, output_path: Optional[str] = None,
-                     *, rtol: float = 1e-4, atol: float = 1e-4, equal_nan: bool = False,
-                     ignore_unmatched: bool = False, **kwargs):
+def print_summary_result(
+    result_list,
+    *,
+    print_level=1,
+    title=None,
+    field_names=None,
+    show_shape_diff=False,
+    output_file=None,
+):
+    # 0 Do not print
+    # Print All
+    # print False
+    if print_level == 0:
+        return
+    if not result_list:
+        return
+    if field_names is None:
+        field_names = ["orig array name", "target array name", "summary diffs"]
+    if show_shape_diff:
+        field_names = (
+            field_names[:2] + ["shape of orig", "shape of target"] + field_names[2:]
+        )
+
+    x = PrettyTable()
+    if title is None:
+        x.title = 'The list of comparison results'
+    else:
+        x.title = title
+    x.field_names = field_names
+
+    for result in result_list:
+        if show_shape_diff:
+            orig_name, target_name, orig_shape, target_shape, summary_diffs = result
+        else:
+            orig_name, target_name, summary_diffs = result
+        if print_level == 2:
+            continue
+        if show_shape_diff:
+            basic_info = [orig_name, target_name, orig_shape, target_shape]
+        else:
+            basic_info = [orig_name, target_name]
+        x.add_row([*basic_info, summary_diffs])
+    print(x.get_string())
+
+    if output_file:
+        if not os.path.exists(os.path.dirname(output_file)):
+            raise ValueError(f"output_file {output_file} not exist")
+        with os.fdopen(os.open(output_file, os.O_WRONLY | os.O_CREAT, 0o600), 'w') as f:
+            f.write(x.get_csv_string() + os.linesep)
+    return x.get_string()
+
+
+def compare_summary(
+    origin_pkl_path,
+    target_pkl_path,
+    name_map_list,
+    output_file,
+    title,
+):
+    def get_api_info(pkl_path):
+        def _read_line(line):
+            prefix, dump_step, _, data_type, data_shape, data_summary = line
+            return {prefix: (data_shape, data_summary)}
+
+        ret = {}
+
+        pkl = load_pkl(pkl_path)
+        for l in pkl:
+            summary = _read_line(l)
+            if summary:
+                ret.update(summary)
+        return ret
+
+    origin_info_map = get_api_info(origin_pkl_path)
+    target_info_map = get_api_info(target_pkl_path)
+    if all([np.all(np.isnan(i[1])) for i in origin_info_map.values()]) or all(
+        [np.all(np.isnan(i[1])) for i in target_info_map.values()]
+    ):
+        print('Warning: all the data in the pkl files are nan.')
+        return []
+    result_list = []
+    for origin_key, target_key in name_map_list:
+        if origin_key is None:
+            result_list.append(
+                (
+                    None,
+                    target_key,
+                    None,
+                    target_info_map[target_key][0],
+                    '[nan nan nan]',
+                )
+            )
+        elif target_key is None:
+            result_list.append(
+                (
+                    origin_key,
+                    None,
+                    origin_info_map[origin_key][0],
+                    None,
+                    '[nan nan nan]',
+                )
+            )
+        else:
+            summary_diff = str(
+                np.abs(
+                    np.array(origin_info_map[origin_key][1])
+                    - np.array(target_info_map[target_key][1])
+                )
+            )
+            result_list.append(
+                (
+                    origin_key,
+                    target_key,
+                    origin_info_map[origin_key][0],
+                    target_info_map[target_key][0],
+                    summary_diff,
+                )
+            )
+    print_summary_result(
+        result_list, title=title, output_file=output_file, show_shape_diff=True
+    )
+
+    return result_list
+
+
+def api_dump_compare(
+    origin_path: str,
+    target_path: str,
+    output_path: Optional[str] = None,
+    *,
+    rtol: float = 1e-4,
+    atol: float = 1e-4,
+    equal_nan: bool = False,
+    ignore_unmatched: bool = False,
+    **kwargs,
+):
     """compare each api's output by the npy files dumped by the network.
 
     Args:
@@ -303,8 +453,12 @@ def api_dump_compare(origin_path: str, target_path: str, output_path: Optional[s
         f"ORIGIN NET ({origin_framework})",
         f"TARGET NET ({target_framework})",
     ]
-    diff_field_names = ["result of allclose", "ratio of allclose",
-                        "cosine similarity", "mean & max diffs"]
+    diff_field_names = [
+        "result of allclose",
+        "ratio of allclose",
+        "cosine similarity",
+        "mean & max diffs",
+    ]
     if output_path is None:
         save_map_path = None
         save_forward_path = None
@@ -323,7 +477,7 @@ def api_dump_compare(origin_path: str, target_path: str, output_path: Optional[s
         target_pkl_list,
         err_threshold=1.0,
         ignore_shape=False,
-        convinced_match_method=convinced_match_method
+        convinced_match_method=convinced_match_method,
     )
     _print_apis_map_result(apis_map, output_file=save_map_path, field_names=field_names)
     npy_forward_list, npy_backward_list = get_npy_map_list(
@@ -335,29 +489,62 @@ def api_dump_compare(origin_path: str, target_path: str, output_path: Optional[s
         ignore_backward=ignore_backward,
         ignore_unmatched=ignore_unmatched,
     )
-    compare_npy_dir(
-        origin_npy_path,
-        target_npy_path,
-        rtol=rtol,
-        atol=atol,
-        equal_nan=equal_nan,
-        name_map_list=npy_forward_list,
-        compare_shape=True,
-        output_file=save_forward_path,
-        title='The forward comparison results',
-        field_names=field_names + diff_field_names
-    )
-    if not ignore_backward:
-        npy_backward_list.reverse()
+    if origin_npy_path is None or target_npy_path is None:
+        print('Warning: npy files not found, use pkl files to compare.')
+        ret = compare_summary(
+            origin_pkl_path,
+            target_pkl_path,
+            npy_forward_list,
+            save_forward_path,
+            'The forward comparison results',
+        )
+        if not ignore_backward and len(ret) != 0:
+            npy_backward_list.reverse()
+            compare_summary(
+                origin_pkl_path,
+                target_pkl_path,
+                npy_backward_list,
+                save_backward_path,
+                'The backward comparison results',
+            )
+    else:
+        npy_forward_list = [
+            (
+                i[0] + '.npy' if i[0] is not None else None,
+                i[1] + '.npy' if i[1] is not None else None,
+            )
+            for i in npy_forward_list
+        ]
+        npy_backward_list = [
+            (
+                i[0] + '.npy' if i[0] is not None else None,
+                i[1] + '.npy' if i[1] is not None else None,
+            )
+            for i in npy_backward_list
+        ]
         compare_npy_dir(
             origin_npy_path,
             target_npy_path,
             rtol=rtol,
             atol=atol,
             equal_nan=equal_nan,
-            name_map_list=npy_backward_list,
+            name_map_list=npy_forward_list,
             compare_shape=True,
-            output_file=save_backward_path,
-            title='The backward comparison results',
-            field_names=field_names + diff_field_names
+            output_file=save_forward_path,
+            title='The forward comparison results',
+            field_names=field_names + diff_field_names,
         )
+        if not ignore_backward:
+            npy_backward_list.reverse()
+            compare_npy_dir(
+                origin_npy_path,
+                target_npy_path,
+                rtol=rtol,
+                atol=atol,
+                equal_nan=equal_nan,
+                name_map_list=npy_backward_list,
+                compare_shape=True,
+                output_file=save_backward_path,
+                title='The backward comparison results',
+                field_names=field_names + diff_field_names,
+            )
