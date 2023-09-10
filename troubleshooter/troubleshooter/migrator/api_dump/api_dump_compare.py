@@ -7,7 +7,9 @@ from typing import List, Optional
 import numpy as np
 from prettytable import PrettyTable
 
+from troubleshooter import log as logger
 from troubleshooter.migrator.diff_handler import compare_npy_dir, min_edit_distance
+from troubleshooter.common.format_msg import truncate_decimal
 
 from .apis_match import APIList, _print_apis_map_result, flow_match, load_pkl
 from ...common.util import type_check
@@ -270,21 +272,23 @@ def get_npy_map_list(
 
 def get_dump_path(root_path):
     root_path = Path(root_path)
-    if root_path.joinpath('rank0', 'mindspore_api_dump_info.pkl').exists():
+    ms_pkl_path = root_path.joinpath('rank0', 'mindspore_api_dump_info.pkl')
+    ms_npy_path = root_path.joinpath('rank0', 'mindspore_api_dump')
+    ms_npy_path_not_empty = ms_npy_path.exists() and list(ms_npy_path.iterdir())
+
+    pt_pkl_path = root_path.joinpath('rank0', 'torch_api_dump_info.pkl')
+    pt_npy_path = root_path.joinpath('rank0', 'torch_api_dump')
+    pt_npy_path_not_empty = pt_npy_path.exists() and list(pt_npy_path.iterdir())
+
+    if ms_pkl_path.exists():
         return (
-            str(root_path.joinpath('rank0', 'mindspore_api_dump'))
-            if root_path.joinpath('rank0', 'mindspore_api_dump').exists()
-            else None,
-            str(root_path.joinpath('rank0', 'mindspore_api_dump_info.pkl')),
-            'mindspore',
+            str(ms_npy_path) if ms_npy_path_not_empty else None, 
+            str(ms_pkl_path), 'mindspore',
         )
-    elif root_path.joinpath('rank0', 'torch_api_dump_info.pkl').exists():
+    elif pt_pkl_path.exists():
         return (
-            str(root_path.joinpath('rank0', 'torch_api_dump'))
-            if root_path.joinpath('rank0', 'torch_api_dump').exists()
-            else None,
-            str(root_path.joinpath('rank0', 'torch_api_dump_info.pkl')),
-            'pytorch',
+            str(pt_npy_path) if pt_npy_path_not_empty else None,
+            str(pt_pkl_path), 'pytorch',
         )
     else:
         return None
@@ -307,7 +311,7 @@ def print_summary_result(
     if not result_list:
         return
     if field_names is None:
-        field_names = ["orig array name", "target array name", "summary diffs"]
+        field_names = ["orig array name", "target array name", "max, min, mean diffs"]
     if show_shape_diff:
         field_names = (
             field_names[:2] + ["shape of orig", "shape of target"] + field_names[2:]
@@ -368,7 +372,7 @@ def compare_summary(
     if all([np.all(np.isnan(i[1])) for i in origin_info_map.values()]) or all(
         [np.all(np.isnan(i[1])) for i in target_info_map.values()]
     ):
-        print('Warning: all the data in the pkl files are nan.')
+        logger.user_attention('all the data in the pkl files are nan.')
         return []
     result_list = []
     for origin_key, target_key in name_map_list:
@@ -379,7 +383,7 @@ def compare_summary(
                     target_key,
                     None,
                     target_info_map[target_key][0],
-                    '[nan nan nan]',
+                    'nan, nan, nan',
                 )
             )
         elif target_key is None:
@@ -389,23 +393,21 @@ def compare_summary(
                     None,
                     origin_info_map[origin_key][0],
                     None,
-                    '[nan nan nan]',
+                    'nan, nan, nan',
                 )
             )
         else:
-            summary_diff = str(
-                np.abs(
-                    np.array(origin_info_map[origin_key][1])
-                    - np.array(target_info_map[target_key][1])
-                )
-            )
+            origin_summary = np.array(origin_info_map[origin_key][1])
+            target_summary = np.array(target_info_map[target_key][1])
+            summary_diff = list(np.abs(origin_summary - target_summary))
+            format_summary_diff = ", ".join(f'{truncate_decimal(diff, 5):.5f}' for diff in summary_diff)
             result_list.append(
                 (
                     origin_key,
                     target_key,
                     origin_info_map[origin_key][0],
                     target_info_map[target_key][0],
-                    summary_diff,
+                    format_summary_diff,
                 )
             )
     print_summary_result(
@@ -490,7 +492,7 @@ def api_dump_compare(
         ignore_unmatched=ignore_unmatched,
     )
     if origin_npy_path is None or target_npy_path is None:
-        print('Warning: npy files not found, use pkl files to compare.')
+        logger.user_attention('npy files not found, use pkl files to compare.')
         ret = compare_summary(
             origin_pkl_path,
             target_pkl_path,

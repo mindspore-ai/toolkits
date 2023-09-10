@@ -59,9 +59,10 @@ class BaseTrainOneStep:
         self.optimizer(grads)
 
 
-def train_ms_one_step_all(data_path, dump_path, info_path=None, retain_backward=True):
+def train_ms_one_step_all(data_path, dump_path, info_path=None, retain_backward=True, dump_type='all'):
     class Net(BaseNet):
         def construct(self, x):
+            api_dump_start(dump_type=dump_type)
             x = self.conv(x)
             x = ops.clip(x, Tensor(0.2, ms.float32), Tensor(0.5, ms.float32))
             x = self.bn(x)
