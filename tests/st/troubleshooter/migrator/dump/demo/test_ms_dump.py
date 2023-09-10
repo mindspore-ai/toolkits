@@ -125,7 +125,6 @@ def test_api_dump_ms_part():
         train_ms_one_step_part(data_path, dump_path)
         pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
             dump_path, 'mindspore')
-        print(pkl_list)
         # backward not support
         assert len(pkl_list) >= 4
         assert set(pkl_list) == set(npy_list)
@@ -199,7 +198,6 @@ def test_api_dump_ms_list():
         train_ms_one_step_list(data_path, dump_path)
         pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
             dump_path, 'mindspore')
-        print("npy_list,", npy_list)
         assert len(pkl_list) == 6
         assert set(pkl_list) == set(npy_list)
         assert len(stack_list) == 2
