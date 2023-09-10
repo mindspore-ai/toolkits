@@ -53,9 +53,10 @@ class BaseNet(nn.Module):
         self.linear = nn.Linear(15000, 10)
 
 
-def train_pt_one_step_all(data_path, dump_path, info_path=None, retain_backward=True):
+def train_pt_one_step_all(data_path, dump_path, info_path=None, retain_backward=True, dump_type='all'):
     class Net(BaseNet):
         def forward(self, x):
+            api_dump_start(dump_type=dump_type)
             x = self.conv(x)
             x = torch.clip(x, 0.2, 0.5)
             x = self.bn(x)
