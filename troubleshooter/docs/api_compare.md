@@ -36,47 +36,91 @@ PyTorch 网络迁移到 MindSpore，以及 MindSpore 不同后端/版本迁移�
     >
     > 当前没有针对优化器等接口进行特定处理，dump时接口的内部操作会被保存，由于PyTorch与MindSpore内部实现逻辑差异较大，导致对比时API映射困难。因此dump时需要跳过优化器，在反向执行后优化器执行前停止数据dump。
 
-以下分别为PyTorch、MindSpore固定随机行、数据保存的完整代码示例。
+以下分别为PyTorch、MindSpore固定随机性、数据保存的完整代码示例。
 
 **PyTorch 网络 dump**
 
 ```python
 import troubleshooter as ts
 
-# 1. 在网络，数据集处理前固定随机数
-ts.fix_random()
+from pathlib import Path
 
-# 2. 创建训练网络
-net = create_net()
-loss = torch.nn.CrossEntropyLoss()
-pg = [p for p in net.parameters() if p.requires_grad]
-optimizer = optim.SGD(pg, lr=args.lr, momentum=0.9, weight_decay=5E-5)
-net.train()
-optimizer.zero_grad()
+import numpy as np
+import torch
+from torch import nn, optim
 
-# 3. 统一数据样本
-image = torch.tensor(np.load('image.npy'))
-label = torch.tensor(np.load('label.npy'))
 
-# 4. 保存权重和转换映射，用于在MindSpore加载
-ts.migrator.save_net_and_weight_params(net, path='pt_net_info')
+class SimpleNet(nn.Module):
+    def __init__(self):
+        super(SimpleNet, self).__init__()
+        self.conv = nn.Conv2d(3, 5, kernel_size=3, stride=3, padding=0)
+        self.bn = nn.BatchNorm2d(5)
+        self.relu = nn.ReLU()
+        self.linear = nn.Linear(15000, 10)
 
-# 5. 设置dump的网络
-ts.migrator.api_dump_init(net, output_path="torch_dump", retain_backward=True)
+    def forward(self, x):
+        x = self.conv(x)
+        x = torch.clip(x, 0.2, 0.5)
+        x = self.bn(x)
+        x = self.relu(x)
+        x = x.reshape(1, -1)
+        x = self.linear(x)
+        x = self.relu(x)
+        return x
 
-# 6. 在迭代开始时开启dump
-ts.migrator.api_dump_start()
 
-# 7. 执行训练流程
-pred = net(images)
-loss = loss_function(pred, labels)
-loss.backward()
+def generate_data():
+    data_path = Path('test_data')
+    data_path.mkdir(exist_ok=True)
+    np.save(data_path / 'label.npy',
+            np.random.randn(1, 10).astype(np.float32))
+    np.save(data_path / 'data.npy',
+            np.random.randn(1, 3, 90, 300).astype(np.float32))
+    return data_path
 
-# 8. 在反向计算结束，优化器更新前关闭dump
-ts.migrator.api_dump_stop()
 
-# 9. 执行优化器更新
-optimizer.step()
+def train_one_step_torch(data_path):
+    # 1. 固定随机性
+    ts.fix_random()
+
+    # 2. 创建训练网络
+    net = SimpleNet()
+    net.train()
+    optimizer = optim.SGD(net.parameters(), lr=0.01)
+    optimizer.zero_grad()
+    criterion = nn.MSELoss()
+
+    # 3. 统一数据样本
+    data = torch.tensor(np.load(data_path/'data.npy'))
+    label = torch.tensor(np.load(data_path/'label.npy'))
+
+    # 4. 保存权重和转换映射，用于在MindSpore加载
+    info_path = 'pt_net_info'
+    ts.migrator.save_net_and_weight_params(net, path=info_path)
+
+    # 5. 设置dump网络
+    ts.migrator.api_dump_init(
+        net, output_path="torch_dump", retain_backward=True)
+
+    # 6. 在迭代开始时开启dump
+    ts.migrator.api_dump_start()
+
+    # 7. 执行训练流程
+    pred = net(data)
+    loss = criterion(pred, label)
+    loss.backward()
+
+    # 8. 在优化器更新前关闭dump
+    ts.migrator.api_dump_stop()
+
+    # 9. 执行优化器更新
+    optimizer.step()
+
+# 生成数据样本，确保PyTorch和MindSpore网络输入一致
+data_path = generate_data()
+
+train_one_step_torch(data_path)
+
 ```
 
 **MindSpore 网络 dump**
@@ -84,42 +128,89 @@ optimizer.step()
 ```python
 import troubleshooter as ts
 
-# 1. 在网络，数据集处理前固定随机数
-ts.fix_random()
+from pathlib import Path
 
-# 2. 创建训练网络
-net = create_net()
-loss = mindspore.nn.CrossEntropyLoss()
-optimizer = ms.nn.SGD(net.trainable_params(), learning_rate=args.lr, momentum=0.9, weight_decay=5E-5)
-def forward_fn(data, label):
-    logits = net(data)
-    loss = loss_function(logits, label)
-    return loss, logits
-grad_fn = mindspore.value_and_grad(forward_fn, None, optimizer.parameters, has_aux=True)
+import mindspore as ms
+import numpy as np
+from mindspore import nn, ops
 
-# 3. 统一数据样本
-image = ms.Tensor(np.load('image.npy'))
-label = ms.Tensor(np.load('label.npy'))
 
-# 4. 保存权重和转换映射，用于在MindSpore加载
-ts.migrator.convert_weight_and_load(weight_map_path="pt_net_info/torch_net_map.json",
-                                    pt_file_path="pt_net_info/torch_troubleshooter_create.pth",
-                                    net=net)
+class SimpleNet(nn.Cell):
+    def __init__(self):
+        super(SimpleNet, self).__init__()
+        self.conv = nn.Conv2d(3, 5, kernel_size=3, stride=3,
+                              padding=0, pad_mode="pad", has_bias=True)
+        self.bn = nn.BatchNorm2d(5)
+        self.relu = nn.ReLU()
+        self.linear = nn.Dense(15000, 10)
 
-# 5. 设置dump的网络
-ts.migrator.api_dump_init(net, output_path="ms_dump", retain_backward=True)
+    def construct(self, x):
+        x = self.conv(x)
+        x = ops.clip(x, ms.Tensor(0.2, ms.float32), ms.Tensor(0.5, ms.float32))
+        x = self.bn(x)
+        x = self.relu(x)
+        x = x.reshape(1, -1)
+        x = self.linear(x)
+        x = self.relu(x)
+        return x
 
-# 6. 在迭代开始时开启dump
-ts.migrator.api_dump_start()
 
-# 7. 执行训练流程
-(loss, pred), grads = grad_fn(image, label)
+def generate_data():
+    data_path = Path('test_data')
+    data_path.mkdir(exist_ok=True)
+    np.save(data_path / 'label.npy',
+            np.random.randn(1, 10).astype(np.float32))
+    np.save(data_path / 'data.npy',
+            np.random.randn(1, 3, 90, 300).astype(np.float32))
+    return data_path
 
-# 8. 在反向计算结束，优化器更新前关闭dump
-ts.migrator.api_dump_stop()
 
-# 9. 执行优化器更新
-optimizer(grads)
+def train_one_step_torch(data_path):
+    # 1. 固定随机性
+    ts.fix_random()
+
+    # 2. 创建训练网络
+    net = SimpleNet()
+    net.set_train()
+    optimizer = nn.SGD(net.trainable_params(), learning_rate=0.01)
+    criterion = nn.MSELoss()
+
+    def forward_fn(data, label):
+        out = net(data)
+        loss = criterion(out, label)
+        return loss
+    grad_fn = ms.value_and_grad(forward_fn, None, optimizer.parameters)
+
+    # 3. 统一数据样本
+    data = ms.Tensor(np.load(data_path/'data.npy'))
+    label = ms.Tensor(np.load(data_path/'label.npy'))
+
+    # 4. 保存权重和转换映射，用于在MindSpore加载
+    info_path = Path('pt_net_info')
+    ts.migrator.convert_weight_and_load(weight_map_path=info_path/"torch_net_map.json",
+                                        pt_file_path=info_path/"torch_troubleshooter_create.pth",
+                                        net=net)
+
+    # 5. 设置dump网络
+    ts.migrator.api_dump_init(net, output_path="ms_dump", retain_backward=True)
+
+    # 6. 在迭代开始时开启dump
+    ts.migrator.api_dump_start()
+
+    # 7. 执行训练流程
+    loss, grads = grad_fn(data, label)
+
+    # 8. 在优化器更新前关闭dump
+    ts.migrator.api_dump_stop()
+
+    # 9. 执行优化器更新
+    optimizer(grads)
+
+# 使用与PyTorch相同的数据作为输入
+data_path = Path('test_data')
+
+train_one_step_torch(data_path)
+
 ```
 
 在执行完dump后，会在指定的目录下生成堆栈信息、执行信息、`npy`文件等数据，详细的数据格式说明请参考[数据格式](./api/migrator/api_dump.md#数据格式)。
@@ -132,19 +223,25 @@ optimizer(grads)
 import troubleshooter as ts
 
 # 根据dump得到的数据进行比对，指定对比结果输出到output_path目录下
-ts.migrator.api_dump_compare('torch_dump', 'ms_dump', output_path='compare_result')
+ts.migrator.api_dump_compare('ms_dump', 'torch_dump', output_path='compare_result')
+
 ```
 
 对比结果一共分为三个部分，第一部分是 API 映射关系，第二部分是正向对比结果，如果对反向进行了 dump，还会有第三部分反向的对比结果。会生成 ts_api_mapping.csv（API 映射文件）、 ts_api_forward_compare.csv（正向比对结果）、ts_api_backward_compare.csv（反向比对结果）。
 
 **API 映射关系**
 
-| ORIGIN NET (pytorch) | TARGET NET (mindspore) |
-| -------------------- | ---------------------- |
-| NN_Conv2d_0          | NN_Conv2d_0            |
-| Tensor_flatten_0     | Tensor_flatten_0       |
-| Tensor_transpose_0   | Tensor_swapaxes_0      |
-| NN_Identity_0        | NN_Identity_0          |
+The APIs mapping results of the two frameworks
+
+| ORIGIN NET (mindspore) |  TARGET NET (pytorch) |
+|------------------------|-----------------------|
+|      NN_Conv2d_0       |      NN_Conv2d_0      |
+|   Functional_clip_0    |      Torch_clip_0     |
+|    NN_BatchNorm2d_0    |    NN_BatchNorm2d_0   |
+|       NN_ReLU_0        |       NN_ReLU_0       |
+|    Tensor_reshape_0    |    Tensor_reshape_0   |
+|       NN_Dense_0       |      NN_Linear_0      |
+|       NN_ReLU_1        |       NN_ReLU_1       |
 
 **正向结果对比**
 
@@ -152,14 +249,22 @@ The forward comparison results
 
 正向对比结果按照执行的顺序进行比较，差异项分别为`numpy.allclose`、`allclose`达标比例、余弦相似度、差异值的 $mean$ / $max$ 统计量等信息。
 
-| ORIGIN NET (pytorch)                   | TARGET NET (mindspore)                | shape of orig    | shape of target  | result of allclose | ratio of allclose | cosine similarity | mean & max diffs |
-| -------------------------------------- | ------------------------------------- | ---------------- | ---------------- | ------------------ | ----------------- | ----------------- | ---------------- |
-| NN_Conv2d_0_forward_input.0.npy        | NN_Conv2d_0_forward_input.0.npy       | (8, 3, 224, 224) | (8, 3, 224, 224) | True               | 100.00%           | 1.00000           | 0.00000, 0.00000 |
-| NN_Conv2d_0_forward_output.npy         | NN_Conv2d_0_forward_output.npy        | (8, 768, 14, 14) | (8, 768, 14, 14) | True               | 100.00%           | 1.00000           | 0.00000, 0.00000 |
-| Tensor_flatten_0_forward_input.0.npy   | Tensor_flatten_0_forward_input.0.npy  | (8, 768, 14, 14) | (8, 768, 14, 14) | True               | 100.00%           | 1.00000           | 0.00000, 0.00000 |
-| Tensor_flatten_0_forward_output.npy    | Tensor_flatten_0_forward_output.npy   | (8, 768, 196)    | (8, 768, 196)    | True               | 100.00%           | 1.00000           | 0.00000, 0.00000 |
-| Tensor_transpose_0_forward_input.0.npy | Tensor_swapaxes_0_forward_input.0.npy | (8, 768, 196)    | (8, 768, 196)    | True               | 100.00%           | 1.00000           | 0.00000, 0.00000 |
-| Tensor_transpose_0_forward_output.npy  | Tensor_swapaxes_0_forward_output.npy  | (8, 196, 768)    | (8, 196, 768)    | True               | 100.00%           | 1.00000           | 0.00000, 0.00000 |
+|         ORIGIN NET (mindspore)        |         TARGET NET (pytorch)         |  shape of orig  | shape of target | result of allclose | ratio of allclose | cosine similarity | mean & max diffs |
+|---------------------------------------|--------------------------------------|-----------------|-----------------|--------------------|-------------------|-------------------|------------------|
+|    NN_Conv2d_0_forward_input.0.npy    |   NN_Conv2d_0_forward_input.0.npy    | (1, 3, 90, 300) | (1, 3, 90, 300) |        True        |      100.00%      |      1.00000      | 0.00000, 0.00000 |
+|     NN_Conv2d_0_forward_output.npy    |    NN_Conv2d_0_forward_output.npy    | (1, 5, 30, 100) | (1, 5, 30, 100) |        True        |      100.00%      |      1.00000      | 0.00000, 0.00000 |
+| Functional_clip_0_forward_input.0.npy |   Torch_clip_0_forward_input.0.npy   | (1, 5, 30, 100) | (1, 5, 30, 100) |        True        |      100.00%      |      1.00000      | 0.00000, 0.00000 |
+|  Functional_clip_0_forward_output.npy |   Torch_clip_0_forward_output.npy    | (1, 5, 30, 100) | (1, 5, 30, 100) |        True        |      100.00%      |      0.99999      | 0.00000, 0.00000 |
+|  NN_BatchNorm2d_0_forward_input.0.npy | NN_BatchNorm2d_0_forward_input.0.npy | (1, 5, 30, 100) | (1, 5, 30, 100) |        True        |      100.00%      |      0.99999      | 0.00000, 0.00000 |
+|  NN_BatchNorm2d_0_forward_output.npy  | NN_BatchNorm2d_0_forward_output.npy  | (1, 5, 30, 100) | (1, 5, 30, 100) |        True        |      100.00%      |      1.00000      | 0.00000, 0.00001 |
+|     NN_ReLU_0_forward_input.0.npy     |    NN_ReLU_0_forward_input.0.npy     | (1, 5, 30, 100) | (1, 5, 30, 100) |        True        |      100.00%      |      1.00000      | 0.00000, 0.00001 |
+|      NN_ReLU_0_forward_output.npy     |     NN_ReLU_0_forward_output.npy     | (1, 5, 30, 100) | (1, 5, 30, 100) |        True        |      100.00%      |      0.99999      | 0.00001, 0.00001 |
+|  Tensor_reshape_0_forward_input.0.npy | Tensor_reshape_0_forward_input.0.npy | (1, 5, 30, 100) | (1, 5, 30, 100) |        True        |      100.00%      |      0.99999      | 0.00001, 0.00001 |
+|  Tensor_reshape_0_forward_output.npy  | Tensor_reshape_0_forward_output.npy  |    (1, 15000)   |    (1, 15000)   |        True        |      100.00%      |      0.99999      | 0.00001, 0.00001 |
+|     NN_Dense_0_forward_input.0.npy    |   NN_Linear_0_forward_input.0.npy    |    (1, 15000)   |    (1, 15000)   |        True        |      100.00%      |      0.99999      | 0.00001, 0.00001 |
+|     NN_Dense_0_forward_output.npy     |    NN_Linear_0_forward_output.npy    |     (1, 10)     |     (1, 10)     |        True        |      100.00%      |      0.99999      | 0.00000, 0.00000 |
+|     NN_ReLU_1_forward_input.0.npy     |    NN_ReLU_1_forward_input.0.npy     |     (1, 10)     |     (1, 10)     |        True        |      100.00%      |      0.99999      | 0.00000, 0.00000 |
+|      NN_ReLU_1_forward_output.npy     |     NN_ReLU_1_forward_output.npy     |     (1, 10)     |     (1, 10)     |        True        |      100.00%      |      1.00000      | 0.00000, 0.00000 |
 
 **反向对比结果**
 
@@ -167,12 +272,14 @@ The backward comparison results
 
 反向结果显示为正向的逆序
 
-| ORIGIN NET (pytorch)                 | TARGET NET (mindspore)                 | shape of orig | shape of target | result of allclose | ratio of allclose | cosine similarity | mean & max diffs |
+|        ORIGIN NET (mindspore)        |         TARGET NET (pytorch)        |  shape of orig  | shape of target | result of allclose | ratio of allclose | cosine similarity | mean & max diffs |
 | ------------------------------------ | -------------------------------------- | ------------- | --------------- | ------------------ | ----------------- | ----------------- | ---------------- |
-| NN_Linear_48_backward_input.npy      | NN_Dense_48_backward_input.0.npy       | (8, 5)        | (8, 5)          | True               | 100.00%           | 0.99999           | 0.00000, 0.00000 |
-| NN_Identity_1_backward_input.npy     | NN_Identity_1_backward_input.0.npy     | (8, 768)      | (8, 768)        | True               | 100.00%           | 1.00000           | 0.00000, 0.00000 |
-| NN_LayerNorm_24_backward_input.npy   | NN_LayerNorm_24_backward_input.0.npy   | (8, 197, 768) | (8, 197, 768)   | True               | 100.00%           | 1.00000           | 0.00000, 0.00000 |
-| Tensor___add___24_backward_input.npy | Tensor___add___24_backward_input.0.npy | (8, 197, 768) | (8, 197, 768)   | True               | 100.00%           | 1.00000           | 0.00000, 0.00000 |
-| NN_Linear_47_backward_input.npy      | NN_Dense_47_backward_input.0.npy       | (8, 197, 768) | (8, 197, 768)   | True               | 100.00%           | 1.00000           | 0.00000, 0.00000 |
+|     NN_ReLU_1_backward_input.npy     |     NN_ReLU_1_backward_input.npy    |     (1, 10)     |     (1, 10)     |        True        |      100.00%      |      1.00000      | 0.00000, 0.00000 |
+|    NN_Dense_0_backward_input.npy     |    NN_Linear_0_backward_input.npy   |     (1, 10)     |     (1, 10)     |        True        |      100.00%      |      1.00000      | 0.00000, 0.00000 |
+| Tensor_reshape_0_backward_input.npy  | Tensor_reshape_0_backward_input.npy |    (1, 15000)   |    (1, 15000)   |        True        |      100.00%      |      1.00000      | 0.00000, 0.00000 |
+|     NN_ReLU_0_backward_input.npy     |     NN_ReLU_0_backward_input.npy    | (1, 5, 30, 100) | (1, 5, 30, 100) |        True        |      100.00%      |      1.00000      | 0.00000, 0.00000 |
+| NN_BatchNorm2d_0_backward_input.npy  | NN_BatchNorm2d_0_backward_input.npy | (1, 5, 30, 100) | (1, 5, 30, 100) |        True        |      100.00%      |      1.00000      | 0.00000, 0.00000 |
+| Functional_clip_0_backward_input.npy |   Torch_clip_0_backward_input.npy   | (1, 5, 30, 100) | (1, 5, 30, 100) |        True        |      100.00%      |      1.00000      | 0.00000, 0.00000 |
+|    NN_Conv2d_0_backward_input.npy    |    NN_Conv2d_0_backward_input.npy   | (1, 5, 30, 100) | (1, 5, 30, 100) |        True        |      100.00%      |      1.00000      | 0.00000, 0.00000 |
 
 可以根据正反向对比结果，找到开始出现差异的api进行定位，减少二分的时间成本，提高定位效率。
