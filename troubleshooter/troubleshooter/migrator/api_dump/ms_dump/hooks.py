@@ -8,15 +8,17 @@ import stat
 import sys
 import threading
 from collections import defaultdict
-from functools import lru_cache, partial
+from functools import lru_cache
 from pathlib import Path
 
 import mindspore as ms
 import numpy as np
 
-from .utils import (CompareException, Const, __version__, check_mode_valid, get_time,
-                    print_attent_log, print_error_log, remove_dump_file)
+from troubleshooter import log as logger
+
 from .. import universal_interface
+from .utils import (CompareException, Const, __version__, check_mode_valid, get_time,
+                    print_error_log, remove_dump_file)
 
 DumpCount = 0
 forward_init_status = False
@@ -203,7 +205,7 @@ def set_dump_path(fpath=None):
         raise RuntimeError("set_dump_path '{}' error, please set a valid filename".format(fpath))
     real_path = os.path.realpath(fpath)
     if not os.path.isdir(real_path):
-        print_attent_log(
+        logger.user_atten(
             "The path '{}' does not exist, the path will be created automatically.".format(real_path))
     DumpUtil.set_ori_dir(real_path)
 
@@ -240,13 +242,13 @@ def set_dump_switch(switch, mode=Const.ALL, scope=None, api_list=None,
 
     global DumpCount
     if switch == "ON":
-        print_attent_log(f"API dump has started. Dump data will be saved to {DumpUtil.dump_ori_dir}. ")
+        logger.user_attention(f"API dump has started. Dump data will be saved to {DumpUtil.dump_ori_dir}. ")
         if mode == Const.LIST:
             DumpCount = 0
     else:
-        print_attent_log(f"API dump has stopped. Dump data has been saved to {DumpUtil.dump_ori_dir}. ")
+        logger.user_attention(f"API dump has stopped. Dump data has been saved to {DumpUtil.dump_ori_dir}. ")
         if mode == Const.LIST:
-            print_attent_log("The number of matched dump is {}".format(DumpCount))
+            logger.user_attention("The number of matched dump is {}".format(DumpCount))
 
 
 def set_backward_input(backward_input):

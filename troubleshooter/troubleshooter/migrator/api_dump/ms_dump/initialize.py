@@ -7,8 +7,8 @@ from . import hook_cell
 from . import hooks
 from .. import universal_interface
 from . import wrap_functional, wrap_nn, wrap_sub_tensor, wrap_tensor
-from .utils import (CompareException, Const, check_file_or_directory_path, print_error_log,
-                    print_info_log)
+from .utils import (CompareException, Const, check_file_or_directory_path, print_error_log)
+from troubleshooter import log as logger
 
 
 def initialize_hook(hook):
@@ -35,7 +35,7 @@ def register_hook(net, hook, **kwargs):
     hooks.make_dump_dirs(rank)
 
     hook_name = hook.__name__
-    print_info_log("Start mounting the {} hook function to the model.".format(hook_name))
+    logger.info("Start mounting the {} hook function to the model.".format(hook_name))
     hook = functools.partial(hook, pid=pid, dump_mode=dump_mode, dump_config=dump_config_file)
     hook_cell.cell_count.clear()
     hooks.NNCount.clear()
@@ -49,7 +49,7 @@ def register_hook(net, hook, **kwargs):
         if hasattr(cell, 'hook_name'):
             prefix_nn_name_ = "NN_" + str(cell.hook_name[5:]) + "_"
             cell.register_forward_hook(hook(prefix_nn_name_ + "{}_" + "forward"))
-    print_info_log("The {} hook function is successfully mounted to the model.".format(hook_name))
+    logger.info("The {} hook function is successfully mounted to the model.".format(hook_name))
 
 
 def init_dump_config(kwargs):
