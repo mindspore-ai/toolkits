@@ -45,6 +45,7 @@ class NetDifferenceFinder:
         self.out_path = tempfile.mkdtemp(prefix="tmp_net_diff_finder_")
         self._check_kwargs(kwargs)
         self._handle_kwargs(**kwargs)
+        self.pt_device = next(pt_net.parameters()).device
         if self.fix_seed:
             self.fix_random(self.fix_seed)
 
@@ -292,7 +293,7 @@ class NetDifferenceFinder:
     def _run_pt_net(self, pt_net, input_data_list):
         data_list = []
         for data in input_data_list:
-            data_list.append(torch.tensor(data))
+            data_list.append(torch.tensor(data).to(self.pt_device))
         pt_results = pt_net(*data_list)
         return pt_results
 
@@ -307,7 +308,7 @@ class NetDifferenceFinder:
         compare_result = []
         for index, (k_pt, k_ms) in enumerate(zip(result_pt, result_ms)):
             try:
-                result_pt_ = result_pt[k_pt].detach().numpy()
+                result_pt_ = result_pt[k_pt].cpu().detach().numpy()
                 result_ms_ = result_ms[k_ms].asnumpy()
                 if result_pt_.shape != result_ms_.shape:
                     raise ValueError(f"Output results for {index} have different shapes! "
