@@ -86,8 +86,7 @@ def test_api_dump_ms_all():
         train_ms_one_step_all(data_path, dump_path)
         pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
             dump_path, 'mindspore')
-        # conv2d backward maybe miss
-        assert len(pkl_list) >= 20
+        assert len(pkl_list) == 21
         assert set(pkl_list) == set(npy_list)
         assert len(stack_list) == 7
     finally:
@@ -126,8 +125,7 @@ def test_api_dump_ms_part():
         train_ms_one_step_part(data_path, dump_path)
         pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
             dump_path, 'mindspore')
-        # backward not support
-        assert len(pkl_list) >= 4
+        assert len(pkl_list) == 6
         assert set(pkl_list) == set(npy_list)
         assert len(stack_list) == 2
     finally:
@@ -162,8 +160,7 @@ def test_api_dump_ms_api_list():
         train_ms_one_step_api_list(data_path, dump_path)
         pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
             dump_path, 'mindspore')
-        # conv2d backward maybe miss
-        assert len(pkl_list) >= 8
+        assert len(pkl_list) == 9
         assert set(pkl_list) == set(npy_list)
         assert len(stack_list) == 3
     finally:
