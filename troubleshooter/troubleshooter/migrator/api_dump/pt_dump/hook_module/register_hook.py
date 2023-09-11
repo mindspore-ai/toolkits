@@ -16,18 +16,18 @@
 """
 
 import functools
-from collections import defaultdict
 import os
 
 import torch
 
-from . import hook_module
-from ..dump import dump, utils
+from troubleshooter import log as logger
+
 from ..common import global_manage
 from ..common.utils import (CompareException, Const, check_file_or_directory_path, get_process_rank,
-                            print_error_log, print_info_log, print_warn_log)
+                            print_error_log)
+from ..dump import dump, utils
 from ..dump.utils import make_dump_dirs
-from . import wrap_functional, wrap_module, wrap_tensor, wrap_torch, wrap_vf
+from . import hook_module, wrap_functional, wrap_module, wrap_tensor, wrap_torch, wrap_vf
 
 try:
     import torch_npu
@@ -93,9 +93,9 @@ def register_hook(model, hook, **kwargs):
     if "overflow_check" in hook_name and not is_gpu:
         if hasattr(torch_npu._C, "_enable_overflow_npu"):
             torch_npu._C._enable_overflow_npu()
-            print_info_log("Enable overflow function success.")            
+            logger.info("Enable overflow function success.")            
         else:
-            print_warn_log("Api '_enable_overflow_npu' is not exist, "
+            logger.user_warning("Api '_enable_overflow_npu' is not exist, "
                            "the overflow detection function on milan platform maybe not work! "
                            "please check the version of software torch_npu.")
         # In NPU scene, clear the overflow flag before overflow detection
@@ -103,7 +103,7 @@ def register_hook(model, hook, **kwargs):
             torch_npu.npu.set_device(rank)
             torch_npu._C._clear_overflow_npu()
 
-    print_info_log("Start mounting the {} hook function to the model.".format(hook_name))
+    logger.info("Start mounting the {} hook function to the model.".format(hook_name))
     hook = functools.partial(hook, dump_step=dump_step, overflow_nums=overflow_nums, pid=pid,
                              dump_mode=dump_mode, dump_config=dump_config_file)
 
@@ -113,7 +113,7 @@ def register_hook(model, hook, **kwargs):
         if hasattr(module, 'hook_name'):
             prefix_nn_name_ = "NN_" + str(module.hook_name[5:]) + "_"
             module.register_forward_hook(hook(prefix_nn_name_ + "{}_" + "forward"))
-    print_info_log("The {} hook function is successfully mounted to the model.".format(hook_name))
+    logger.info("The {} hook function is successfully mounted to the model.".format(hook_name))
 
 
 def init_dump_config(kwargs):

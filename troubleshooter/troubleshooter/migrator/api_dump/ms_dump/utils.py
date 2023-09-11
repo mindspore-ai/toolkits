@@ -15,12 +15,15 @@
 # limitations under the License.
 """
 import collections
-import numpy as np
 import os
 import subprocess
 import sys
 import time
 from datetime import datetime, timezone
+
+import numpy as np
+
+from troubleshooter import log as logger
 
 device = collections.namedtuple('device', ['type', 'index'])
 __version__ = 'v1.0'
@@ -233,7 +236,7 @@ def execute_command(cmd):
     Exception Description:
         when invalid command throw exception
     """
-    print_info_log('Execute command:%s' % cmd)
+    logger.info('Execute command:%s' % cmd)
     process = subprocess.Popen(cmd, shell=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     while process.poll() is None:
         line = process.stdout.readline()

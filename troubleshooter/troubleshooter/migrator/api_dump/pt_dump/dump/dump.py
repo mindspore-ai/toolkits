@@ -15,7 +15,6 @@
 # limitations under the License.
 """
 
-import functools
 import inspect
 import json
 import math
@@ -37,7 +36,9 @@ except ImportError:
 else:
     is_gpu = False
 
-from ..common.utils import Const, print_info_log, print_warn_log
+from troubleshooter import log as logger
+
+from ..common.utils import Const
 from ..dump.utils import check_in_api_list, remove_dump_file
 from .utils import DumpUtil, make_dump_data_dir
 
@@ -264,7 +265,7 @@ def forward_acl_dump(module, module_name):
     del module.input_args
     del module.input_kwargs
     forward_init_status = False
-    print_info_log("Dump %s op file." % module_name)
+    logger.info("Dump %s op file." % module_name)
 
 
 def acl_backward_dump_status(output, grad, module_name):
@@ -294,14 +295,14 @@ def dump_mode_backward_acl_dump(module, module_name, grad_path):
         torch_npu.npu.set_dump(DumpUtil.dump_config)
         torch_npu.npu.synchronize()
         if not acl_backward_dump_status(output, grad, module_name):
-            print_warn_log("The output of {} is not of tensor type and cannot be automatically derived. "
-                            "you can manually construct a single API backward case for ACL dump.".format(module_name))
+            logger.user_warning("The output of {} is not of tensor type and cannot be automatically derived. "
+                                "you can manually construct a single API backward case for ACL dump.".format(module_name))
         torch_npu.npu.synchronize()
         torch_npu.npu.finalize_dump()
     del module.input_args
     del module.input_kwargs
     forward_init_status = False
-    print_info_log("Dump %s op file." % module_name)
+    logger.info("Dump %s op file." % module_name)
 
 
 def acc_cmp_dump(name, **kwargs):

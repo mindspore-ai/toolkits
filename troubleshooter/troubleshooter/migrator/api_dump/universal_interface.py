@@ -18,21 +18,21 @@ import os
 
 from troubleshooter import FRAMEWORK_TYPE
 from troubleshooter.common.util import enum_check, type_check
-from troubleshooter.migrator.api_dump.ms_dump import acc_cmp_dump as ms_acc_cmp_dump
-from troubleshooter.migrator.api_dump.ms_dump import register_hook as ms_register_hook
-from troubleshooter.migrator.api_dump.ms_dump import set_dump_path as ms_set_dump_path
-from troubleshooter.migrator.api_dump.ms_dump import set_dump_switch as ms_set_dump_switch
-from troubleshooter.migrator.api_dump.pt_dump import acc_cmp_dump as pt_acc_cmp_dump
-from troubleshooter.migrator.api_dump.pt_dump import register_hook as pt_register_hook
-from troubleshooter.migrator.api_dump.pt_dump import set_dump_path as pt_set_dump_path
-from troubleshooter.migrator.api_dump.pt_dump import set_dump_switch as pt_set_dump_switch
-from troubleshooter.migrator.api_dump.pt_dump.common.utils import print_attent_log
+from troubleshooter import log as logger
 
 if "torch" in FRAMEWORK_TYPE:
     import torch
+    from troubleshooter.migrator.api_dump.pt_dump import acc_cmp_dump as pt_acc_cmp_dump
+    from troubleshooter.migrator.api_dump.pt_dump import register_hook as pt_register_hook
+    from troubleshooter.migrator.api_dump.pt_dump import set_dump_path as pt_set_dump_path
+    from troubleshooter.migrator.api_dump.pt_dump import set_dump_switch as pt_set_dump_switch
 
 if "mindspore" in FRAMEWORK_TYPE:
     import mindspore
+    from troubleshooter.migrator.api_dump.ms_dump import acc_cmp_dump as ms_acc_cmp_dump
+    from troubleshooter.migrator.api_dump.ms_dump import register_hook as ms_register_hook
+    from troubleshooter.migrator.api_dump.ms_dump import set_dump_path as ms_set_dump_path
+    from troubleshooter.migrator.api_dump.ms_dump import set_dump_switch as ms_set_dump_switch
 
 API_DUMP_FRAMEWORK_TYPE = None
 g_retain_backward = None
@@ -44,9 +44,9 @@ def api_dump_init(net, output_path=os.path.join(os.getcwd(), "ts_api_dump"), *, 
     g_retain_backward = retain_backward
     type_check(retain_backward, 'retain_backward', bool)
 
-    print_attent_log("For precision comparison, the probability p in the dropout method is set to 0.")
-    print_attent_log("Please disable the shuffle function of the dataset "
-                     "before running the program.")
+    logger.user_attention("For precision comparison, the probability p in the dropout method is set to 0.")
+    logger.user_attention("Please disable the shuffle function of the dataset "
+                          "before running the program.")
 
     if "torch" in FRAMEWORK_TYPE and isinstance(net, torch.nn.Module):
         API_DUMP_FRAMEWORK_TYPE = "torch"
