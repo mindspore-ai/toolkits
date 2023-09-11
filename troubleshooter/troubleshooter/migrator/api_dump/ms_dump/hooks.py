@@ -205,7 +205,7 @@ def set_dump_path(fpath=None):
         raise RuntimeError("set_dump_path '{}' error, please set a valid filename".format(fpath))
     real_path = os.path.realpath(fpath)
     if not os.path.isdir(real_path):
-        logger.user_atten(
+        logger.user_attention(
             "The path '{}' does not exist, the path will be created automatically.".format(real_path))
     DumpUtil.set_ori_dir(real_path)
 
@@ -275,7 +275,7 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
         res = []
         for i, item in enumerate(x):
             output_hook_tensor = dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name, dump_type)
-            if output_hook_tensor:
+            if output_hook_tensor is not None:
                 res.append(output_hook_tensor)
         return res if res else None
     elif isinstance(x, ms.Tensor):
