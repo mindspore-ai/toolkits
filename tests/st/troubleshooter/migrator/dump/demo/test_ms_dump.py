@@ -78,6 +78,8 @@ def train_ms_one_step_all(data_path, dump_path, info_path=None, retain_backward=
 
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
+@pytest.mark.platform_arm_ascend_training
+@pytest.mark.platform_x86_ascend_training
 @pytest.mark.env_onecard
 def test_api_dump_ms_all():
     data_path = generate_data()
@@ -117,6 +119,8 @@ def train_ms_one_step_part(data_path, dump_path, info_path=None, retain_backwad=
 
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
+@pytest.mark.platform_arm_ascend_training
+@pytest.mark.platform_x86_ascend_training
 @pytest.mark.env_onecard
 def test_api_dump_ms_part():
     data_path = generate_data()
@@ -152,6 +156,8 @@ def train_ms_one_step_api_list(data_path, dump_path, info_path=None, retain_back
 
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
+@pytest.mark.platform_arm_ascend_training
+@pytest.mark.platform_x86_ascend_training
 @pytest.mark.env_onecard
 def test_api_dump_ms_api_list():
     data_path = generate_data()
@@ -188,6 +194,8 @@ def train_ms_one_step_list(data_path, dump_path, info_path=None, retain_backwad=
 
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
+@pytest.mark.platform_arm_ascend_training
+@pytest.mark.platform_x86_ascend_training
 @pytest.mark.env_onecard
 def test_api_dump_ms_list():
     data_path = generate_data()
@@ -224,6 +232,8 @@ def train_ms_one_step_range(data_path, dump_path, info_path=None, retain_backwad
 
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
+@pytest.mark.platform_arm_ascend_training
+@pytest.mark.platform_x86_ascend_training
 @pytest.mark.env_onecard
 def test_api_dump_ms_range():
     data_path = generate_data()
