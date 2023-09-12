@@ -139,6 +139,7 @@ functional:
   - multi_head_attention_forward
 
 tensor:
+  - __abs__
   - __add__
   - __and__
   - __bool__
@@ -161,6 +162,7 @@ tensor:
   - __matmul__
   - __mod__
   - __mul__
+  - __ne__
   - __nonzero__
   - __or__
   - __radd__
@@ -554,6 +556,7 @@ tensor:
   - var
   - vdot
   - unsqueeze_
+  - view
   - view_as
   - xlogy
   - xlogy_
@@ -899,6 +902,13 @@ torch:
   - rad2deg
   - promote_types
   - rad2deg_
+  - rand
+  - rand_like
+  - randint
+  - randint_like
+  - randn
+  - randn_like
+  - randperm
   - range
   - ravel
   - real
