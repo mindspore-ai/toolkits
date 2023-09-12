@@ -43,7 +43,7 @@ def _print_apis_map_result(
         if not os.path.exists(os.path.dirname(output_file)):
             raise ValueError(f"output_file {output_file} not exist")
         with os.fdopen(os.open(output_file, os.O_WRONLY | os.O_CREAT, 0o600), 'w') as f:
-            f.write(x.get_csv_string() + os.linesep)
+            f.write(x.get_csv_string(dialect='unix') + os.linesep)
 
 
 def load_pkl(path: str):
