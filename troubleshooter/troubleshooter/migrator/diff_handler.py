@@ -23,7 +23,7 @@ import numpy as np
 from tqdm import tqdm
 
 from troubleshooter import log as logger
-from troubleshooter.common.format_msg import print_diff_result
+from troubleshooter.common.format_msg import print_diff_result, print_adapter_diff_result
 from troubleshooter.common.util import (find_file, none_and_isdir_check, type_check,
                                         validate_and_normalize_path)
 
@@ -166,7 +166,7 @@ def get_name_map_list_by_shape_edit_distance(orig_dir, target_dir, *, del_cost=1
     return name_map_list
 
 
-def _cal_compare_npy_single_process(name, normal_orig_dir, normal_target_dir, rtol, atol, equal_nan, compare_shape):
+def _ms_cal_compare_npy_single_process(name, normal_orig_dir, normal_target_dir, rtol, atol, equal_nan, compare_shape):
     def load_value(dir, name):
         if name is None:
             return None
@@ -188,6 +188,33 @@ def _cal_compare_npy_single_process(name, normal_orig_dir, normal_target_dir, rt
     else:
         return (orig_name, target_name, result, rel_ratio, cosine_sim, diff_detail)
 
+def _adapter_cal_compare_npy_single_process(name, normal_orig_dir, normal_target_dir, rtol, atol, equal_nan, compare_shape,
+                                    compare_dtype):
+    def load_value(dir, name):
+        if name is None:
+            return None
+        if not name.endswith('.npy'):
+            name = name + '.npy'
+        file = os.path.join(dir, name)
+        if not os.path.isfile(file):
+            return None
+        return np.load(file)
+    orig_name, target_name = name
+    orig_value = load_value(normal_orig_dir, orig_name)
+    target_value = load_value(normal_target_dir, target_name)
+    result, rel_ratio, mean_cmp, max_cmp, min_cmp = adapter_cal_algorithm(
+        orig_value, target_value, rtol, atol, equal_nan)
+    res = (orig_name, target_name, result, rel_ratio, mean_cmp, max_cmp, min_cmp)
+
+    if compare_shape:
+        orig_shape = orig_value.shape if orig_value is not None else None
+        target_shape = target_value.shape if target_value is not None else None
+        res = res[:2] + (orig_shape, target_shape) + res[2:]
+    if compare_dtype:
+        orig_dtype = orig_value.dtype if orig_value is not None else None
+        target_dtype = target_value.dtype if target_value is not None else None
+        res = res[:2] + (orig_dtype, target_dtype) + res[2:]
+    return res
 
 def compare_npy_dir(
     orig_dir,
@@ -233,20 +260,38 @@ def compare_npy_dir(
         orig_dir,
         target_dir,
     )
-    with multiprocessing.Pool() as pool:
-        _compare_npy_single_process = functools.partial(
-            _cal_compare_npy_single_process,
-            normal_orig_dir=normal_orig_dir,
-            normal_target_dir=normal_target_dir,
-            rtol=rtol,
-            atol=atol,
-            equal_nan=equal_nan,
-            compare_shape=compare_shape,
-        )
-        result_list = list(tqdm(pool.imap(_compare_npy_single_process, name_map_list), total=len(name_map_list)))
 
-    return print_diff_result(result_list, title=title, field_names=field_names,
-                             output_file=output_file, show_shape_diff=compare_shape)
+    if field_names is not None and 'mean cmp (orig, tgt)' in field_names:
+        with multiprocessing.Pool() as pool:
+            _compare_npy_single_process = functools.partial(
+                _adapter_cal_compare_npy_single_process,
+                normal_orig_dir=normal_orig_dir,
+                normal_target_dir=normal_target_dir,
+                rtol=rtol,
+                atol=atol,
+                equal_nan=equal_nan,
+                compare_shape=compare_shape,
+                compare_dtype=True,
+            )
+            result_list = list(tqdm(pool.imap(_compare_npy_single_process, name_map_list), total=len(name_map_list)))
+
+        return print_adapter_diff_result(result_list, title=title, field_names=field_names,
+                                output_file=output_file, show_shape_diff=compare_shape, show_dtype_diff=True)
+    else:
+        with multiprocessing.Pool() as pool:
+            _compare_npy_single_process = functools.partial(
+                _ms_cal_compare_npy_single_process,
+                normal_orig_dir=normal_orig_dir,
+                normal_target_dir=normal_target_dir,
+                rtol=rtol,
+                atol=atol,
+                equal_nan=equal_nan,
+                compare_shape=compare_shape,
+            )
+            result_list = list(tqdm(pool.imap(_compare_npy_single_process, name_map_list), total=len(name_map_list)))
+
+        return print_diff_result(result_list, title=title, field_names=field_names,
+                                output_file=output_file, show_shape_diff=compare_shape)
 
 
 def compare_grads_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, compare_shape=True, output_file=None):
@@ -317,6 +362,54 @@ def cal_algorithm(orig_value, target_value, rtol, atol, equal_nan):
 
     return allclose_result, rel_ratio, cosine_sim, diff_detail
 
+def adapter_cal_algorithm(orig_value, target_value, rtol, atol, equal_nan):
+    rel_ratio = 0
+    mean_cmp = (math.nan, math.nan)
+    max_cmp = (math.nan, math.nan)
+    min_cmp = (math.nan, math.nan)
+
+    def handle_dtype(input):
+        if np.issubdtype(input.dtype, np.floating):
+            return input
+        else:
+            return input.astype(float)
+
+    if orig_value is None or target_value is None:
+        allclose_result = False
+        return allclose_result, rel_ratio, mean_cmp, max_cmp, min_cmp
+
+    if orig_value.shape == target_value.shape:
+        orig_value = handle_dtype(orig_value)
+        target_value = handle_dtype(target_value)
+
+        # For scalar
+        if not orig_value.shape:
+            value_diff = np.abs(orig_value - target_value) if orig_value != target_value else np.array([])
+        else:
+            unequal_indices = np.where(orig_value != target_value)
+            value_diff = np.abs(orig_value[unequal_indices] - target_value[unequal_indices])
+
+        orig_mean = orig_value.mean()
+        orig_max = orig_value.max()
+        orig_min = orig_value.min()
+        tgt_mean = target_value.mean()
+        tgt_max = target_value.max()
+        tgt_min = target_value.min()
+        mean_cmp = orig_mean, tgt_mean
+        max_cmp = orig_max, tgt_max
+        min_cmp = orig_min, tgt_min
+
+        if value_diff.size > 0:
+            isclose_num = np.isclose(orig_value, target_value, rtol=rtol, atol=atol, equal_nan=equal_nan).sum()
+            rel_ratio = isclose_num / np.size(orig_value)
+            allclose_result = isclose_num == np.size(orig_value)
+        else:
+            rel_ratio = 1.
+            allclose_result = True
+    else:
+        allclose_result = "Shape is inconsistent"
+
+    return allclose_result, rel_ratio, mean_cmp, max_cmp, min_cmp
 
 def cal_cosine_sim(a, b):
     np.seterr(divide='ignore', invalid='ignore')

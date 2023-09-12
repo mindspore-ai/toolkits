@@ -116,6 +116,24 @@ def _format_compare_result(allclose_res, ratio, cos_sim, mean_max):
     mean_max = f'{truncate_decimal(mean_max[0], 5):.5f}, {truncate_decimal(mean_max[1], 5):.5f}'
     return [allclose_res, ratio, cos_sim, mean_max]
 
+def _adapter_format_compare_result(allclose_res, ratio, mean_cmp, max_cmp, min_cmp):
+    if allclose_res == False:
+        allclose_res = "\033[1;31mFalse\033[0m"
+    ratio = f"{truncate_decimal(ratio, 4):.2%}"
+    mean_cmp = f'{truncate_decimal(mean_cmp[0], 5):.5f}, {truncate_decimal(mean_cmp[1], 5):.5f}'
+    max_cmp = f'{truncate_decimal(max_cmp[0], 5):.5f}, {truncate_decimal(max_cmp[1], 5):.5f}'
+    min_cmp = f'{truncate_decimal(min_cmp[0], 5):.5f}, {truncate_decimal(min_cmp[1], 5):.5f}'
+    return [allclose_res, ratio, mean_cmp, max_cmp, min_cmp]
+
+# TODO:
+def _parse_npy_file_name(name):
+    if name[:7] == 'Tensor_':
+        name = 'torch.Tensor.' + name[7:]
+    elif name[:6] == 'Torch_':
+        name = 'torch.' + name[6:]
+    elif name[:3] == 'NN_':
+        name = 'torch.nn.' + name[3:]
+    return name
 
 def print_diff_result(result_list, *, print_level=1, title=None, field_names=None,
                       show_shape_diff=False, output_file=None):
@@ -162,6 +180,63 @@ def print_diff_result(result_list, *, print_level=1, title=None, field_names=Non
             f.write(x.get_csv_string(dialect='unix') + os.linesep)
     return x.get_string()
 
+def print_adapter_diff_result(result_list, *, print_level=1, title=None, field_names=None, show_dtype_diff=False,
+                      show_shape_diff=False, output_file=None):
+    # 0 Do not print
+    # Print All
+    # print False
+    if print_level == 0:
+        return
+    if not result_list:
+        return
+    if field_names is None:
+        field_names = ["orig array name", "target array name",
+                       "result of allclose", "ratio of allclose",
+                       "cosine similarity", "mean & max diffs"]
+
+    if show_shape_diff:
+        field_names = field_names + ["shape of orig", "shape of target"]
+    if show_dtype_diff:
+        field_names = field_names + ["dtype of orig", "dtype of target"]
+
+    x = PrettyTable()
+    if title is None:
+        x.title = 'The list of comparison results'
+    else:
+        x.title = title
+    x.field_names = field_names
+
+    for result in result_list:
+        if show_shape_diff:
+            if show_dtype_diff:
+                orig_name, target_name, orig_dtype, target_dtype, orig_shape, target_shape, allclose_res, ratio, \
+                mean_cmp, max_cmp, min_cmp = result
+            else:
+                orig_name, target_name, orig_shape, target_shape, allclose_res, ratio, mean_cmp, max_cmp, min_cmp = result
+        else:
+            orig_name, target_name, allclose_res, ratio, mean_cmp, max_cmp, min_cmp = result
+
+        # orig_name = _parse_npy_file_name(orig_name)
+        # target_name = _parse_npy_file_name(target_name)
+
+        if print_level == 2 and allclose_res is True:
+            continue
+        compare_res = _adapter_format_compare_result(allclose_res, ratio, mean_cmp, max_cmp, min_cmp)
+        name_info = [orig_name, target_name]
+        basic_info = []
+        if show_shape_diff:
+            basic_info = [orig_shape, target_shape]
+            if show_dtype_diff:
+                basic_info = [orig_shape, target_shape, orig_dtype, target_dtype]
+        x.add_row([*name_info, *compare_res, *basic_info])
+    print(x.get_string())
+
+    if output_file:
+        if not os.path.exists(os.path.dirname(output_file)):
+            raise ValueError(f"output_file {output_file} not exist")
+        with os.fdopen(os.open(output_file, os.O_WRONLY | os.O_CREAT, 0o600), 'w') as f:
+            f.write(x.get_csv_string(dialect='unix') + os.linesep)
+    return x.get_string()
 
 def print_net_infer_diff_result(result_list):
     x = PrettyTable()

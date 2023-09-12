@@ -41,6 +41,13 @@ if "mindspore" in FRAMEWORK_TYPE:
     from troubleshooter.migrator.api_dump.ms_dump import set_dump_path as ms_set_dump_path
     from troubleshooter.migrator.api_dump.ms_dump import set_dump_switch as ms_set_dump_switch
 
+if "msadapter" in FRAMEWORK_TYPE:
+    import msadapter.pytorch
+    from troubleshooter.migrator.api_dump.ad_dump import acc_cmp_dump as ad_acc_cmp_dump
+    from troubleshooter.migrator.api_dump.ad_dump import register_hook as ad_register_hook
+    from troubleshooter.migrator.api_dump.ms_dump import set_dump_path as ad_set_dump_path
+    from troubleshooter.migrator.api_dump.ms_dump import set_dump_switch as ad_set_dump_switch
+
 API_DUMP_FRAMEWORK_TYPE = None
 g_retain_backward = None
 
@@ -88,11 +95,13 @@ def check_mode_and_scope(mode, scope):
         raise ValueError("For 'api_dump_start',  current mode is invalid. ")
 
 
-def api_dump_init(net, output_path=os.path.join(os.getcwd(), "ts_api_dump"), *, retain_backward=False):
+def api_dump_init(net, output_path=os.path.join(os.getcwd(), "ts_api_dump"), *, retain_backward=False,
+                  **kwargs):
     global API_DUMP_FRAMEWORK_TYPE
     global g_retain_backward
     g_retain_backward = retain_backward
     type_check(retain_backward, 'retain_backward', bool)
+    compare_statedict = kwargs.get('compare_statedict', False)
 
     logger.user_attention("For precision comparison, the probability p in the dropout method is set to 0.")
     logger.user_attention("Please disable the shuffle function of the dataset "
@@ -102,12 +111,25 @@ def api_dump_init(net, output_path=os.path.join(os.getcwd(), "ts_api_dump"), *, 
         API_DUMP_FRAMEWORK_TYPE = "torch"
         pt_set_dump_path(output_path)
         pt_register_hook(net, pt_acc_cmp_dump)
+        if compare_statedict:
+            pt_pth_path = os.path.join(output_path, "pt_net.pth")
+            torch.save(net.state_dict(), pt_pth_path)
+            logger.user_attention(f"Torch model's state_dict has been saved to {pt_pth_path}.")
+    elif "msadapter" in FRAMEWORK_TYPE and isinstance(net, msadapter.pytorch.nn.Module):
+        API_DUMP_FRAMEWORK_TYPE = "msadapter"
+        ad_set_dump_path(output_path)
+        ad_register_hook(net, ad_acc_cmp_dump)
+        if compare_statedict:
+            ad_pth_path = os.path.join(output_path, "ad_net.pth")
+            msadapter.pytorch.save(net.state_dict(), ad_pth_path)
+            logger.user_attention(f"MSAdapter model's state_dict has been saved to {ad_pth_path}.")
     elif "mindspore" in FRAMEWORK_TYPE and isinstance(net, mindspore.nn.Cell):
         API_DUMP_FRAMEWORK_TYPE = "mindspore"
         ms_set_dump_path(output_path)
         ms_register_hook(net, ms_acc_cmp_dump)
     else:
-        raise TypeError(f"For 'troubleshooter.api_dump.init' function, the type of argument 'net' must be mindspore.nn.Cell or torch.nn.Module, but got {type(net)}.")
+        raise TypeError("For 'troubleshooter.api_dump.init' function, the type of argument 'net' must be "
+                        f"mindspore.nn.Cell, torch.nn.Module or msadapter.pytorch.nn.Module, but got {type(net)}.")
 
 
 def api_dump_start(mode='all', scope=None, dump_type="all", filter_data=True, filter_stack=True):
@@ -124,6 +146,9 @@ def api_dump_start(mode='all', scope=None, dump_type="all", filter_data=True, fi
     elif API_DUMP_FRAMEWORK_TYPE == "mindspore":
         ms_set_dump_switch("ON", mode, scope=scope, api_list=scope, filter_switch=filter_switch,
                            dump_type=dump_type, filter_stack=filter_stack)
+    elif API_DUMP_FRAMEWORK_TYPE == "msadapter":
+        ad_set_dump_switch("ON", mode, scope=scope, api_list=scope, filter_switch=filter_switch,
+                           dump_type=dump_type, filter_stack=filter_stack)
     else:
         raise RuntimeError("You must call 'troubleshooter.api_dump.init' before calling"
                            "'troubleshooter.api_dump.start' function.")
@@ -134,6 +159,8 @@ def api_dump_stop():
         pt_set_dump_switch("OFF")
     elif API_DUMP_FRAMEWORK_TYPE == "mindspore":
         ms_set_dump_switch("OFF")
+    elif API_DUMP_FRAMEWORK_TYPE == "msadapter":
+        ad_set_dump_switch("OFF")
     else:
         raise RuntimeError("You must call 'troubleshooter.api_dump.init' before calling"
                            "'troubleshooter.api_dump.stop' function.")

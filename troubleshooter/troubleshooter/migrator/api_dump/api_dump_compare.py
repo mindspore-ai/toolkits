@@ -6,13 +6,15 @@ from typing import List, Optional
 
 import numpy as np
 from prettytable import PrettyTable
+from tqdm import tqdm
 
 from troubleshooter import log as logger
-from troubleshooter.migrator.diff_handler import compare_npy_dir, min_edit_distance
-from troubleshooter.common.format_msg import truncate_decimal
+from troubleshooter.migrator.diff_handler import compare_npy_dir, min_edit_distance, adapter_cal_algorithm
+from troubleshooter.common.format_msg import truncate_decimal, print_adapter_diff_result, print_separator_line
+from troubleshooter.widget import object_load
 
 from .apis_match import APIList, _print_apis_map_result, flow_match, load_pkl
-from ...common.util import type_check
+from ...common.util import (all_none_or_isfile_check, isfile_check, type_check)
 
 __all__ = ["api_dump_compare"]
 
@@ -297,7 +299,16 @@ def get_dump_path(root_path):
     pt_npy_path = root_path.joinpath("rank0", "torch_api_dump")
     pt_npy_path_not_empty = pt_npy_path.exists() and list(pt_npy_path.iterdir())
 
-    if ms_pkl_path.exists():
+    ad_pkl_path = root_path.joinpath('rank0', 'msadapter_api_dump_info.pkl')
+    ad_npy_path = root_path.joinpath('rank0', 'msadapter_api_dump')
+    ad_npy_path_not_empty = ad_npy_path.exists() and list(ad_npy_path.iterdir())
+
+    if ad_pkl_path.exists():
+        return (
+            str(ad_npy_path) if ad_npy_path_not_empty else None,
+            str(ad_pkl_path), 'msadapter',
+        )
+    elif ms_pkl_path.exists():
         return (
             str(ms_npy_path) if ms_npy_path_not_empty else None,
             str(ms_pkl_path),
@@ -409,6 +420,113 @@ def compare_summary(origin_pkl_path, target_pkl_path, name_map_list, **print_kwa
 
     return result_list
 
+def _msadapter_pth2ckpt(pt_path, ms_path, isadapter=False):
+    import mindspore as ms
+    if isadapter:
+        import msadapter.pytorch as torch
+    else:
+        import torch
+    torch_dict = torch.load(pt_path, map_location='cpu')
+    ms_params = []
+    for name, value in torch_dict.items():
+        if isinstance(value, dict):
+            for k, v in value.items():
+                param_dict = {}
+                param_dict['name'] = k
+                if isinstance(v, torch.Tensor):
+                    param_dict['data'] = ms.Tensor(v.detach().cpu().numpy())
+                else:
+                    param_dict['data'] = ms.Tensor(v)
+                ms_params.append(param_dict)
+            continue
+        else:
+            param_dict = {}
+            param_dict['name'] = name
+            if isinstance(value, torch.Tensor):
+                param_dict['data'] = ms.Tensor(value.detach().cpu().numpy())
+            else:
+                param_dict['data'] = ms.Tensor(value)
+            ms_params.append(param_dict)
+
+    ms.save_checkpoint(ms_params, ms_path)
+
+def compare_adapter_pth(orig_file_path, target_file_path, **kwargs):
+    import mindspore as ms
+    value_map_list = []
+    name_map = None
+    value_field_names = kwargs.get('value_field_names', ["Parameter name of original ckpt",
+                                                         "Parameter name of target ckpt",
+                                                         "result of allclose",
+                                                         "ratio of allclose", "cosine similarity", "mean & max diffs"])
+    title = kwargs.get('title', 'The list of comparison results for values')
+    compare_value = kwargs.get('compare_value', True)
+    weight_map_path = kwargs.get('weight_map_path', None)
+    weight_map = kwargs.get('weight_map', None)
+    orig_ckpt_dict = kwargs.get('orig_ckpt_dict', None)
+    target_ckpt_dict = kwargs.get('target_ckpt_dict', None)
+    print_level = kwargs.get('print_level', 1)
+    rtol = kwargs.get('rtol', 1e-04)
+    atol = kwargs.get('atol', 1e-04)
+    equal_nan = kwargs.get('equal_nan', False)
+
+    all_none_or_isfile_check(orig_file_path, 'orig_file_path', orig_ckpt_dict, 'orig_ckpt_dict')
+    all_none_or_isfile_check(target_file_path, 'target_file_path', target_ckpt_dict, 'target_ckpt_dict')
+    type_check(compare_value, 'compare_value', bool)
+    type_check(print_level, 'print_level', int)
+    isfile_check(weight_map_path, 'weight_map_path')
+
+    if orig_file_path:
+        orig_ckpt_dict = ms.load_checkpoint(orig_file_path)
+    if target_file_path:
+        target_ckpt_dict = ms.load_checkpoint(target_file_path)
+
+    if weight_map_path:
+        name_map, _ = object_load(weight_map_path)
+        name_map = dict(zip(name_map.values(), name_map.keys()))
+
+    if weight_map:
+        name_map, _ = weight_map
+        name_map = dict(zip(name_map.values(), name_map.keys()))
+
+    for orig_name, orig_parameter in tqdm(orig_ckpt_dict.items()):
+        if name_map:
+            new_orig_name = name_map.get(orig_name)
+        else:
+            new_orig_name = orig_name
+
+        target_para = target_ckpt_dict.get(orig_name)
+        target_para_name = orig_name
+
+        if target_para is not None:
+            result, rel_ratio, mean_cmp, max_cmp, min_cmp = adapter_cal_algorithm(orig_parameter.value().asnumpy(),
+                                                                    target_para.value().asnumpy(), rtol, atol,
+                                                                    equal_nan)
+            value_map_list.append((new_orig_name, target_para_name,
+                                   orig_parameter.dtype, target_para.dtype, orig_parameter.shape, target_para.shape,
+                                   result, rel_ratio, mean_cmp, max_cmp, min_cmp))
+            target_ckpt_dict.pop(target_para_name)
+        else:
+            value_map_list.append((new_orig_name, target_para_name,
+                                   orig_parameter.dtype, None, orig_parameter.shape, None,
+                                   result, rel_ratio, mean_cmp, max_cmp, min_cmp))
+
+    diff_result = print_adapter_diff_result(value_map_list, print_level=print_level, title=title, field_names=value_field_names,
+                                            show_dtype_diff=True, show_shape_diff=True)
+    return diff_result
+
+def compare_adapter_torch_pth(pt_file_path, ad_file_path, **kwargs):
+    print_separator_line("Start comparing PyTorch and MSAdapter parameters", length=141)
+    pt_conv_params_path = "compare_conv_pt.ckpt"
+    ad_conv_params_path = "compare_conv_ad.ckpt"
+    _msadapter_pth2ckpt(pt_file_path, pt_conv_params_path)
+    _msadapter_pth2ckpt(ad_file_path, ad_conv_params_path, isadapter=True)
+    compare_adapter_pth(orig_file_path=pt_conv_params_path, target_file_path=ad_conv_params_path,
+                    compare_value=True,
+                    value_field_names=["Parameter name of torch", "Parameter name of MSAdapter",
+                                        "result of allclose", "ratio of allclose",
+                                        "mean cmp (orig, tgt)", "max cmp (orig, tgt)", "min cmp (orig, tgt)"])
+    os.remove(pt_conv_params_path)
+    os.remove(ad_conv_params_path)
 
 def api_dump_compare(
     origin_path: str,
@@ -444,16 +562,43 @@ def api_dump_compare(
     type_check(atol, "atol", float)
     type_check(equal_nan, "equal_nan", bool)
     target_npy_path, target_pkl_path, target_framework = target_ret
+
+    ad_pth_path = pt_pth_path = ''
+    if origin_framework == 'msdapter' or target_framework == 'msadapter':
+        if target_framework == 'pytorch':
+            ad_pth_path, pt_pth_path = (Path(origin_path).joinpath('ad_net.pth'),
+                                        Path(target_path).joinpath('pt_net.pth'))
+        elif origin_framework == 'pytorch':
+            ad_pth_path, pt_pth_path = (Path(target_path).joinpath('ad_net.pth'),
+                                        Path(origin_path).joinpath('pt_net.pth'))
+        if os.path.isfile(ad_pth_path) and os.path.isfile(pt_pth_path):
+            logger.user_attention(f"Found saved models in {pt_pth_path} and {ad_pth_path}.")
+            logger.user_attention(f"Learnable parameters and registered buffers will be compared.")
+            compare_adapter_torch_pth(pt_pth_path, ad_pth_path)
+        else:
+            logger.user_attention(f"Couldn't find saved models in {pt_pth_path} or {ad_pth_path}.")
+            logger.user_attention(f"Model state_dicts will not be compared.")
+
     field_names = [
         f"ORIGIN NET ({origin_framework})",
         f"TARGET NET ({target_framework})",
     ]
-    diff_field_names = [
-        "result of allclose",
-        "ratio of allclose",
-        "cosine similarity",
-        "mean & max diffs",
-    ]
+    if origin_framework == 'msadapter' or target_framework == 'msadapter':
+        diff_field_names = [
+            "result of allclose",
+            "ratio of allclose",
+            "mean cmp (orig, tgt)",
+            "max cmp (orig, tgt)",
+            "min cmp (orig, tgt)",
+        ]
+    else:
+        diff_field_names = [
+            "result of allclose",
+            "ratio of allclose",
+            "cosine similarity",
+            "mean & max diffs",
+        ]
+
     diff_summary_name = ["max, min, mean diffs"]
 
     origin_pkl_list = APIList.get(origin_pkl_path, origin_framework)
@@ -489,12 +634,13 @@ def api_dump_compare(
             ignore_shape=False,
             convinced_match_method=convinced_match_method,
         )
-        _print_apis_map_result(
-            apis_map,
-            title=f"The APIs mapping results of the two frameworks (step {step})",
-            output_file=save_map_path,
-            field_names=field_names,
-        )
+        if not origin_framework == 'msdapter' and not target_framework == 'msadapter':
+            _print_apis_map_result(
+                apis_map,
+                title=f"The APIs mapping results of the two frameworks (step {step})",
+                output_file=save_map_path,
+                field_names=field_names,
+            )
         npy_forward_list, npy_backward_list = get_npy_map_list(
             apis_map,
             origin_npy_path,

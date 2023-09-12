@@ -328,7 +328,9 @@ def is_not_blacklisted(stack_path):
                    '/mindspore/numpy/', '/mindspore/dataset/', '/mindspore/common/',
                    '/mindspore/train/', '/mindspore/boost/', '/mindspore/parallel/',
                    '/mindspore/profiler/', '/mindspore/rewrite/', '/mindspore/scipy/',
-                   '/troubleshooter/migrator/api_dump/']
+                   '/troubleshooter/migrator/api_dump/',
+                   '/msadapter/pytorch/', '/msadapter/tools/', '/msadapter/torchaudio/',
+                   '/msadapter/torchvision/']
     for black in black_lists:
         if black in stack_path:
             return False
