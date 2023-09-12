@@ -133,7 +133,6 @@ setup(
         'wheel',
         'tdqm',
         'numpy',
-        'pandas >= 1.3.5',
         'pyyaml',
         'PySnooper >= 1.1.0',
         'prettytable >= 3.0.0, < 3.8.0',
