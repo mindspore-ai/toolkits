@@ -59,10 +59,11 @@ class BaseTrainOneStep:
         self.optimizer(grads)
 
 
-def train_ms_one_step_all(data_path, dump_path, info_path=None, retain_backward=True, dump_type='all'):
+def train_ms_one_step_all(data_path, dump_path, info_path=None, retain_backward=True,
+                          **api_dump_start_args):
     class Net(BaseNet):
         def construct(self, x):
-            api_dump_start(dump_type=dump_type)
+            api_dump_start(**api_dump_start_args)
             x = self.conv(x)
             x = ops.clip(x, Tensor(0.2, ms.float32), Tensor(0.5, ms.float32))
             x = self.bn(x)
@@ -90,6 +91,46 @@ def test_api_dump_ms_all():
             dump_path, 'mindspore')
         assert len(pkl_list) == 21
         assert set(pkl_list) == set(npy_list)
+        assert len(stack_list) == 7
+    finally:
+        shutil.rmtree(data_path)
+        shutil.rmtree(dump_path)
+
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.platform_arm_ascend_training
+@pytest.mark.platform_x86_ascend_training
+@pytest.mark.env_onecard
+def test_api_dump_ms_all_with_scalar():
+    data_path = generate_data()
+    dump_path = Path(tempfile.mkdtemp(prefix="ms_all_with_scalar"))
+    try:
+        train_ms_one_step_all(data_path, dump_path, filter_data=False)
+        pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
+            dump_path, 'mindspore')
+        assert len(pkl_list) == 25
+        assert 'Functional_clip_0_forward_input.1' in pkl_list
+        assert 'Functional_clip_0_forward_input.2' in pkl_list
+        assert 'Tensor_reshape_0_forward_input.1' in pkl_list
+        assert 'Tensor_reshape_0_forward_input.2' in pkl_list
+    finally:
+        shutil.rmtree(data_path)
+        shutil.rmtree(dump_path)
+
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.platform_arm_ascend_training
+@pytest.mark.platform_x86_ascend_training
+@pytest.mark.env_onecard
+def test_api_dump_ms_all_with_full_stack():
+    data_path = generate_data()
+    dump_path = Path(tempfile.mkdtemp(prefix="ms_all_with_full_stack"))
+    try:
+        train_ms_one_step_all(data_path, dump_path, filter_stack=False)
+        pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
+            dump_path, 'mindspore')
         assert len(stack_list) == 7
     finally:
         shutil.rmtree(data_path)

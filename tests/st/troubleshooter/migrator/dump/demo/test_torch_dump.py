@@ -53,10 +53,11 @@ class BaseNet(nn.Module):
         self.linear = nn.Linear(15000, 10)
 
 
-def train_pt_one_step_all(data_path, dump_path, info_path=None, retain_backward=True, dump_type='all'):
+def train_pt_one_step_all(data_path, dump_path, info_path=None, retain_backward=True,
+                          **api_dump_start_args):
     class Net(BaseNet):
         def forward(self, x):
-            api_dump_start(dump_type=dump_type)
+            api_dump_start(**api_dump_start_args)
             x = self.conv(x)
             x = torch.clip(x, 0.2, 0.5)
             x = self.bn(x)
@@ -84,6 +85,46 @@ def test_api_dump_torch_all():
             dump_path, 'torch')
         assert len(pkl_list) == 21
         assert set(pkl_list) == set(npy_list)
+        assert len(stack_list) == 7
+    finally:
+        shutil.rmtree(data_path)
+        shutil.rmtree(dump_path)
+
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.platform_arm_ascend_training
+@pytest.mark.platform_x86_ascend_training
+@pytest.mark.env_onecard
+def test_api_dump_pt_all_with_scalar():
+    data_path = generate_data()
+    dump_path = Path(tempfile.mkdtemp(prefix="pt_all_with_scalar"))
+    try:
+        train_pt_one_step_all(data_path, dump_path, filter_data=False)
+        pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
+            dump_path, 'torch')
+        assert len(pkl_list) == 25
+        assert 'Torch_clip_0_forward_input.1' in pkl_list
+        assert 'Torch_clip_0_forward_input.2' in pkl_list
+        assert 'Tensor_reshape_0_forward_input.1' in pkl_list
+        assert 'Tensor_reshape_0_forward_input.2' in pkl_list
+    finally:
+        shutil.rmtree(data_path)
+        shutil.rmtree(dump_path)
+
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.platform_arm_ascend_training
+@pytest.mark.platform_x86_ascend_training
+@pytest.mark.env_onecard
+def test_api_dump_pt_all_with_full_stack():
+    data_path = generate_data()
+    dump_path = Path(tempfile.mkdtemp(prefix="pt_all_with_full_stack"))
+    try:
+        train_pt_one_step_all(data_path, dump_path, filter_stack=False)
+        pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
+            dump_path, 'torch')
         assert len(stack_list) == 7
     finally:
         shutil.rmtree(data_path)

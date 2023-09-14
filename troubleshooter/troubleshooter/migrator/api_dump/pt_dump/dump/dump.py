@@ -113,14 +113,13 @@ def json_dump_condition(prefix):
 
 
 def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
-    global data_info
+    compute_summary = True if dump_type in ['all', 'statistics'] else False
+    dump_npy = True if dump_type in ['all', 'npy'] else False
     if isinstance(x, (tuple, list)) and x:
         for i, item in enumerate(x):
             dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name, dump_type)
         return
     elif isinstance(x, torch.Tensor):
-        compute_summary = True if dump_type in ['all', 'statistics'] else False
-        dump_npy = True if dump_type in ['all', 'npy'] else False
         def backward_hook(grad, get_info):
             nonlocal dump_file_name, dump_step, prefix, dump_npy, compute_summary
             prefix = prefix.replace('_forward_output', '_backward_input')
