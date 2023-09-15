@@ -8,7 +8,10 @@
 从图中可看出Conv2DBackpropFilterD-op274算子两个输入分别来源于FusionOp_Conv2DBackpropInputD_ReluGradV2-op751
 和TupleGetItem-op628算子，并且dtype都是DT_TENSOR[DT_FLOAT16]，
 输出用于MaxPoolGradWithArgmax-op325算子，其dtype为DT_TENSOR[DT_FLOAT32]。
-所以此算子为升精度算子，表示为raise。
+所以此算子为升精度算子，表示为raise。 
+#### 说明：
+- 1.数据dtype列表示的是算子在host侧的输入输出类型，一般由用户指定。
+- 2.升降精度标识列表示的是该算子的输出从host侧到device的精度变化，一般由框架底层根据算子优化策略指定。
 
 ![avatar](images/precision_csv.png)
 
