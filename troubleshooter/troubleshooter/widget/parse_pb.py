@@ -47,7 +47,8 @@ class PbParser:
 
         model_proto = anf_ir_pb2.ModelProto()
         try:
-            with open(file_path, 'rb') as fr:
+            flags = os.O_RDONLY
+            with os.fdopen(os.open(file_path, flags, 0o400), 'rb') as fr:
                 model_proto.ParseFromString(fr.read())
 
             graph = MSGraph() if mode == 'normal' else OptimizedGraph()
