@@ -271,6 +271,8 @@ def dump_data(dump_file_name, dump_step, prefix, data_info, dump_type):
 
 
 def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
+    compute_summary = True if dump_type in ['all', 'statistics'] else False
+    dump_npy = True if dump_type in ['all', 'npy'] else False
     if isinstance(x, (tuple, list)) and x:
         res = []
         for i, item in enumerate(x):
@@ -279,8 +281,6 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
                 res.append(output_hook_tensor)
         return res if res else None
     elif isinstance(x, ms.Tensor):
-        compute_summary = True if dump_type in ['all', 'statistics'] else False
-        dump_npy = True if dump_type in ['all', 'npy'] else False
         def backward_hook(grad, get_info):
             grad = grad[0]
             nonlocal dump_file_name, dump_step, prefix, dump_npy, compute_summary
