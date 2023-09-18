@@ -8,7 +8,6 @@ from troubleshooter import log as logger
 from ..common.utils import (Const, DumpException, get_api_name_from_matcher, get_time,
                             print_error_log)
 
-dump_count = 0
 range_begin_flag, range_end_flag = False, False
 
 
@@ -30,6 +29,7 @@ class DumpUtil(object):
     dump_config = None
     dump_stack_dic = {}
     dump_filter_stack = True
+    dump_count = 0
 
     @staticmethod
     def set_ori_dir(path):
@@ -61,10 +61,8 @@ class DumpUtil(object):
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
 
     def check_list_or_acl_mode(name_prefix):
-        global dump_count
         for item in DumpUtil.dump_switch_scope:
             if name_prefix.startswith(item):
-                dump_count = dump_count + 1
                 return True
 
     def check_range_mode(name_prefix):
@@ -160,17 +158,18 @@ def set_dump_switch(switch, mode=Const.ALL, scope=None, api_list=None,
                              filter_switch=filter_switch, dump_mode=dump_mode, dump_type=dump_type,
                              filter_stack=filter_stack)
 
-    global dump_count
     if switch == "ON":
         dump_path_str = generate_dump_path_str()
         logger.user_attention(f"API dump has started. Dump data will be saved {dump_path_str}. ")
         if mode == Const.LIST:
-            dump_count = 0
+            DumpUtil.dump_count = 0
     else:
         dump_path_str = generate_dump_path_str()
-        logger.user_attention(f"API dump has stopped. Dump data has been saved {dump_path_str}. ")
-        if mode == Const.LIST:
-            logger.user_attention("The number of matched dump is {}".format(dump_count))
+        if DumpUtil.dump_count != 0:
+            logger.user_attention(f"API dump has been stopped. Dump data has been saved to {dump_path_str}, "
+                                  f"and a total of {DumpUtil.dump_count} data entries have been saved this time.")
+        else:
+            logger.user_warning(f"API dump has been stopped, but no data has been saved. Please check the dump scope!")
 
 
 def _set_dump_switch4api_list(name):

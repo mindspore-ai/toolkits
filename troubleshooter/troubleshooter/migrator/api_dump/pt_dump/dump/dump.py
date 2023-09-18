@@ -153,6 +153,7 @@ def dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy):
     with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
                    "a") as f:
         if json_dump_condition(prefix):
+            DumpUtil.dump_count += 1
             if dump_npy:
                 output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
                 np.save(output_path, data_info.save_data)

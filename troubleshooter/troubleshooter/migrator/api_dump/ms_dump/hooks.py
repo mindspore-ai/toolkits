@@ -19,7 +19,6 @@ from troubleshooter import log as logger
 from .. import universal_interface
 from .utils import Const, __version__, get_time, print_error_log, remove_dump_file
 
-DumpCount = 0
 forward_init_status = False
 backward_init_status = False
 range_begin_flag, range_end_flag = False, False
@@ -43,6 +42,7 @@ class DumpUtil(object):
     dump_stack_dic = {}
     dump_filter_switch = None
     dump_filter_stack = True
+    dump_count = 0
 
     @staticmethod
     def set_ori_dir(path):
@@ -67,11 +67,9 @@ class DumpUtil(object):
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
 
-    def check_list_or_acl_mode(name_prefix):
-        global DumpCount
+    def check_list_mode(name_prefix):
         for item in DumpUtil.dump_switch_scope:
             if name_prefix.startswith(item):
-                DumpCount = DumpCount + 1
                 return True
 
     def check_range_mode(name_prefix):
@@ -100,8 +98,7 @@ class DumpUtil(object):
         return False
 
     check_mapper = {
-        Const.LIST: check_list_or_acl_mode,
-        Const.ACL: check_list_or_acl_mode,
+        Const.LIST: check_list_mode,
         Const.RANGE: check_range_mode,
         Const.STACK: check_stack_mode
     }
@@ -221,15 +218,16 @@ def set_dump_switch(switch, mode=Const.ALL, scope=None, api_list=None,
                              filter_switch=filter_switch, dump_mode=dump_mode, dump_type=dump_type,
                              filter_stack=filter_stack)
 
-    global DumpCount
     if switch == "ON":
         logger.user_attention(f"API dump has started. Dump data will be saved to {DumpUtil.dump_ori_dir}. ")
         if mode == Const.LIST:
-            DumpCount = 0
+            DumpUtil.dump_count = 0
     else:
-        logger.user_attention(f"API dump has stopped. Dump data has been saved to {DumpUtil.dump_ori_dir}. ")
-        if mode == Const.LIST:
-            logger.user_attention("The number of matched dump is {}".format(DumpCount))
+        if DumpUtil.dump_count != 0:
+            logger.user_attention(f"API dump has been stopped. Dump data has been saved to {DumpUtil.dump_ori_dir}, "
+                                  f"and a total of {DumpUtil.dump_count} data entries have been saved this time.")
+        else:
+            logger.user_warning(f"API dump has been stopped, but no data has been saved. Please check the dump scope!")
 
 
 def set_backward_input(backward_input):
@@ -243,6 +241,7 @@ def dump_data(dump_file_name, dump_step, prefix, data_info, dump_type):
     with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
                    "a") as f:
         if json_dump_condition(prefix):
+            DumpUtil.dump_count += 1
             if dump_type:
                 output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
                 np.save(output_path, data_info.save_data)
