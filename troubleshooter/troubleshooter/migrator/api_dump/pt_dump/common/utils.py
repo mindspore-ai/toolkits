@@ -216,13 +216,6 @@ def print_attent_log(attent_msg):
     _print_log("ATTENTION", attent_msg)
 
 
-def check_mode_valid(mode):
-    if mode not in Const.DUMP_MODE:
-        msg = "Current mode '%s' is not supported. Please use the field in %s" % \
-              (mode, Const.DUMP_MODE)
-        raise CompareException(CompareException.INVALID_DUMP_MODE, msg)
-
-
 def check_compare_param(input_parma, output_path, stack_mode=False, auto_analyze=True,
                         fuzzy_match=False):  # 添加默认值来让不传参时能通过参数检查
     if not (isinstance(input_parma, dict) and isinstance(output_path, str)

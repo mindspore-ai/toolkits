@@ -38,6 +38,33 @@ API_DUMP_FRAMEWORK_TYPE = None
 g_retain_backward = None
 
 
+def check_mode_and_scope(mode, scope):
+    support_mode = {'all', 'list', 'api_list', 'range'}
+    enum_check(mode, 'mode', support_mode)
+
+    if mode == 'all':
+        if scope:
+            raise ValueError("For 'api_dump_start',  when mode is 'all', "
+                             f"the 'scope' muse be None, but currently it is '{scope}'.")
+    elif mode == 'list':
+        type_check(scope, 'scope', list)
+        if len(scope) == 0:
+            raise ValueError("For 'api_dump_start',  current mode is 'list', "
+                             "'scope' param set invalid, it's should not be an empty list.")
+    elif mode == 'api_list':
+        type_check(scope, 'scope', list)
+        if len(scope) == 0:
+            raise ValueError("For 'api_dump_start',  current mode is 'api_list', "
+                             "'scope' param set invalid, it's should not be an empty list.")
+    elif mode == 'range':
+        type_check(scope, 'scope', list)
+        if len(scope) != 2:
+            raise ValueError("For 'api_dump_start',  current mode is 'range', "
+                             "'scope' param set invalid, it's must be [start, end].")
+    else:
+        raise ValueError("For 'api_dump_start',  current mode is invalid. ")
+
+
 def api_dump_init(net, output_path=os.path.join(os.getcwd(), "ts_api_dump"), *, retain_backward=False):
     global API_DUMP_FRAMEWORK_TYPE
     global g_retain_backward
@@ -61,11 +88,10 @@ def api_dump_init(net, output_path=os.path.join(os.getcwd(), "ts_api_dump"), *, 
 
 
 def api_dump_start(mode='all', scope=None, dump_type="all", filter_data=True, filter_stack=True):
+    check_mode_and_scope(mode, scope)
     if scope is None:
         scope = []
-    support_mode = {'all', 'list', 'api_list', 'range'}
     support_dump_type = {'all', 'statistics', 'stack', 'npy'}
-    enum_check(mode, 'mode', support_mode)
     enum_check(dump_type, 'support_dump_type', support_dump_type)
     type_check(filter_data, 'filter_data', bool)
     filter_switch = 'ON' if filter_data else 'OFF'

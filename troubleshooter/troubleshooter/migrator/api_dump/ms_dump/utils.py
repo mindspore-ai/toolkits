@@ -138,13 +138,6 @@ def print_attent_log(attent_msg):
     _print_log("ATTENTION", attent_msg)
 
 
-def check_mode_valid(mode):
-    if mode not in Const.DUMP_MODE:
-        msg = "Current mode '%s' is not supported. Please use the field in %s" % \
-              (mode, Const.DUMP_MODE)
-        raise CompareException(CompareException.INVALID_DUMP_MODE, msg)
-
-
 def check_file_or_directory_path(path, isdir=False):
     """
     Function Description:
