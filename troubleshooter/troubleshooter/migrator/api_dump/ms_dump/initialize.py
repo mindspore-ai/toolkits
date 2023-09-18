@@ -5,7 +5,6 @@ import mindspore as ms
 
 from . import hook_cell
 from . import hooks
-from .. import universal_interface
 from . import wrap_functional, wrap_nn, wrap_sub_tensor, wrap_tensor
 from .utils import (CompareException, Const, check_file_or_directory_path, print_error_log)
 from troubleshooter import log as logger

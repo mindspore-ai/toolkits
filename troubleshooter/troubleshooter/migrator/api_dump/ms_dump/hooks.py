@@ -17,8 +17,7 @@ import numpy as np
 from troubleshooter import log as logger
 
 from .. import universal_interface
-from .utils import (CompareException, Const, __version__, check_mode_valid, get_time,
-                    print_error_log, remove_dump_file)
+from .utils import Const, __version__, get_time, print_error_log, remove_dump_file
 
 DumpCount = 0
 forward_init_status = False
@@ -217,24 +216,6 @@ def set_dump_switch(switch, mode=Const.ALL, scope=None, api_list=None,
         scope = []
     if api_list is None:
         api_list = []
-    try:
-        check_mode_valid(mode)
-        assert switch in ["ON", "OFF"], "Please set dump switch with 'ON' or 'OFF'."
-        if mode == Const.RANGE:
-            assert len(scope) == 2, "set_dump_switch, scope param set invalid, it's must be [start, end]."
-        if mode == Const.LIST:
-            assert len(scope) != 0, "set_dump_switch, scope param set invalid, it's should not be an empty list."
-        if mode == Const.STACK:
-            assert len(scope) <= 2, "set_dump_switch, scope param set invalid, it's must be [start, end] or []."
-        if mode == Const.ACL:
-            assert len(
-                scope) == 1, "set_dump_switch, scope param set invalid, only one api name is supported in acl mode."
-        if mode == Const.API_LIST:
-            assert isinstance(api_list, list) and len(api_list) >= 1, \
-                "Current dump mode is 'api_list', but the content of api_list parameter is empty or valid."
-    except (CompareException, AssertionError) as err:
-        print_error_log(str(err))
-        sys.exit()
 
     DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list,
                              filter_switch=filter_switch, dump_mode=dump_mode, dump_type=dump_type,
