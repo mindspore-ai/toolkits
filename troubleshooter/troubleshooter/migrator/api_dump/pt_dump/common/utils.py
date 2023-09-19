@@ -483,31 +483,3 @@ def get_process_rank(model):
         return 0, False
     else:
         return device.index, True
-
-
-def parameter_adapter(func):
-
-    @wraps(func)
-    def inner(self, *args, **kwargs):
-        if self.op_name_ == "__getitem__" and len(args) > 1 and isinstance(args[1], torch.Tensor):
-            input = args[0]
-            indices = args[1]
-            if indices.dtype == torch.uint8:
-                indices = indices.bool()
-            if indices.dtype == torch.bool:
-                if indices.shape == input.shape:
-                    return getattr(torch._C._VariableFunctionsClass, "masked_select")(input, indices)
-                else:
-                    indices = getattr(torch._C._VariableFunctionsClass, "nonzero")(indices, as_tuple=True)
-                    return getattr(torch._C._TensorBase, "__getitem__")(input, indices)
-            elif indices.dtype != torch.bool:
-                if len(indices.shape) == 1:
-                    return func(self, input, indices.tolist())
-                elif len(indices.shape) == 2:
-                    result = [func(self, input, index) for index in indices.tolist()]
-                    return getattr(torch._C._VariableFunctionsClass, "stack")(result, 0)
-                else:
-                    res = [input[tensor_index] for tensor_index in indices]
-                    return getattr(torch._C._VariableFunctionsClass, "stack")(res, 0)
-        return func(self, *args, **kwargs)
-    return inner

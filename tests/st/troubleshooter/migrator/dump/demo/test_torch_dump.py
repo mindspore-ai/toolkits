@@ -40,8 +40,8 @@ class BaseTrainOneStep:
         out = self.net(self.data)
         loss = self.criterion(out, self.label)
         loss.backward()
-        api_dump_stop()
         self.optimizer.step()
+        api_dump_stop()
 
 
 class BaseNet(nn.Module):
