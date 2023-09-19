@@ -257,9 +257,8 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
         res = []
         for i, item in enumerate(x):
             output_hook_tensor = dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name, dump_type)
-            if output_hook_tensor is not None:
-                res.append(output_hook_tensor)
-        return res if res else None
+            res.append(output_hook_tensor)
+        return res if universal_interface.g_retain_backward else None
     elif isinstance(x, ms.Tensor):
         def backward_hook(grad, get_info):
             grad = grad[0]
@@ -277,9 +276,6 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
                         return backward_hook(grad, get_not_float_tensor_info)
                     hook = ms.ops.HookBackward(backward_hook_func)
                     x = hook(x)
-                    return x
-            else:
-                return
         else:
             data_info = get_float_tensor_info(x, compute_summary)
             dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy)
@@ -288,13 +284,12 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
                     return backward_hook(grad, get_float_tensor_info)
                 hook = ms.ops.HookBackward(backward_hook_func)
                 x = hook(x)
-                return x
-
+        return x if universal_interface.g_retain_backward else None
     elif DumpUtil.dump_filter_switch == Const.OFF:
         if isinstance(x, bool) or isinstance(x, int) or isinstance(x, float):
             data_info = get_scalar_data_info(x, compute_summary)
             dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy)
-
+        return x if universal_interface.g_retain_backward else None
 
 def seed_all(seed=1234):
     random.seed(seed)
