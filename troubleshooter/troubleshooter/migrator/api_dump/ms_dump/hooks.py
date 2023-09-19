@@ -220,8 +220,7 @@ def set_dump_switch(switch, mode=Const.ALL, scope=None, api_list=None,
 
     if switch == "ON":
         logger.user_attention(f"API dump has started. Dump data will be saved to {DumpUtil.dump_ori_dir}. ")
-        if mode == Const.LIST:
-            DumpUtil.dump_count = 0
+        DumpUtil.dump_count = 0
     else:
         if DumpUtil.dump_count != 0:
             logger.user_attention(f"API dump has been stopped. Dump data has been saved to {DumpUtil.dump_ori_dir}, "
