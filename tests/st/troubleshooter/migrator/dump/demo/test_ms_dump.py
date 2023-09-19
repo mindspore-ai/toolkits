@@ -290,3 +290,19 @@ def test_api_dump_ms_range():
     finally:
         shutil.rmtree(data_path)
         shutil.rmtree(dump_path)
+
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.platform_arm_ascend_training
+@pytest.mark.platform_x86_ascend_training
+@pytest.mark.env_onecard
+def test_api_dump_ms_with_not_float_output():
+    x = Tensor(np.random.randn(8, 5).astype(np.float32))
+    dump_path = Path(tempfile.mkdtemp(prefix="with_not_float_output"))
+    ts.migrator.api_dump_init(ms.nn.Cell(), dump_path, retain_backward=True)
+    ts.migrator.api_dump_start()
+    out = x.max(axis=1, return_indices=True)
+    ts.migrator.api_dump_stop()
+    shutil.rmtree(dump_path)
+    assert len(out) == 2
