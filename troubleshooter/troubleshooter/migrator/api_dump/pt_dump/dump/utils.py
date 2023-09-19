@@ -161,8 +161,7 @@ def set_dump_switch(switch, mode=Const.ALL, scope=None, api_list=None,
     if switch == "ON":
         dump_path_str = generate_dump_path_str()
         logger.user_attention(f"API dump has started. Dump data will be saved {dump_path_str}. ")
-        if mode == Const.LIST:
-            DumpUtil.dump_count = 0
+        DumpUtil.dump_count = 0
     else:
         dump_path_str = generate_dump_path_str()
         if DumpUtil.dump_count != 0:
