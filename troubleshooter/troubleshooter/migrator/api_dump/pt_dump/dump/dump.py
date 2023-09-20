@@ -41,6 +41,7 @@ from troubleshooter import log as logger
 from ..common.utils import Const
 from ..dump.utils import check_in_api_list, remove_dump_file
 from .utils import DumpUtil, make_dump_data_dir
+from ..hook_module.wrap_torch import TorchFunc
 
 forward_init_status = False
 backward_init_status = False
@@ -71,9 +72,9 @@ def get_not_float_tensor_info(data, compute_summary):
             tensor_min = data.cpu().detach().float().numpy().tolist()
             tensor_mean = data.cpu().detach().float().numpy().tolist()
         else:
-            tensor_max = torch._C._VariableFunctionsClass.max(data).cpu().detach().float().numpy().tolist()
-            tensor_min = torch._C._VariableFunctionsClass.min(data).cpu().detach().float().numpy().tolist()
-            tensor_mean = torch._C._VariableFunctionsClass.mean(data.float()).cpu().detach().float().numpy().tolist()
+            tensor_max = TorchFunc['max'](data).cpu().detach().float().numpy().tolist()
+            tensor_min = TorchFunc['min'](data).cpu().detach().float().numpy().tolist()
+            tensor_mean = TorchFunc['mean'](data.float()).cpu().detach().float().numpy().tolist()
     else:
         tensor_max = math.nan
         tensor_min = math.nan
@@ -93,9 +94,9 @@ def get_scalar_data_info(data, compute_summary):
 def get_float_tensor_info(data, compute_summary):
     saved_tensor = data.contiguous().cpu().detach().numpy()
     if compute_summary:
-        tensor_max = torch._C._VariableFunctionsClass.max(data).cpu().detach().float().numpy().tolist()
-        tensor_min = torch._C._VariableFunctionsClass.min(data).cpu().detach().float().numpy().tolist()
-        tensor_mean = torch._C._VariableFunctionsClass.mean(data).cpu().detach().float().numpy().tolist()
+        tensor_max = TorchFunc['max'](data).cpu().detach().float().numpy().tolist()
+        tensor_min = TorchFunc['min'](data).cpu().detach().float().numpy().tolist()
+        tensor_mean = TorchFunc['mean'](data).cpu().detach().float().numpy().tolist()
     else:
         tensor_max = math.nan
         tensor_min = math.nan

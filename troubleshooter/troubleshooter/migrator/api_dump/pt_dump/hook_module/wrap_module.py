@@ -16,6 +16,7 @@
 """
 import os
 import torch.nn as nn
+import torch.optim as optim
 import yaml
 from ..common import global_manage
 
@@ -37,25 +38,25 @@ def get_nn_module():
     return set(WrapModuleOps) & set(_all_nn_module)
 
 
-def call_decorator(cls, name):
-    original_call = cls.__call__
-    cls.hook_name = "wrap_" + name
-
-    def new_call(self, *args, **kwargs):
+def stop_dump_hook(func):
+    def wrapper(self, *args, **kwargs):
         if not global_manage.get_value("g_stop_hook"):
             global_manage.set_value("g_stop_hook", True)
             try:
-                result = original_call(self, *args, **kwargs)
+                return func(self, *args, **kwargs)
             except Exception as e:
                 raise e
             finally:
                 global_manage.set_value("g_stop_hook", False)
         else:
-            result = original_call(self, *args, **kwargs)
+            return func(self, *args, **kwargs)
+    return wrapper
 
-        return result
 
-    cls.__call__ = new_call
+def call_decorator(cls, name):
+    cls.hook_name = "wrap_" + name
+
+    cls.__call__ = stop_dump_hook(cls.__call__)
     return cls
 
 
@@ -73,3 +74,11 @@ def wrap_nn_module_and_bind():
         if name.startswith("Dropout"):
             remove_dropout_randomness(NNModule[name])
         call_decorator(NNModule[name], name)
+
+
+def wrap_optimizer():
+    for cls_name in dir(optim):
+        cls = getattr(optim, cls_name)
+        if cls_name != 'Optimizer' and isinstance(cls, type) and issubclass(cls, optim.Optimizer):
+            cls.step = stop_dump_hook(cls.step)
+            cls.zero_grad = stop_dump_hook(cls.zero_grad)

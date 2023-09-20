@@ -127,7 +127,6 @@ class DumpUtil(object):
 def set_dump_path(fpath=None):
     if fpath is None:
         raise RuntimeError("set_dump_path '{}' error, please set a valid filename".format(fpath))
-        return
     real_path = os.path.realpath(fpath)
     if not os.path.isdir(real_path):
         logger.user_attention(

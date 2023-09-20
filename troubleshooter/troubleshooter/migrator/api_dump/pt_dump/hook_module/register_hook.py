@@ -67,6 +67,7 @@ def initialize_hook(hook):
                 setattr(torch_npu, attr_name[5:], getattr(wrap_npu_custom.HOOKNpuOP, attr_name))
 
     wrap_module.wrap_nn_module_and_bind()
+    wrap_module.wrap_optimizer()
 
 
 def register_hook(model, hook, **kwargs):
