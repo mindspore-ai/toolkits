@@ -24,6 +24,7 @@ def initialize_hook(hook):
             setattr(ms.ops, attr_name[5:], getattr(wrap_functional.HOOKFunctionalOP, attr_name))
 
     wrap_nn.wrap_nn_cell_and_bind()
+    wrap_nn.wrap_optimizer()
 
 def register_hook(net, hook, **kwargs):
     dump_mode, dump_config_file = init_dump_config(kwargs)

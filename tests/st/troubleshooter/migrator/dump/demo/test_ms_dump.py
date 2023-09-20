@@ -55,9 +55,8 @@ class BaseTrainOneStep:
             forward_fn, None, self.optimizer.parameters)
         api_dump_start()
         loss, grads = grad_fn(self.data, self.label)
-        api_dump_stop()
         self.optimizer(grads)
-
+        api_dump_stop()
 
 def train_ms_one_step_all(data_path, dump_path, info_path=None, retain_backward=True,
                           **api_dump_start_args):
