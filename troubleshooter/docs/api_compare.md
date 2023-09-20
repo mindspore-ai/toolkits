@@ -32,10 +32,6 @@ PyTorch 网络迁移到 MindSpore，以及 MindSpore 不同后端/版本迁移�
 
     在需要进行精度定位的代码上下调用`api_dump_start`和`api_dump_stop`。`api_dump_start`还可以指定dump的接口名、数据种类等，详细请参考[api_dump_start](./api/migrator/api_dump.md#troubleshootermigratorapi_dump_start)。
 
-    > 注意
-    >
-    > 当前没有针对优化器等接口进行特定处理，dump时接口的内部操作会被保存，由于PyTorch与MindSpore内部实现逻辑差异较大，导致对比时API映射困难。因此dump时需要跳过优化器，在反向执行后优化器执行前停止数据dump。
-
 以下分别为PyTorch、MindSpore固定随机性、数据保存的完整代码示例。
 
 **PyTorch 网络 dump**

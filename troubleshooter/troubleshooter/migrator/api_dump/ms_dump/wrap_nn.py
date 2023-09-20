@@ -15,9 +15,8 @@
 import os
 
 import mindspore as ms
-import numpy as np
 import yaml
-from mindspore import nn
+from mindspore.nn import optim
 
 from . import hook_cell as _cell
 
@@ -37,24 +36,24 @@ def get_nn_cell():
     return set(WrapNNCell) & set(_all_nn_cell)
 
 
-def call_decorator(cls, name):
-    original_call = cls.__call__
-    cls.hook_name = 'wrap_' + name
-
-    def new_call(self, *args, **kwargs):
+def stop_dump_hook(func):
+    def wrapper(self, *args, **kwargs):
         if not _cell.g_stop_hook:
             _cell.g_stop_hook = True
             try:
-                result = original_call(self, *args, **kwargs)
+                return func(self, *args, **kwargs)
             except Exception as e:
                 raise e
             finally:
                 _cell.g_stop_hook = False
         else:
-            result = original_call(self, *args, **kwargs)
-        return result
+            return func(self, *args, **kwargs)
+    return wrapper
 
-    cls.__call__ = new_call
+
+def call_decorator(cls, name):
+    cls.hook_name = 'wrap_' + name
+    cls.__call__ = stop_dump_hook(cls.__call__)
     return cls
 
 
@@ -75,9 +74,8 @@ def wrap_nn_cell_and_bind():
         call_decorator(NNCell[name], name)
 
 
-if __name__ == '__main__':
-    wrap_nn_cell_and_bind()
-    net = nn.Conv1d(120, 240, 4, has_bias=False, weight_init='normal')
-    x = ms.Tensor(np.ones([1, 120, 640]), ms.float32)
-    output = net(x).shape
-    print(output)
+def wrap_optimizer():
+    for cls_name in dir(optim):
+        cls = getattr(optim, cls_name)
+        if cls_name != 'Optimizer' and isinstance(cls, type) and issubclass(cls, optim.Optimizer):
+            cls.__call__ = stop_dump_hook(cls.__call__)
