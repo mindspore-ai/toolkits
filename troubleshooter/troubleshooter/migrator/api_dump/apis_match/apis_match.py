@@ -145,10 +145,23 @@ class APINode:
 class APIList:
     """用于根据pkl文件构造一个api数据流。"""
 
+    @classmethod
+    def get(cls, pkl_path, framework):
+        pkl = load_pkl(pkl_path)
+        pkl_list = []
+        p = APIList(framework)
+        for l in pkl:
+            ret = p._read_line(l)
+            if not ret and len(p) != 0:
+                pkl_list.append(p)
+                p = APIList(framework)
+        return pkl_list
+
     def __init__(self, framework: str):
         self.api_list = []
         self.framework = framework
 
+    ##
     def construct(self, pkl_path: str) -> Any:
         pkl = load_pkl(pkl_path)
         for l in pkl:
@@ -315,7 +328,9 @@ def _get_uni_name(framework: str, dump_type: str, name: str) -> str:
 class APIsInterMatch:
     """核心匹配算法"""
 
-    def __call__(self, origin_list: List, target_list: List, err_threshold: float = 1.0):
+    def __call__(
+        self, origin_list: List, target_list: List, err_threshold: float = 1.0
+    ):
         origin_inter, target_inter = self._get_vertex(origin_list, target_list)
         map_inter = self._inter_match(
             origin_inter, target_inter, err_threshold=err_threshold
@@ -720,11 +735,7 @@ def convinced_match_global(
 
 
 def _convinced_match_recursion(
-    origin_list,
-    target_list,
-    origin_range,
-    target_range,
-    ignore_shape=False
+    origin_list, target_list, origin_range, target_range, ignore_shape=False
 ):
     assert origin_range[1] <= len(origin_list) and target_range[1] <= len(
         target_list
@@ -734,9 +745,9 @@ def _convinced_match_recursion(
 
     origin_api_map = defaultdict(list)
     target_api_map = defaultdict(list)
-    for api in origin_list[origin_range[0]: origin_range[1]]:
+    for api in origin_list[origin_range[0] : origin_range[1]]:
         origin_api_map[_get_api_attr(api, ignore_shape)].append(api)
-    for api in target_list[target_range[0]: target_range[1]]:
+    for api in target_list[target_range[0] : target_range[1]]:
         target_api_map[_get_api_attr(api, ignore_shape)].append(api)
     common_api_names = origin_api_map.keys() & target_api_map.keys()
     same_len_api_names = [
