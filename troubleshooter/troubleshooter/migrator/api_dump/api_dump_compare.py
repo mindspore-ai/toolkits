@@ -282,13 +282,15 @@ def get_dump_path(root_path):
 
     if ms_pkl_path.exists():
         return (
-            str(ms_npy_path) if ms_npy_path_not_empty else None, 
-            str(ms_pkl_path), 'mindspore',
+            str(ms_npy_path) if ms_npy_path_not_empty else None,
+            str(ms_pkl_path),
+            'mindspore',
         )
     elif pt_pkl_path.exists():
         return (
             str(pt_npy_path) if pt_npy_path_not_empty else None,
-            str(pt_pkl_path), 'pytorch',
+            str(pt_pkl_path),
+            'pytorch',
         )
     else:
         return None
@@ -400,7 +402,9 @@ def compare_summary(
             origin_summary = np.array(origin_info_map[origin_key][1])
             target_summary = np.array(target_info_map[target_key][1])
             summary_diff = list(np.abs(origin_summary - target_summary))
-            format_summary_diff = ", ".join(f'{truncate_decimal(diff, 5):.5f}' for diff in summary_diff)
+            format_summary_diff = ", ".join(
+                f'{truncate_decimal(diff, 5):.5f}' for diff in summary_diff
+            )
             result_list.append(
                 (
                     origin_key,
@@ -461,92 +465,106 @@ def api_dump_compare(
         "cosine similarity",
         "mean & max diffs",
     ]
-    if output_path is None:
-        save_map_path = None
-        save_forward_path = None
-        save_backward_path = None
-    else:
-        os.makedirs(output_path, mode=0o700, exist_ok=True)
-        save_map_path = os.path.join(output_path, 'ts_api_mapping.csv')
-        save_forward_path = os.path.join(output_path, 'ts_api_forward_compare.csv')
-        save_backward_path = os.path.join(output_path, 'ts_api_backward_compare.csv')
-    origin_pkl_list = APIList(origin_framework)
-    target_pkl_list = APIList(target_framework)
-    origin_pkl_list.construct(origin_pkl_path)
-    target_pkl_list.construct(target_pkl_path)
-    apis_map = flow_match(
-        origin_pkl_list,
-        target_pkl_list,
-        err_threshold=1.0,
-        ignore_shape=False,
-        convinced_match_method=convinced_match_method,
-    )
-    _print_apis_map_result(apis_map, output_file=save_map_path, field_names=field_names)
-    npy_forward_list, npy_backward_list = get_npy_map_list(
-        apis_map,
-        origin_npy_path,
-        target_npy_path,
-        origin_pkl_path,
-        target_pkl_path,
-        ignore_backward=ignore_backward,
-        ignore_unmatched=ignore_unmatched,
-    )
-    if origin_npy_path is None or target_npy_path is None:
-        logger.user_attention('npy files not found, use pkl files to compare.')
-        ret = compare_summary(
-            origin_pkl_path,
-            target_pkl_path,
-            npy_forward_list,
-            save_forward_path,
-            'The forward comparison results',
+
+    origin_pkl_list = APIList.get(origin_pkl_path, origin_framework)
+    target_pkl_list = APIList.get(target_pkl_path, target_framework)
+    if len(origin_pkl_list) != len(target_pkl_list):
+        logger.user_attention(
+            'The number of steps in the orgin and target pkl file is different.'
         )
-        if not ignore_backward and len(ret) != 0:
-            npy_backward_list.reverse()
-            compare_summary(
-                origin_pkl_path,
-                target_pkl_path,
-                npy_backward_list,
-                save_backward_path,
-                'The backward comparison results',
+    for step in range(min(len(origin_pkl_list), len(target_pkl_list))):
+        if output_path is None:
+            save_map_path = None
+            save_forward_path = None
+            save_backward_path = None
+        else:
+            os.makedirs(output_path, mode=0o700, exist_ok=True)
+            save_map_path = os.path.join(output_path, f'ts_api_mapping_{step}.csv')
+            save_forward_path = os.path.join(
+                output_path, f'ts_api_forward_compare_{step}.csv'
             )
-    else:
-        npy_forward_list = [
-            (
-                i[0] + '.npy' if i[0] is not None else None,
-                i[1] + '.npy' if i[1] is not None else None,
+            save_backward_path = os.path.join(
+                output_path, f'ts_api_backward_compare_{step}.csv'
             )
-            for i in npy_forward_list
-        ]
-        npy_backward_list = [
-            (
-                i[0] + '.npy' if i[0] is not None else None,
-                i[1] + '.npy' if i[1] is not None else None,
-            )
-            for i in npy_backward_list
-        ]
-        compare_npy_dir(
+
+        apis_map = flow_match(
+            origin_pkl_list[step],
+            target_pkl_list[step],
+            err_threshold=1.0,
+            ignore_shape=False,
+            convinced_match_method=convinced_match_method,
+        )
+        _print_apis_map_result(
+            apis_map,
+            title=f'The APIs mapping results of the two frameworks (step {step})',
+            output_file=save_map_path,
+            field_names=field_names,
+        )
+        npy_forward_list, npy_backward_list = get_npy_map_list(
+            apis_map,
             origin_npy_path,
             target_npy_path,
-            rtol=rtol,
-            atol=atol,
-            equal_nan=equal_nan,
-            name_map_list=npy_forward_list,
-            compare_shape=True,
-            output_file=save_forward_path,
-            title='The forward comparison results',
-            field_names=field_names + diff_field_names,
+            origin_pkl_path,
+            target_pkl_path,
+            ignore_backward=ignore_backward,
+            ignore_unmatched=ignore_unmatched,
         )
-        if not ignore_backward:
-            npy_backward_list.reverse()
+        if origin_npy_path is None or target_npy_path is None:
+            logger.user_attention('npy files not found, use pkl files to compare.')
+            ret = compare_summary(
+                origin_pkl_path,
+                target_pkl_path,
+                npy_forward_list,
+                save_forward_path,
+                f'The forward comparison results (step {step})',
+            )
+            if not ignore_backward and len(ret) != 0:
+                npy_backward_list.reverse()
+                compare_summary(
+                    origin_pkl_path,
+                    target_pkl_path,
+                    npy_backward_list,
+                    save_backward_path,
+                    f'The backward comparison results (step {step})',
+                )
+        else:
+            npy_forward_list = [
+                (
+                    i[0] + '.npy' if i[0] is not None else None,
+                    i[1] + '.npy' if i[1] is not None else None,
+                )
+                for i in npy_forward_list
+            ]
+            npy_backward_list = [
+                (
+                    i[0] + '.npy' if i[0] is not None else None,
+                    i[1] + '.npy' if i[1] is not None else None,
+                )
+                for i in npy_backward_list
+            ]
             compare_npy_dir(
                 origin_npy_path,
                 target_npy_path,
                 rtol=rtol,
                 atol=atol,
                 equal_nan=equal_nan,
-                name_map_list=npy_backward_list,
+                name_map_list=npy_forward_list,
                 compare_shape=True,
-                output_file=save_backward_path,
-                title='The backward comparison results',
+                output_file=save_forward_path,
+                title=f'The forward comparison results (step {step})',
                 field_names=field_names + diff_field_names,
             )
+            if not ignore_backward:
+                npy_backward_list.reverse()
+                compare_npy_dir(
+                    origin_npy_path,
+                    target_npy_path,
+                    rtol=rtol,
+                    atol=atol,
+                    equal_nan=equal_nan,
+                    name_map_list=npy_backward_list,
+                    compare_shape=True,
+                    output_file=save_backward_path,
+                    title=f'The backward comparison results (step {step})',
+                    field_names=field_names + diff_field_names,
+                )
