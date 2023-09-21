@@ -256,7 +256,7 @@ def train_ms_one_step_range(data_path, dump_path, info_path=None, retain_backwad
     class Net(BaseNet):
         def construct(self, x):
             api_dump_start(mode='range', scope=[
-                           'Functional_clip_0_forward', 'Tensor_reshape_0_backward'])
+                           'Functional_clip_0', 'Tensor_reshape_0'])
             x = self.conv(x)
             x = ops.clip(x, 0.2, 0.5)
             x = self.bn(x)
@@ -282,10 +282,9 @@ def test_api_dump_ms_range():
         train_ms_one_step_range(data_path, dump_path)
         pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
             dump_path, 'mindspore')
-
-        assert len(pkl_list) == 15
+        assert len(pkl_list) == 12
         assert set(pkl_list) == set(npy_list)
-        assert len(stack_list) == 6
+        assert len(stack_list) == 4
     finally:
         shutil.rmtree(data_path)
         shutil.rmtree(dump_path)

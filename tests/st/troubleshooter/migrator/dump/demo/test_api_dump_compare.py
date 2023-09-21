@@ -143,7 +143,7 @@ def test_compare_api_dump_range(capsys):
         api_dump_compare(torch_dump_path, ms_dump_path, rtol=1e-3, atol=1e-3)
 
         result = capsys.readouterr().out
-        assert result.count("True") == 15
+        assert result.count("True") == 12
         assert result.count("False") == 0
     finally:
         shutil.rmtree(data_path)

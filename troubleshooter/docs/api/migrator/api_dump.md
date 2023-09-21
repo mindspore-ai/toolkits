@@ -68,8 +68,8 @@ output_path # 输出目录
 
 - scope(list, 可选)：dump 范围。根据 `mode` 配置的模式选择 dump 的 API 范围。API 范围中的名称可以通过输出目录下的 `api_dump_info.pkl` 文件获取）。
 
-  - `mode` 为 `'list'` 时，`scope` 为 dump 特定的文件列表，例如 `['Functional_softmax_1_forward', 'NN_Dense_1_backward', 'Tensor___matmul___1_forward']`，只会 dump 列表中的三个 API；
-  - `mode` 为 `'range'` 时，`scope` 为 dump 的区间范围，例如 `['NN_Dense_1_backward', 'Tensor___matmul___1_forward']`，会 dump 从`'NN_Dense_1_backward'`直到`'Tensor__matmul___1_forward'`的所有 API；
+  - `mode` 为 `'list'` 时，`scope` 为 dump 特定的文件列表，例如 `['Functional_softmax_1', 'NN_Dense_1', 'Tensor___matmul___1']`，只会 dump 列表中的三个 API；
+  - `mode` 为 `'range'` 时，`scope` 为 dump 的区间范围，例如 `['NN_Dense_1', 'Tensor___matmul___1']`，会 dump 从`'NN_Dense_1'`直到`'Tensor__matmul___1'`的所有 API；
   - `mode` 为 `'api_list'` 时，`scope` 为 dump 特定的 API 列表，例如 `['relu', 'softmax', 'layernorm']`，会 dump 名称中含有 `relu`、`softmax`、`layernorm` 关键字的所有 API，不区分 `Tensor`、`Functional` 等方法类型。
 
 - dump_type(`str`, 可选)：dump 保存的数据类型，目前支持 `'all'`、`'statistics'`、`'npy'`、`'stack'`， 默认值为 `'all'`。以下模式均会保存数据的堆栈信息（`api_dump_stack.json`）与执行顺序（`api_dump_info.pkl`）。

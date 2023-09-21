@@ -1,6 +1,6 @@
 import os
 import shutil
-import sys
+from functools import lru_cache
 from pathlib import Path
 
 from troubleshooter import log as logger
@@ -60,22 +60,29 @@ class DumpUtil(object):
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
 
+    @lru_cache()
     def check_list_or_acl_mode(name_prefix):
-        for item in DumpUtil.dump_switch_scope:
-            if name_prefix.startswith(item):
-                return True
+        return name_prefix in DumpUtil.dump_switch_scope
 
     def check_range_mode(name_prefix):
         global range_begin_flag
         global range_end_flag
-        if name_prefix.startswith(DumpUtil.dump_switch_scope[0]):
+        if name_prefix == DumpUtil.dump_switch_scope[0]:
             range_begin_flag = True
             return True
-        if name_prefix.startswith(DumpUtil.dump_switch_scope[1]):
+        if name_prefix == DumpUtil.dump_switch_scope[1]:
             range_end_flag = True
             return True
         if range_begin_flag and not range_end_flag:
             return True
+        return False
+
+    @lru_cache()
+    def check_in_api_list(name_prefix):
+        name_prefix = name_prefix.lower()
+        for v in DumpUtil.dump_api_list:
+            if v in name_prefix:
+                return True
         return False
 
     def check_stack_mode(name_prefix):
@@ -91,7 +98,9 @@ class DumpUtil(object):
         return False
 
     check_mapper = {
+        Const.ALL: lambda _: True,
         Const.LIST: check_list_or_acl_mode,
+        Const.API_LIST: check_in_api_list,
         Const.ACL: check_list_or_acl_mode,
         Const.RANGE: check_range_mode,
         Const.STACK: check_stack_mode
@@ -221,13 +230,3 @@ def remove_dump_file(dump_file):
     if os.path.exists(dump_file) and not os.path.isdir(dump_file):
         check_writable(dump_file)
         os.remove(dump_file)
-
-
-def check_in_api_list(name):
-    if not DumpUtil.dump_api_list:
-        return True
-    name = name.lower()
-    for v in DumpUtil.dump_api_list:
-        if v in name:
-            return True
-    return False

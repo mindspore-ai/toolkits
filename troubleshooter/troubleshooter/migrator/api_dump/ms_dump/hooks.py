@@ -2,10 +2,8 @@ import inspect
 import json
 import math
 import os
-import random
 import shutil
 import stat
-import sys
 import threading
 from collections import defaultdict
 from functools import lru_cache
@@ -67,22 +65,29 @@ class DumpUtil(object):
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
 
+    @lru_cache()
     def check_list_mode(name_prefix):
-        for item in DumpUtil.dump_switch_scope:
-            if name_prefix.startswith(item):
-                return True
+        return name_prefix in DumpUtil.dump_switch_scope
 
     def check_range_mode(name_prefix):
         global range_begin_flag
         global range_end_flag
-        if name_prefix.startswith(DumpUtil.dump_switch_scope[0]):
+        if name_prefix == DumpUtil.dump_switch_scope[0]:
             range_begin_flag = True
             return True
-        if name_prefix.startswith(DumpUtil.dump_switch_scope[1]):
+        if name_prefix == DumpUtil.dump_switch_scope[1]:
             range_end_flag = True
             return True
         if range_begin_flag and not range_end_flag:
             return True
+        return False
+
+    @lru_cache()
+    def check_in_api_list(name_prefix):
+        name_prefix = name_prefix.lower()
+        for v in DumpUtil.dump_api_list:
+            if v in name_prefix:
+                return True
         return False
 
     def check_stack_mode(name_prefix):
@@ -98,9 +103,11 @@ class DumpUtil(object):
         return False
 
     check_mapper = {
+        Const.ALL: lambda _: True,
         Const.LIST: check_list_mode,
         Const.RANGE: check_range_mode,
-        Const.STACK: check_stack_mode
+        Const.STACK: check_stack_mode,
+        Const.API_LIST: check_in_api_list
     }
 
     @staticmethod
@@ -186,16 +193,6 @@ def get_float_tensor_info(data, compute_summary):
     return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape))
 
 
-def check_in_api_list(name):
-    if not DumpUtil.dump_api_list:
-        return True
-    name = name.lower()
-    for v in DumpUtil.dump_api_list:
-        if v in name:
-            return True
-    return False
-
-
 def set_dump_path(fpath=None):
     if fpath is None:
         raise RuntimeError("set_dump_path '{}' error, please set a valid filename".format(fpath))
@@ -235,8 +232,6 @@ def set_backward_input(backward_input):
 
 
 def dump_data(dump_file_name, dump_step, prefix, data_info, dump_type):
-    if DumpUtil.dump_switch_mode in [Const.RANGE, Const.LIST] and not DumpUtil.check_switch_scope(prefix):
-        return
     with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
                    "a") as f:
         if json_dump_condition(prefix):
@@ -260,27 +255,27 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
         return res if universal_interface.g_retain_backward else None
     elif isinstance(x, ms.Tensor):
         def backward_hook(grad, get_info):
-            grad = grad[0]
+            if isinstance(grad, (list, tuple)):
+                grad = grad[0]
             nonlocal dump_file_name, dump_step, prefix, dump_npy, compute_summary
             prefix = prefix.replace('_forward_output', '_backward_input')
             data_info_ = get_info(grad, compute_summary)
             dump_data(dump_file_name, dump_step, prefix, data_info_, dump_npy)
 
+        dump_flag = True
         if x.numel() == 0 or len(x.shape) == 0 or not x.is_floating_point():
-            if DumpUtil.dump_filter_switch == Const.OFF:
-                data_info = get_not_float_tensor_info(x, compute_summary)
-                dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy)
-                if universal_interface.g_retain_backward and "_output" in prefix:
-                    def backward_hook_func(grad):
-                        return backward_hook(grad, get_not_float_tensor_info)
-                    hook = ms.ops.HookBackward(backward_hook_func)
-                    x = hook(x)
+            data_info_func = get_not_float_tensor_info
+            if DumpUtil.dump_filter_switch == Const.ON:
+                dump_flag = False
         else:
-            data_info = get_float_tensor_info(x, compute_summary)
+            data_info_func = get_float_tensor_info
+
+        if dump_flag:
+            data_info = data_info_func(x, compute_summary)
             dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy)
             if universal_interface.g_retain_backward and "_output" in prefix:
                 def backward_hook_func(grad):
-                    return backward_hook(grad, get_float_tensor_info)
+                    return backward_hook(grad, data_info_func)
                 hook = ms.ops.HookBackward(backward_hook_func)
                 x = hook(x)
         return x if universal_interface.g_retain_backward else None
@@ -289,12 +284,6 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
             data_info = get_scalar_data_info(x, compute_summary)
             dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy)
         return x if universal_interface.g_retain_backward else None
-
-def seed_all(seed=1234):
-    random.seed(seed)
-    os.environ['PYTHONHASHSEED'] = str(seed)
-    np.random.seed(seed)
-    ms.set_seed(seed)
 
 
 def make_dump_dirs(rank):
@@ -384,21 +373,11 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step):
             remove_dump_file(dump_file_name)
             remove_dump_file(dump_stack_file)
 
-        name_prefix = name
-        name_template = f"{name_prefix}" + "_{}"
-        if DumpUtil.dump_switch_mode == Const.ALL:
-            dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
-            return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
-        elif DumpUtil.dump_switch_mode == Const.API_LIST:
-            if not check_in_api_list(name):
-                return
-            dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
-            return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
-        elif DumpUtil.dump_switch_mode in [Const.RANGE, Const.LIST]:
-            output_hook_tensor = dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
-            if DumpUtil.check_switch_scope(name_prefix):
+        name_template = f"{name}" + "_{}"
+        if DumpUtil.dump_switch_mode in [Const.ALL, Const.RANGE, Const.LIST, Const.API_LIST]:
+            if DumpUtil.check_switch_scope(name.rstrip('_forward')):
                 dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
-            return output_hook_tensor
+                return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
         else:
             msg = f"Current mode '{DumpUtil.dump_switch_mode}' is not supported. Please use the field in {Const.DUMP_MODE}"
             raise ValueError(msg)

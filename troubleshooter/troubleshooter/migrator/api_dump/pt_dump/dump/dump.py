@@ -39,7 +39,7 @@ else:
 from troubleshooter import log as logger
 
 from ..common.utils import Const
-from ..dump.utils import check_in_api_list, remove_dump_file
+from ..dump.utils import remove_dump_file
 from .utils import DumpUtil, make_dump_data_dir
 from ..hook_module.wrap_torch import TorchFunc
 
@@ -127,16 +127,16 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
             data_info_ = get_info(grad, compute_summary)
             dump_data(dump_file_name, dump_step, prefix, data_info_, dump_npy)
 
+        dump_flag = True
         if x.numel() == 0 or len(x.shape) == 0 or not x.is_floating_point():
-            if DumpUtil.dump_filter_switch == Const.OFF:
-                data_info = get_not_float_tensor_info(x, compute_summary)
-                dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy)
-                if universal_interface.g_retain_backward and x.requires_grad is True and "_output" in prefix:
-                    x.register_hook(partial(backward_hook, get_info=get_not_float_tensor_info))
-            else:
-                return
+            data_info_func = get_not_float_tensor_info
+            if DumpUtil.dump_filter_switch == Const.ON:
+                dump_flag = False
         else:
-            data_info = get_float_tensor_info(x, compute_summary)
+            data_info_func = get_float_tensor_info
+
+        if dump_flag:
+            data_info = data_info_func(x, compute_summary)
             dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy)
             if universal_interface.g_retain_backward and x.requires_grad is True and "_output" in prefix:
                 x.register_hook(partial(backward_hook, get_info=get_float_tensor_info))
@@ -148,9 +148,6 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
 
 
 def dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy):
-    if DumpUtil.dump_switch_mode in [Const.RANGE, Const.LIST] and not DumpUtil.check_switch_scope(prefix):
-        return
-
     with os.fdopen(os.open(dump_file_name, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR),
                    "a") as f:
         if json_dump_condition(prefix):
@@ -217,20 +214,11 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
             remove_dump_file(dump_file_name)
             remove_dump_file(dump_stack_file)
 
-        name_prefix = name
-        name_template = f"{name_prefix}" + "_{}"
-        if DumpUtil.dump_switch_mode == Const.ALL:
-            dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
-            dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
-        elif DumpUtil.dump_switch_mode == Const.API_LIST:
-            if not check_in_api_list(name):
-                return
-            dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
-            dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
-        elif DumpUtil.dump_switch_mode in [Const.RANGE, Const.LIST]:
-            dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
-            if DumpUtil.check_switch_scope(name_prefix):
+        name_template = f"{name}" + "_{}"
+        if DumpUtil.dump_switch_mode in [Const.ALL, Const.RANGE, Const.LIST, Const.API_LIST]:
+            if DumpUtil.check_switch_scope(name.rstrip('_forward')):
                 dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
+                return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
         else:
             msg = f"Current mode '{DumpUtil.dump_switch_mode}' is not supported. Please use the field in {Const.DUMP_MODE}"
             raise ValueError(msg)

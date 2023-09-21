@@ -251,8 +251,7 @@ def test_api_dump_torch_list():
 def train_pt_one_step_range(data_path, dump_path, info_path=None, retain_backwad=True):
     class Net(BaseNet):
         def forward(self, x):
-            api_dump_start(mode='range', scope=[
-                           'Torch_clip_0_forward', 'Tensor_reshape_0_backward'])
+            api_dump_start(mode='range', scope=['Torch_clip_0', 'Tensor_reshape_0'])
             x = self.conv(x)
             x = torch.clip(x, 0.2, 0.5)
             x = self.bn(x)
@@ -279,9 +278,9 @@ def test_api_dump_torch_range():
         pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
             dump_path, 'torch')
 
-        assert len(pkl_list) == 15
+        assert len(pkl_list) == 12
         assert set(pkl_list) == set(npy_list)
-        assert len(stack_list) == 6
+        assert len(stack_list) == 4
     finally:
         shutil.rmtree(data_path)
         shutil.rmtree(dump_path)
