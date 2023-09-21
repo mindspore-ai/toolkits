@@ -23,7 +23,7 @@ def generate_data():
 
 
 class BaseTrainOneStep:
-    def __init__(self, net, data_path, dump_path, info_path=None, retain_backward=True) -> None:
+    def __init__(self, net, data_path, dump_path, info_path=None, retain_backward=True, step=1) -> None:
         self.net = net
         self.net.train()
         if info_path:
@@ -33,15 +33,17 @@ class BaseTrainOneStep:
         self.criterion = nn.MSELoss()
         self.optimizer = optim.SGD(self.net.parameters(), lr=0.01)
         self.optimizer.zero_grad()
+        self.step = step
         api_dump_init(self.net, dump_path, retain_backward=retain_backward)
 
     def __call__(self):
-        api_dump_start()
-        out = self.net(self.data)
-        loss = self.criterion(out, self.label)
-        loss.backward()
-        self.optimizer.step()
-        api_dump_stop()
+        for _ in range(self.step):
+            api_dump_start()
+            out = self.net(self.data)
+            loss = self.criterion(out, self.label)
+            loss.backward()
+            self.optimizer.step()
+            api_dump_stop()
 
 
 class BaseNet(nn.Module):
@@ -131,7 +133,7 @@ def test_api_dump_pt_all_with_full_stack():
         shutil.rmtree(dump_path)
 
 
-def train_pt_one_step_part(data_path, dump_path, info_path=None, retain_backwad=True):
+def train_pt_one_step_part(data_path, dump_path, info_path=None, retain_backwad=True, step=1):
     class Net(BaseNet):
         def forward(self, x):
             api_dump_stop()
@@ -148,7 +150,7 @@ def train_pt_one_step_part(data_path, dump_path, info_path=None, retain_backwad=
             api_dump_stop()
             return x
     train_one_step = BaseTrainOneStep(
-        Net(), data_path, dump_path, info_path, retain_backwad)
+        Net(), data_path, dump_path, info_path, retain_backwad, step)
     train_one_step()
 
 

@@ -31,7 +31,7 @@ class BaseNet(nn.Cell):
 
 
 class BaseTrainOneStep:
-    def __init__(self, net, data_path, dump_path, info_path=None, retain_backward=True) -> None:
+    def __init__(self, net, data_path, dump_path, info_path=None, retain_backward=True, step=1) -> None:
         ms.set_context(mode=ms.PYNATIVE_MODE)
         self.net = net
         self.net.set_train()
@@ -44,6 +44,7 @@ class BaseTrainOneStep:
         self.criterion = nn.MSELoss()
         self.optimizer = nn.SGD(
             self.net.trainable_params(), learning_rate=0.01)
+        self.step = step
         api_dump_init(self.net, dump_path, retain_backward=retain_backward)
 
     def __call__(self):
@@ -53,10 +54,11 @@ class BaseTrainOneStep:
             return loss
         grad_fn = ms.value_and_grad(
             forward_fn, None, self.optimizer.parameters)
-        api_dump_start()
-        loss, grads = grad_fn(self.data, self.label)
-        self.optimizer(grads)
-        api_dump_stop()
+        for _ in range(self.step):
+            api_dump_start()
+            loss, grads = grad_fn(self.data, self.label)
+            self.optimizer(grads)
+            api_dump_stop()
 
 def train_ms_one_step_all(data_path, dump_path, info_path=None, retain_backward=True,
                           **api_dump_start_args):
@@ -78,8 +80,6 @@ def train_ms_one_step_all(data_path, dump_path, info_path=None, retain_backward=
 
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
-@pytest.mark.platform_arm_ascend_training
-@pytest.mark.platform_x86_ascend_training
 @pytest.mark.env_onecard
 def test_api_dump_ms_all():
     data_path = generate_data()
@@ -98,8 +98,6 @@ def test_api_dump_ms_all():
 
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
-@pytest.mark.platform_arm_ascend_training
-@pytest.mark.platform_x86_ascend_training
 @pytest.mark.env_onecard
 def test_api_dump_ms_all_with_scalar():
     data_path = generate_data()
@@ -120,8 +118,6 @@ def test_api_dump_ms_all_with_scalar():
 
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
-@pytest.mark.platform_arm_ascend_training
-@pytest.mark.platform_x86_ascend_training
 @pytest.mark.env_onecard
 def test_api_dump_ms_all_with_full_stack():
     data_path = generate_data()
@@ -136,7 +132,7 @@ def test_api_dump_ms_all_with_full_stack():
         shutil.rmtree(dump_path)
 
 
-def train_ms_one_step_part(data_path, dump_path, info_path=None, retain_backwad=True):
+def train_ms_one_step_part(data_path, dump_path, info_path=None, retain_backwad=True, step=1):
     class Net(BaseNet):
         def construct(self, x):
             api_dump_stop()
@@ -153,14 +149,12 @@ def train_ms_one_step_part(data_path, dump_path, info_path=None, retain_backwad=
             api_dump_stop()
             return x
     train_one_step = BaseTrainOneStep(
-        Net(), data_path, dump_path, info_path, retain_backwad)
+        Net(), data_path, dump_path, info_path, retain_backwad, step)
     train_one_step()
 
 
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
-@pytest.mark.platform_arm_ascend_training
-@pytest.mark.platform_x86_ascend_training
 @pytest.mark.env_onecard
 def test_api_dump_ms_part():
     data_path = generate_data()
@@ -196,8 +190,6 @@ def train_ms_one_step_api_list(data_path, dump_path, info_path=None, retain_back
 
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
-@pytest.mark.platform_arm_ascend_training
-@pytest.mark.platform_x86_ascend_training
 @pytest.mark.env_onecard
 def test_api_dump_ms_api_list():
     data_path = generate_data()
@@ -234,8 +226,6 @@ def train_ms_one_step_list(data_path, dump_path, info_path=None, retain_backwad=
 
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
-@pytest.mark.platform_arm_ascend_training
-@pytest.mark.platform_x86_ascend_training
 @pytest.mark.env_onecard
 def test_api_dump_ms_list():
     data_path = generate_data()
@@ -272,8 +262,6 @@ def train_ms_one_step_range(data_path, dump_path, info_path=None, retain_backwad
 
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
-@pytest.mark.platform_arm_ascend_training
-@pytest.mark.platform_x86_ascend_training
 @pytest.mark.env_onecard
 def test_api_dump_ms_range():
     data_path = generate_data()
@@ -293,8 +281,6 @@ def test_api_dump_ms_range():
 
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
-@pytest.mark.platform_arm_ascend_training
-@pytest.mark.platform_x86_ascend_training
 @pytest.mark.env_onecard
 def test_api_dump_ms_with_not_float_output():
     x = Tensor(np.random.randn(8, 5).astype(np.float32))

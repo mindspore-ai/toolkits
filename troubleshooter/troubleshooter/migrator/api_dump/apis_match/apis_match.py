@@ -155,13 +155,14 @@ class APIList:
             if not ret and len(p) != 0:
                 pkl_list.append(p)
                 p = APIList(framework)
+        if not pkl_list and len(p) != 0:
+            pkl_list.append(p)
         return pkl_list
 
     def __init__(self, framework: str):
         self.api_list = []
         self.framework = framework
 
-    ##
     def construct(self, pkl_path: str) -> Any:
         pkl = load_pkl(pkl_path)
         for l in pkl:
