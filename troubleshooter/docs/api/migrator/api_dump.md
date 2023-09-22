@@ -104,12 +104,13 @@ output_path # 输出目录
 - origin_path(`str`)：原始目录，与 init 接口的 output_path 同级。
 - target_path(`str`)：目标目录，与 init 接口的 output_path 同级。
 - output_path(`str`, 可选)：输出数据目录，默认值为None，不输出到文件。不为None时，输出目录下会保存 `ts_api_mapping.csv`（API映射文件）、 `ts_api_forward_compare.csv`（正向比对结果）、`ts_api_backward_compare.csv`（反向比对结果）。
+如果dump时保存了多个step的数据，并且在`api_dump_start`时`retain_backward`为`True`，`api_dump_compare`会根据正反向信息自动识别出step，并对每个step的比较结果添加编号保存（此编号是按照顺序添加的，与网络实际step编号可能不同）。
 
   ```
   output_path # 输出目录
-  ├── ts_api_mapping.csv # api映射表
-  ├── ts_api_forward_compare.csv # 正向比对信息
-  └── ts_api_backward_compare.csv # 反向比对信息
+  ├── ts_api_mapping_{step}.csv # api映射表
+  ├── ts_api_forward_compare_{step}.csv # 正向比对信息
+  └── ts_api_backward_compare_{step}.csv # 反向比对信息
   ```
 
 - rtol(`float`, 可选): 相对误差，默认值为 `1e-4`，内部调用 `numpy.allclose`的参数。

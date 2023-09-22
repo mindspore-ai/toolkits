@@ -173,10 +173,10 @@ def set_dump_switch(switch, mode=Const.ALL, scope=None, api_list=None,
     else:
         dump_path_str = generate_dump_path_str()
         if DumpUtil.dump_count != 0:
-            logger.user_attention(f"API dump has been stopped. Dump data has been saved to {dump_path_str}, "
-                                  f"and a total of {DumpUtil.dump_count} data entries have been saved this time.")
+            logger.user_attention(f"API dump has been stopped. Dump data has been saved to {dump_path_str}.")
         else:
             logger.user_warning(f"API dump has been stopped, but no data has been saved. Please check the dump scope!")
+        DumpUtil.dump_count = 0
 
 
 def _set_dump_switch4api_list(name):

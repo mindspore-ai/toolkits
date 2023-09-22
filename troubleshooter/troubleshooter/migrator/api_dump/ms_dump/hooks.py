@@ -220,10 +220,10 @@ def set_dump_switch(switch, mode=Const.ALL, scope=None, api_list=None,
         DumpUtil.dump_count = 0
     else:
         if DumpUtil.dump_count != 0:
-            logger.user_attention(f"API dump has been stopped. Dump data has been saved to {DumpUtil.dump_ori_dir}, "
-                                  f"and a total of {DumpUtil.dump_count} data entries have been saved this time.")
+            logger.user_attention(f"API dump has been stopped. Dump data has been saved to {DumpUtil.dump_ori_dir}.")
         else:
             logger.user_warning(f"API dump has been stopped, but no data has been saved. Please check the dump scope!")
+        DumpUtil.dump_count = 0
 
 
 def set_backward_input(backward_input):
