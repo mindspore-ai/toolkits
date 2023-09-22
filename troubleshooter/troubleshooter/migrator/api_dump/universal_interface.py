@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 
 import os
+import re
 
 from troubleshooter import FRAMEWORK_TYPE
 from troubleshooter.common.util import enum_check, type_check
@@ -38,6 +39,14 @@ API_DUMP_FRAMEWORK_TYPE = None
 g_retain_backward = None
 
 
+def _check_scope_format(scope):
+    res = True
+    pattern = r'_\d+$'
+    for item in scope:
+        res &= bool(re.search(pattern, item))
+    return res
+
+
 def check_mode_and_scope(mode, scope):
     support_mode = {'all', 'list', 'api_list', 'range'}
     enum_check(mode, 'mode', support_mode)
@@ -51,6 +60,10 @@ def check_mode_and_scope(mode, scope):
         if len(scope) == 0:
             raise ValueError("For 'api_dump_start',  current mode is 'list', "
                              "'scope' param set invalid, it's should not be an empty list.")
+        if not _check_scope_format(scope):
+            raise ValueError("For 'api_dump_start',  current mode is 'list', "
+                             "'scope' param set invalid. The list item"
+                             "should be in the 'Type_Name_ID' format.")
     elif mode == 'api_list':
         type_check(scope, 'scope', list)
         if len(scope) == 0:
@@ -61,6 +74,10 @@ def check_mode_and_scope(mode, scope):
         if len(scope) != 2:
             raise ValueError("For 'api_dump_start',  current mode is 'range', "
                              "'scope' param set invalid, it's must be [start, end].")
+        if not _check_scope_format(scope):
+            raise ValueError("For 'api_dump_start',  current mode is 'range', "
+                             "'scope' param set invalid. The interval endpoints "
+                             "should be in the 'Type_Name_ID' format.")
     else:
         raise ValueError("For 'api_dump_start',  current mode is invalid. ")
 

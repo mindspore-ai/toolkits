@@ -13,7 +13,7 @@
 # limitations under the License.
 # ============================================================================
 from .initialize import register_hook
-from .hooks import set_dump_path, set_dump_switch, seed_all, acc_cmp_dump
+from .hooks import set_dump_path, set_dump_switch, acc_cmp_dump
 
 
-__all__ = ["register_hook", "set_dump_path", "set_dump_switch", "seed_all", "acc_cmp_dump"]
+__all__ = ["register_hook", "set_dump_path", "set_dump_switch", "acc_cmp_dump"]
