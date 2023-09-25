@@ -42,17 +42,17 @@ def get_nn_module():
 
 
 def stop_dump_hook(func):
-    def wrapper(self, *args, **kwargs):
+    def wrapper(*args, **kwargs):
         if not global_manage.get_value("g_stop_hook"):
             global_manage.set_value("g_stop_hook", True)
             try:
-                return func(self, *args, **kwargs)
+                return func(*args, **kwargs)
             except Exception as e:
                 raise e
             finally:
                 global_manage.set_value("g_stop_hook", False)
         else:
-            return func(self, *args, **kwargs)
+            return func(*args, **kwargs)
     return wrapper
 
 
@@ -98,3 +98,14 @@ def stop_hook_print(*args, **kwargs):
             global_manage.set_value("g_stop_hook", False)
     else:
         return builtin_print(*args, **kwargs)
+
+
+def wrap_lr_scheduler(cls):
+    original_init = cls.__init__
+
+    def new_init(self, *args, **kwargs):
+        original_init(self, *args, **kwargs)
+        self.optimizer.step = stop_dump_hook(self.optimizer.step)
+
+    cls.__init__ = new_init
+    return cls

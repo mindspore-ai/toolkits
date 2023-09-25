@@ -23,10 +23,16 @@ from troubleshooter import log as logger
 
 if "torch" in FRAMEWORK_TYPE:
     import torch
+    from torch.optim import lr_scheduler
     from troubleshooter.migrator.api_dump.pt_dump import acc_cmp_dump as pt_acc_cmp_dump
     from troubleshooter.migrator.api_dump.pt_dump import register_hook as pt_register_hook
     from troubleshooter.migrator.api_dump.pt_dump import set_dump_path as pt_set_dump_path
     from troubleshooter.migrator.api_dump.pt_dump import set_dump_switch as pt_set_dump_switch
+    from troubleshooter.migrator.api_dump.pt_dump.hook_module.wrap_module import wrap_lr_scheduler
+
+    _LRScheduler = getattr(lr_scheduler, "_LRScheduler", None)
+    if _LRScheduler:
+        wrap_lr_scheduler(_LRScheduler)
 
 if "mindspore" in FRAMEWORK_TYPE:
     import mindspore
