@@ -15,9 +15,12 @@
 # limitations under the License.
 """
 import os
+from builtins import print as builtin_print
+
 import torch.nn as nn
 import torch.optim as optim
 import yaml
+
 from ..common import global_manage
 
 cur_path = os.path.dirname(os.path.realpath(__file__))
@@ -82,3 +85,16 @@ def wrap_optimizer():
         if cls_name != 'Optimizer' and isinstance(cls, type) and issubclass(cls, optim.Optimizer):
             cls.step = stop_dump_hook(cls.step)
             cls.zero_grad = stop_dump_hook(cls.zero_grad)
+
+
+def stop_hook_print(*args, **kwargs):
+    if not global_manage.get_value("g_stop_hook"):
+        global_manage.set_value("g_stop_hook", True)
+        try:
+            return builtin_print(*args, **kwargs)
+        except Exception as e:
+            raise e
+        finally:
+            global_manage.set_value("g_stop_hook", False)
+    else:
+        return builtin_print(*args, **kwargs)

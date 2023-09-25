@@ -15,6 +15,7 @@
 # limitations under the License.
 """
 
+import builtins
 import functools
 import os
 
@@ -68,6 +69,7 @@ def initialize_hook(hook):
 
     wrap_module.wrap_nn_module_and_bind()
     wrap_module.wrap_optimizer()
+    builtins.print = wrap_module.stop_hook_print
 
 
 def register_hook(model, hook, **kwargs):
