@@ -1,5 +1,6 @@
 import functools
 import os
+import builtins
 
 import mindspore as ms
 
@@ -25,6 +26,7 @@ def initialize_hook(hook):
 
     wrap_nn.wrap_nn_cell_and_bind()
     wrap_nn.wrap_optimizer()
+    builtins.print = wrap_nn.stop_hook_print
 
 def register_hook(net, hook, **kwargs):
     dump_mode, dump_config_file = init_dump_config(kwargs)

@@ -37,12 +37,13 @@ class BaseTrainOneStep:
         api_dump_init(self.net, dump_path, retain_backward=retain_backward)
 
     def __call__(self):
-        for _ in range(self.step):
+        for s in range(self.step):
             api_dump_start()
             out = self.net(self.data)
             loss = self.criterion(out, self.label)
             loss.backward()
             self.optimizer.step()
+            print("step:", s, "   loss:", loss)
             api_dump_stop()
 
 

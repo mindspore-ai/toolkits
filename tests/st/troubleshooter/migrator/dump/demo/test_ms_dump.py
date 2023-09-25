@@ -54,10 +54,11 @@ class BaseTrainOneStep:
             return loss
         grad_fn = ms.value_and_grad(
             forward_fn, None, self.optimizer.parameters)
-        for _ in range(self.step):
+        for s in range(self.step):
             api_dump_start()
             loss, grads = grad_fn(self.data, self.label)
             self.optimizer(grads)
+            print("step:", s, "   loss:", loss)
             api_dump_stop()
 
 def train_ms_one_step_all(data_path, dump_path, info_path=None, retain_backward=True,

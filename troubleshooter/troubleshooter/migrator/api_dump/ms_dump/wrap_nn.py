@@ -13,6 +13,7 @@
 # limitations under the License.
 # ============================================================================
 import os
+from builtins import print as builtin_print
 
 import mindspore as ms
 import yaml
@@ -79,3 +80,16 @@ def wrap_optimizer():
         cls = getattr(optim, cls_name)
         if cls_name != 'Optimizer' and isinstance(cls, type) and issubclass(cls, optim.Optimizer):
             cls.__call__ = stop_dump_hook(cls.__call__)
+
+
+def stop_hook_print(*args, **kwargs):
+    if not _cell.g_stop_hook:
+        _cell.g_stop_hook = True
+        try:
+            return builtin_print(*args, **kwargs)
+        except Exception as e:
+            raise e
+        finally:
+            _cell.g_stop_hook = False
+    else:
+        return builtin_print(*args, **kwargs)
