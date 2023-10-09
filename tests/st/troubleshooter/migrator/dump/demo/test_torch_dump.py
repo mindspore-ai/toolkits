@@ -13,6 +13,8 @@ from troubleshooter.migrator import api_dump_init, api_dump_start, api_dump_stop
 from tests.st.troubleshooter.migrator.dump.utils import get_pkl_npy_stack_list
 
 
+ts.fix_random()
+
 def generate_data():
     data_path = Path(tempfile.mkdtemp(prefix="test_data"))
     np.save(data_path / 'label.npy',

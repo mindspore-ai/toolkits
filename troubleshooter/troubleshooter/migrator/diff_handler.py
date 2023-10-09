@@ -170,6 +170,8 @@ def _cal_compare_npy_single_process(name, normal_orig_dir, normal_target_dir, rt
     def load_value(dir, name):
         if name is None:
             return None
+        if not name.endswith('.npy'):
+            name = name + '.npy'
         file = os.path.join(dir, name)
         if not os.path.isfile(file):
             return None
