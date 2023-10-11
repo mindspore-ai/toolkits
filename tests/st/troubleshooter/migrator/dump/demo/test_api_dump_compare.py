@@ -57,6 +57,32 @@ def test_compare_api_dump_all(capsys):
 @pytest.mark.platform_arm_ascend_training
 @pytest.mark.platform_x86_ascend_training
 @pytest.mark.env_onecard
+def test_compare_api_dump_all_filter_data_false(capsys):
+    from tests.st.troubleshooter.migrator.dump.demo.test_torch_dump import train_pt_one_step_all
+    from tests.st.troubleshooter.migrator.dump.demo.test_ms_dump import train_ms_one_step_all
+
+    data_path = generate_data()
+    torch_info_path = Path(tempfile.mkdtemp(prefix="torch_info"))
+    torch_dump_path = Path(tempfile.mkdtemp(prefix="torch_dump"))
+    ms_dump_path = Path(tempfile.mkdtemp(prefix="ms_dump"))
+    try:
+        train_pt_one_step_all(data_path, torch_dump_path, torch_info_path, filter_data=False)
+        train_ms_one_step_all(data_path, ms_dump_path, torch_info_path, filter_data=False)
+        api_dump_compare(torch_dump_path, ms_dump_path, rtol=1e-3, atol=1e-3)
+        result = capsys.readouterr().out
+        assert result.count("None") == 0
+    finally:
+        shutil.rmtree(torch_dump_path)
+        shutil.rmtree(torch_info_path)
+        shutil.rmtree(ms_dump_path)
+        shutil.rmtree(data_path)
+
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.platform_arm_ascend_training
+@pytest.mark.platform_x86_ascend_training
+@pytest.mark.env_onecard
 def test_compare_api_dump_part(capsys):
     from tests.st.troubleshooter.migrator.dump.demo.test_torch_dump import train_pt_one_step_part
     from tests.st.troubleshooter.migrator.dump.demo.test_ms_dump import train_ms_one_step_part

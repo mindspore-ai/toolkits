@@ -88,7 +88,7 @@ def get_scalar_data_info(data, compute_summary):
         summary_data = [data, data, data]
     else:
         summary_data = [math.nan] * 3
-    return DataInfo(data, data, summary_data, str(type(data)), str([]))
+    return DataInfo(data, data, summary_data, str(type(data)), [])
 
 
 def get_float_tensor_info(data, compute_summary):
