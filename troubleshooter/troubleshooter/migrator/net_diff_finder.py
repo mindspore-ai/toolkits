@@ -256,10 +256,10 @@ class NetDifferenceFinder:
             self._msadapter_pth2ckpt(pt_params_path, pt_conv_params_path)
             weight_migrator.compare_ms_ckpt(orig_file_path=pt_conv_params_path, target_file_path=ms_params_path,
                                             compare_value=True,
-                                            shape_field_names=["Parameter name of torch", "Parameter name of MindSpore",
+                                            shape_field_names=["Parameter name of torch", "Parameter name of MSAdapter",
                                                                "Whether shape are equal", "Parameter shape of torch",
-                                                               "Parameter shape of MindSpore"],
-                                            value_field_names=["Parameter name of torch", "Parameter name of MindSpore",
+                                                               "Parameter shape of MSAdapter"],
+                                            value_field_names=["Parameter name of torch", "Parameter name of MSAdapter",
                                                                "result of allclose", "ratio of allclose",
                                                                "cosine similarity", "mean & max diffs"])
         else:
@@ -279,7 +279,10 @@ class NetDifferenceFinder:
         start_ms = time.time()
         result_ms = self._run_ms_net(ms_net, input_data)
         end_ms = time.time()
-        print(f"In test case {idx}, the MindSpore net inference completed cost %.5f seconds." % (end_ms - start_ms))
+        if self.auto_conv_ckpt == 2:
+            print(f"In test case {idx}, the MSAdapter net inference completed cost %.5f seconds." % (end_ms - start_ms))
+        else:
+            print(f"In test case {idx}, the MindSpore net inference completed cost %.5f seconds." % (end_ms - start_ms))
         if isinstance(result_ms, (tuple, list)):
             result_ms = {f"out_{idx}": result for idx, result in enumerate(result_ms)}
         elif isinstance(result_ms, ms.Tensor):

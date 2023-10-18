@@ -124,7 +124,7 @@ class APINode:
             "forward",
             "backward",
         ], "direction should be forward or backward."
-        assert data_io in ["input", "output"], "data_io should be input or output."
+        assert data_io in ["input", "output"], f"data_io should be input or output, but got '{data_io}'"
         if (
             dump_type == self.dump_type
             and api_name == self.api_name
@@ -281,7 +281,7 @@ class APIInterNode:
 def _get_uni_io(api_list: List, framework) -> Any:
     if framework == 'mindspore':
         return
-    elif framework == 'pytorch':
+    elif framework in ('pytorch', 'msadapter'):
         api_io_dict = pt_io_dict
     else:
         raise NotImplementedError(f'Not support {framework} now.')
@@ -315,6 +315,8 @@ def _get_uni_name(framework: str, dump_type: str, name: str) -> str:
     Returns:
         str: 统一的算子名称
     """
+    if framework == "msadapter":
+        return f'{dump_type.lower()}_{name}'
     if framework not in [
         "pytorch",
         "mindspore",

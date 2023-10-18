@@ -48,6 +48,16 @@ def _detect_framework():
             raise e
 
     try:
+        import msadapter
+
+        FRAMEWORK_TYPE.add("msadapter")
+    except ModuleNotFoundError as e:
+        e_msg = e.msg
+        no_module_msg = "No module named 'msadapter'"
+        if e_msg != no_module_msg:
+            raise e
+
+    try:
         import mindspore
 
         FRAMEWORK_TYPE.add("mindspore")

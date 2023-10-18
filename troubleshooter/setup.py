@@ -141,6 +141,7 @@ setup(
     package_data={
         'troubleshooter': ['migrator/api_dump/ms_dump/support_wrap_ops.yaml',
                            'migrator/api_dump/pt_dump/hook_module/support_wrap_ops.yaml',
+                           'migrator/api_dump/ad_dump/support_wrap_ops.yaml'
                            ],
     },
     classifiers=[
