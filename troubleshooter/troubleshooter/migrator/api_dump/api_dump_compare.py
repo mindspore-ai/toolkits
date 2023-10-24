@@ -498,17 +498,17 @@ def compare_adapter_pth(orig_file_path, target_file_path, **kwargs):
         target_para_name = orig_name
 
         if target_para is not None:
-            result, rel_ratio, mean_cmp, max_cmp, min_cmp = adapter_cal_algorithm(orig_parameter.value().asnumpy(),
+            result, rel_ratio, mean_cmp, max_cmp, min_cmp, cos_sim = adapter_cal_algorithm(orig_parameter.value().asnumpy(),
                                                                     target_para.value().asnumpy(), rtol, atol,
                                                                     equal_nan)
             value_map_list.append((new_orig_name, target_para_name,
                                    orig_parameter.dtype, target_para.dtype, orig_parameter.shape, target_para.shape,
-                                   result, rel_ratio, mean_cmp, max_cmp, min_cmp))
+                                   result, rel_ratio, mean_cmp, max_cmp, min_cmp, cos_sim))
             target_ckpt_dict.pop(target_para_name)
         else:
             value_map_list.append((new_orig_name, target_para_name,
                                    orig_parameter.dtype, None, orig_parameter.shape, None,
-                                   result, rel_ratio, mean_cmp, max_cmp, min_cmp))
+                                   result, rel_ratio, mean_cmp, max_cmp, min_cmp, None))
 
     diff_result = print_adapter_diff_result(value_map_list, print_level=print_level, title=title, field_names=value_field_names,
                                             show_dtype_diff=True, show_shape_diff=True)
@@ -524,7 +524,8 @@ def compare_adapter_torch_pth(pt_file_path, ad_file_path, **kwargs):
                     compare_value=True,
                     value_field_names=["Parameter name of torch", "Parameter name of MSAdapter",
                                         "result of allclose", "ratio of allclose",
-                                        "mean cmp (orig, tgt)", "max cmp (orig, tgt)", "min cmp (orig, tgt)"])
+                                        "mean cmp (orig, tgt)", "max cmp (orig, tgt)", "min cmp (orig, tgt)",
+                                        "cosine similarity"])
     os.remove(pt_conv_params_path)
     os.remove(ad_conv_params_path)
 
@@ -564,7 +565,7 @@ def api_dump_compare(
     target_npy_path, target_pkl_path, target_framework = target_ret
 
     ad_pth_path = pt_pth_path = ''
-    if origin_framework == 'msdapter' or target_framework == 'msadapter':
+    if origin_framework == 'msadapter' or target_framework == 'msadapter':
         if target_framework == 'pytorch':
             ad_pth_path, pt_pth_path = (Path(origin_path).joinpath('ad_net.pth'),
                                         Path(target_path).joinpath('pt_net.pth'))
@@ -590,6 +591,7 @@ def api_dump_compare(
             "mean cmp (orig, tgt)",
             "max cmp (orig, tgt)",
             "min cmp (orig, tgt)",
+            "cosine similarity",
         ]
     else:
         diff_field_names = [
@@ -634,7 +636,7 @@ def api_dump_compare(
             ignore_shape=False,
             convinced_match_method=convinced_match_method,
         )
-        if not origin_framework == 'msdapter' and not target_framework == 'msadapter':
+        if not origin_framework == 'msadapter' and not target_framework == 'msadapter':
             _print_apis_map_result(
                 apis_map,
                 title=f"The APIs mapping results of the two frameworks (step {step})",
