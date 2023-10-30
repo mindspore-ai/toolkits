@@ -202,9 +202,9 @@ def _adapter_cal_compare_npy_single_process(name, normal_orig_dir, normal_target
     orig_name, target_name = name
     orig_value = load_value(normal_orig_dir, orig_name)
     target_value = load_value(normal_target_dir, target_name)
-    result, rel_ratio, mean_cmp, max_cmp, min_cmp = adapter_cal_algorithm(
+    result, rel_ratio, mean_cmp, max_cmp, min_cmp, cosine_sim = adapter_cal_algorithm(
         orig_value, target_value, rtol, atol, equal_nan)
-    res = (orig_name, target_name, result, rel_ratio, mean_cmp, max_cmp, min_cmp)
+    res = (orig_name, target_name, result, rel_ratio, mean_cmp, max_cmp, min_cmp, cosine_sim)
 
     if compare_shape:
         orig_shape = orig_value.shape if orig_value is not None else None
@@ -367,6 +367,7 @@ def adapter_cal_algorithm(orig_value, target_value, rtol, atol, equal_nan):
     mean_cmp = (math.nan, math.nan)
     max_cmp = (math.nan, math.nan)
     min_cmp = (math.nan, math.nan)
+    cosine_sim = math.nan
 
     def handle_dtype(input):
         if np.issubdtype(input.dtype, np.floating):
@@ -376,7 +377,7 @@ def adapter_cal_algorithm(orig_value, target_value, rtol, atol, equal_nan):
 
     if orig_value is None or target_value is None:
         allclose_result = False
-        return allclose_result, rel_ratio, mean_cmp, max_cmp, min_cmp
+        return allclose_result, rel_ratio, mean_cmp, max_cmp, min_cmp, cosine_sim
 
     if orig_value.shape == target_value.shape:
         orig_value = handle_dtype(orig_value)
@@ -402,14 +403,16 @@ def adapter_cal_algorithm(orig_value, target_value, rtol, atol, equal_nan):
         if value_diff.size > 0:
             isclose_num = np.isclose(orig_value, target_value, rtol=rtol, atol=atol, equal_nan=equal_nan).sum()
             rel_ratio = isclose_num / np.size(orig_value)
+            cosine_sim = cal_cosine_sim(orig_value, target_value)
             allclose_result = isclose_num == np.size(orig_value)
         else:
             rel_ratio = 1.
+            cosine_sim = 1.
             allclose_result = True
     else:
         allclose_result = "Shape is inconsistent"
 
-    return allclose_result, rel_ratio, mean_cmp, max_cmp, min_cmp
+    return allclose_result, rel_ratio, mean_cmp, max_cmp, min_cmp, cosine_sim
 
 def cal_cosine_sim(a, b):
     np.seterr(divide='ignore', invalid='ignore')

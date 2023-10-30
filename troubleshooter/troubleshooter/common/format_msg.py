@@ -116,14 +116,15 @@ def _format_compare_result(allclose_res, ratio, cos_sim, mean_max):
     mean_max = f'{truncate_decimal(mean_max[0], 5):.5f}, {truncate_decimal(mean_max[1], 5):.5f}'
     return [allclose_res, ratio, cos_sim, mean_max]
 
-def _adapter_format_compare_result(allclose_res, ratio, mean_cmp, max_cmp, min_cmp):
+def _adapter_format_compare_result(allclose_res, ratio, mean_cmp, max_cmp, min_cmp, cos_sim):
     if allclose_res == False:
         allclose_res = "\033[1;31mFalse\033[0m"
     ratio = f"{truncate_decimal(ratio, 4):.2%}"
     mean_cmp = f'{truncate_decimal(mean_cmp[0], 5):.5f}, {truncate_decimal(mean_cmp[1], 5):.5f}'
     max_cmp = f'{truncate_decimal(max_cmp[0], 5):.5f}, {truncate_decimal(max_cmp[1], 5):.5f}'
     min_cmp = f'{truncate_decimal(min_cmp[0], 5):.5f}, {truncate_decimal(min_cmp[1], 5):.5f}'
-    return [allclose_res, ratio, mean_cmp, max_cmp, min_cmp]
+    cos_sim = f"{truncate_decimal(cos_sim, 5):.5f}"
+    return [allclose_res, ratio, mean_cmp, max_cmp, min_cmp, cos_sim]
 
 # TODO:
 def _parse_npy_file_name(name):
@@ -210,18 +211,19 @@ def print_adapter_diff_result(result_list, *, print_level=1, title=None, field_n
         if show_shape_diff:
             if show_dtype_diff:
                 orig_name, target_name, orig_dtype, target_dtype, orig_shape, target_shape, allclose_res, ratio, \
-                mean_cmp, max_cmp, min_cmp = result
+                    mean_cmp, max_cmp, min_cmp, cosine_sim = result
             else:
-                orig_name, target_name, orig_shape, target_shape, allclose_res, ratio, mean_cmp, max_cmp, min_cmp = result
+                orig_name, target_name, orig_shape, target_shape, allclose_res, ratio, mean_cmp, max_cmp, min_cmp, \
+                    cosine_sim = result
         else:
-            orig_name, target_name, allclose_res, ratio, mean_cmp, max_cmp, min_cmp = result
+            orig_name, target_name, allclose_res, ratio, mean_cmp, max_cmp, min_cmp, cosine_sim = result
 
         # orig_name = _parse_npy_file_name(orig_name)
         # target_name = _parse_npy_file_name(target_name)
 
         if print_level == 2 and allclose_res is True:
             continue
-        compare_res = _adapter_format_compare_result(allclose_res, ratio, mean_cmp, max_cmp, min_cmp)
+        compare_res = _adapter_format_compare_result(allclose_res, ratio, mean_cmp, max_cmp, min_cmp, cosine_sim)
         name_info = [orig_name, target_name]
         basic_info = []
         if show_shape_diff:

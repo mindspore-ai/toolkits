@@ -3,7 +3,7 @@ import os
 import msadapter
 
 from .hooks import make_adapter_dump_dirs
-from . import wrap_torch, wrap_nn, wrap_tensor
+from . import wrap_torch, wrap_nn, wrap_tensor, wrap_functional
 from troubleshooter.migrator.api_dump.ms_dump.initialize import init_dump_config
 from troubleshooter.migrator.api_dump.ms_dump.utils import print_info_log
 
@@ -17,6 +17,11 @@ def initialize_hook(hook):
     for attr_name in dir(wrap_torch.HOOKTorchOps):
         if attr_name.startswith("wrap_"):
             setattr(msadapter.pytorch, attr_name[5:], getattr(wrap_torch.HOOKTorchOps, attr_name))
+
+    wrap_functional.wrap_functional_ops_and_bind(hook)
+    for attr_name in dir(wrap_functional.HOOKFunctionalOP):
+        if attr_name.startswith("wrap_"):
+            setattr(msadapter.pytorch.nn.functional, attr_name[5:], getattr(wrap_functional.HOOKFunctionalOP, attr_name))
 
     wrap_nn.wrap_nn_module_and_bind()
 
