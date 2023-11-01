@@ -5,6 +5,7 @@ import os
 import shutil
 import stat
 import threading
+import re
 from collections import defaultdict
 from functools import lru_cache
 from pathlib import Path
@@ -238,7 +239,10 @@ def dump_data(dump_file_name, dump_step, prefix, data_info, dump_type):
             DumpUtil.dump_count += 1
             if dump_type:
                 output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
-                np.save(output_path, data_info.save_data)
+                if prefix[:6] == "LAYER_" and os.path.exists(output_path):
+                    return
+                else:
+                    np.save(output_path, data_info.save_data)
                 os.chmod(output_path, 0o400)
             json.dump([prefix, dump_step, [], data_info.dtype, data_info.shape, data_info.summary_data], f)
             f.write('\n')
@@ -285,6 +289,86 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
             dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy)
         return x if universal_interface.g_retain_backward else None
 
+def _parse_api_or_layer_name(name):
+    if name[:6] == "LAYER_":
+        pattern = re.compile(
+            r"^LAYER_(\w+)?_forward_{}$"
+        )
+        prefix_con = re.findall(pattern, name)
+        if len(prefix_con) != 0:
+            prefix_con = prefix_con[0]
+            new_prefix_con = re.findall(re.compile(r"([A-Za-z0-9_]+?)_([0-9].?)"), prefix_con)
+            if len(new_prefix_con) != 0:
+                name = "LAYER: " + new_prefix_con[0][0] + "." + new_prefix_con[0][-1] + " forward"
+            else:
+                name = "LAYER: " + prefix_con[0] + " forward"
+    else:
+        pattern = re.compile(r"^(\w+?)_(\w+)_(\d+)+_forward_{}$")
+        prefix_con = re.findall(pattern, name)
+        if len(prefix_con) != 0:
+            prefix_con = prefix_con[0]
+            # see 'json_dump_condition'. add 'forward' in suffix to ensure dumping
+            suffix = prefix_con[1] + "(" + prefix_con[2] + ") " + "forward"
+            if prefix_con[0] == 'Tensor':
+                name = 'torch.Tensor.' + suffix
+            elif prefix_con[0] == 'Torch':
+                name = 'torch.' + suffix
+            elif prefix_con[0] == 'NN':
+                name = 'torch.nn.' + suffix
+            elif prefix_con[0] == 'Functional':
+                name = 'torch.nn.functional.' + suffix
+    return name
+
+def ad_dump_stack_info(name_template, dump_file, filter_stack):
+    if name_template.endswith('_backward_{}'):
+        return
+    stack_str = []
+    name_template = _parse_api_or_layer_name(name_template)
+    prefix = name_template
+    for (_, path, line, func, code, _) in inspect.stack()[3:]:
+        if code:
+            stack_line = " ".join([
+                "File", ", ".join([path, " ".join(["line", str(line)]), " ".join(["in", func]),
+                                   " ".join(["\n", code[0].strip() if code else code])])])
+        else:
+            stack_line = " ".join([
+                "File", ", ".join([path, " ".join(["line", str(line)]), " ".join(["in", func]),
+                                   " ".join(["\n", code])])])
+        if not filter_stack or (filter_stack and is_not_blacklisted(path)):
+            stack_str.append(stack_line)
+
+    DumpUtil.dump_stack_dic[prefix] = stack_str
+    json_str = json.dumps(DumpUtil.dump_stack_dic, indent=4)
+
+    with os.fdopen(os.open(dump_file, os.O_RDWR | os.O_CREAT, stat.S_IWUSR | stat.S_IRUSR), "w") as f:
+        if DumpUtil.dump_switch_mode in Const.DUMP_MODE:
+            if json_dump_condition(prefix):
+                f.write(json_str)
+        else:
+            f.write(json_str)
+
+def ad_dump_acc_cmp(name, in_feat, out_feat, dump_step):
+    dump_path, dump_file_name, dump_stack_file = DumpUtil.get_dump_path()
+
+    if DumpUtil.get_dump_switch():
+        if DumpUtil.dump_init_enable:
+            DumpUtil.dump_init_enable = False
+            DumpUtil.dump_data_dir = make_dump_data_dir(dump_path)
+            remove_dump_file(dump_file_name)
+            remove_dump_file(dump_stack_file)
+
+        name_template = f"{name}" + "_{}"
+        if DumpUtil.dump_switch_mode in [Const.ALL, Const.RANGE, Const.LIST, Const.API_LIST]:
+            if DumpUtil.check_switch_scope(name.rstrip('_forward')):
+                ad_dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
+                if name[:6] == "LAYER_":
+                    from msadapter.pytorch.tensor import Tensor
+                    # backward hook will not be executed if we move this func to another file, bug?
+                    return dump_api_tensor(dump_step, Tensor([0]), name_template, None, dump_file_name, DumpUtil.dump_type)
+                return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
+        else:
+            msg = f"Current mode '{DumpUtil.dump_switch_mode}' is not supported. Please use the field in {Const.DUMP_MODE}"
+            raise ValueError(msg)
 
 def make_dump_dirs(rank):
     dump_file_name, dump_path = "mindspore_api_dump_info.pkl", "mindspore_api_dump"
@@ -384,11 +468,10 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step):
             msg = f"Current mode '{DumpUtil.dump_switch_mode}' is not supported. Please use the field in {Const.DUMP_MODE}"
             raise ValueError(msg)
 
-
 def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file, dump_type):
-    dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file, dump_type)
+    if in_feat is not None:
+        dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file, dump_type)
     return dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file, dump_type)
-
 
 def acc_cmp_dump(name, **kwargs):
     dump_step = kwargs.get('dump_step', 1)

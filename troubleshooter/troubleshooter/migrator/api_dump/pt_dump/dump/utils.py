@@ -217,6 +217,8 @@ def make_dump_dirs(rank):
     DumpUtil.set_dump_path(dump_file_path, dump_file_name, dump_stack_path)
     DumpUtil.dump_stack_dic = {}
 
+def make_pth_dir():
+    return os.path.join(DumpUtil.dump_dir, "pt_net.pth")
 
 def check_writable(dump_file):
     if not os.access(dump_file, os.W_OK):

@@ -23,6 +23,7 @@ import stat
 import threading
 from collections import defaultdict
 from functools import lru_cache, partial
+import re
 
 import numpy as np
 import torch
@@ -39,7 +40,7 @@ else:
 from troubleshooter import log as logger
 
 from ..common.utils import Const
-from ..dump.utils import remove_dump_file
+from ..dump.utils import remove_dump_file, set_dump_switch
 from .utils import DumpUtil, make_dump_data_dir
 from ..hook_module.wrap_torch import TorchFunc
 
@@ -154,7 +155,10 @@ def dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy):
             DumpUtil.dump_count += 1
             if dump_npy:
                 output_path = os.path.join(DumpUtil.dump_data_dir, f'{prefix}.npy')
-                np.save(output_path, data_info.save_data)
+                if prefix[:6] == "LAYER_" and os.path.exists(output_path):
+                    return
+                else:
+                    np.save(output_path, data_info.save_data)
                 os.chmod(output_path, 0o400)
             json.dump([prefix, dump_step, [], data_info.dtype, data_info.shape, data_info.summary_data], f)
             f.write('\n')
@@ -172,9 +176,39 @@ def is_not_blacklisted(stack_path):
             return False
     return True
 
+def _parse_api_or_layer_name(name):
+    if name[:6] == "LAYER_":
+        pattern = re.compile(
+            r"^LAYER_(\w+)?_forward_{}$"
+        )
+        prefix_con = re.findall(pattern, name)
+        if len(prefix_con) != 0:
+            prefix_con = prefix_con[0]
+            new_prefix_con = re.findall(re.compile(r"([A-Za-z0-9_]+?)_([0-9].?)"), prefix_con)
+            if len(new_prefix_con) != 0:
+                name = "LAYER: " + new_prefix_con[0][0] + "." + new_prefix_con[0][-1] + " forward"
+            else:
+                name = "LAYER: " + prefix_con + " forward"
+    else:
+        pattern = re.compile(r"^(\w+?)_(\w+)_(\d+)+_forward_{}$")
+        prefix_con = re.findall(pattern, name)
+        if len(prefix_con) != 0:
+            prefix_con = prefix_con[0]
+            # see 'json_dump_condition'. add 'forward' in suffix to ensure dumping
+            suffix = prefix_con[1] + "(" + prefix_con[2] + ") " + "forward"
+            if prefix_con[0] == 'Tensor':
+                name = 'torch.Tensor.' + suffix
+            elif prefix_con[0] == 'Torch':
+                name = 'torch.' + suffix
+            elif prefix_con[0] == 'NN':
+                name = 'torch.nn.' + suffix
+            elif prefix_con[0] == 'Functional':
+                name = 'torch.nn.functional.' + suffix
+    return name
 
 def dump_stack_info(name_template, dump_file, filter_stack):
     stack_str = []
+    name_template = _parse_api_or_layer_name(name_template)
     prefix = name_template.format("stack_info")
     for (_, path, line, func, code, _) in inspect.stack()[3:]:
         if code:
@@ -200,7 +234,8 @@ def dump_stack_info(name_template, dump_file, filter_stack):
 
 
 def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file, dump_type):
-    dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file, dump_type)
+    if in_feat is not None:
+        dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file, dump_type)
     dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file, dump_type)
 
 
@@ -218,11 +253,12 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
         if DumpUtil.dump_switch_mode in [Const.ALL, Const.RANGE, Const.LIST, Const.API_LIST]:
             if DumpUtil.check_switch_scope(name.rstrip('_forward')):
                 dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
+                if name[:6] == "LAYER_":
+                    return dump_api_tensor(dump_step, torch.Tensor([0]), name_template, None, dump_file_name, DumpUtil.dump_type)
                 return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
         else:
             msg = f"Current mode '{DumpUtil.dump_switch_mode}' is not supported. Please use the field in {Const.DUMP_MODE}"
             raise ValueError(msg)
-
 
 def acl_dump(module, module_name, name_prefix):
     if name_prefix in DumpUtil.backward_input:
