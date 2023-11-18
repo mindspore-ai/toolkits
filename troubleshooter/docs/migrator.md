@@ -336,98 +336,60 @@ ts.save(None, {"x1":x1, "x2":x2}, suffix="torch")
 ```
 
 ## 应用场景4：比较两组tensor值(npy文件)是否相等
-进行网络迁移精度问题排查等场景，需要获取网络中的tensor或者梯度等数据进行比较。TroubleShooter提供了批量对比两个目录下npy文件的功能。
+进行网络迁移精度问题排查等场景，需要获取网络中的tensor或者梯度等数据进行比较。
 
-### 接口定义
-#### ```compare_npy_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, *, name_map_list=None)```
-批量对比两个目录下名称**完全相同**的npy文件。会计算`numpy.allclose`、`allclose`达标比例、余弦相似度、差异值的 $mean$ / $max$ 统计量等信息，如果两个目录下名称不完全相同，可以通过指定`name_map_list`来自定义规则。
+### 文件批量比较
+TroubleShooter提供了批量对比两个目录下npy文件的功能，以下只做简单介绍，详细用法请参考[compare_npy_dir文档](api/migrator/compare_npy_dir.md)。
 
-**参数：**
-- orig_dir: 需要对比的npy文件所在的目录。
-- target_dir: 目标数据所在的目录。
-- rtol: 相对误差，默认值为`1e-4`，内部调用`numpy.allclose`的参数。
-- atol: 绝对误差，默认值为`1e-4`，内部调用`numpy.allclose`的参数。
-- equal_nan：是否将nan视为相等，默认值为 `False`，内部调用`numpy.allclose`的参数。
-- name_map_list: 自定义文件名映射列表，默认值为`None`。当需要指定源目录与目标目录的文件映射方式时，可以使用此参数。此参数类型为list[tuple[ori_file, target_file]]，例如`[(ms_file_0.npy, torch_file_0.npy),...]`
-
-**样例：**
+**样例**
 ```python
+import troubleshooter as ts
 import os
-import shutil
 import tempfile
 import mindspore as ms
 
 data1 = ms.ops.randn((2,3))
 data2 = ms.ops.randn((3,5))
-path1 = tempfile.mkdtemp(prefix='ta')
-path2 = tempfile.mkdtemp(prefix='tb')
+cache_dir1 = tempfile.TemporaryDirectory(prefix='ta')
+cache_dir2 = tempfile.TemporaryDirectory(prefix='tb')
+path1 = cache_dir1.name
+path2 = cache_dir2.name
 
-ts.save(os.path.join(path1, 'data'), [data1, data2], auto_id=False)
-ts.save(os.path.join(path2, 'data'), [data1, data1], auto_id=False)
-ts.migrator.compare_npy_dir(path1, path2)
-
-shutil.rmtree(path1)
-shutil.rmtree(path2)
+ts.save(os.path.join(path1, 'data'), [data1, data2])
+ts.save(os.path.join(path2, 'data'), [data1, data1])
+# Use matching in numerical order
+name_map = ts.migrator.get_name_map_list_by_number(path1, path2)
+ts.migrator.compare_npy_dir(path1, path2, name_map_list=name_map)
 ```
-**结果：**
+**结果**
+```bash
+2023-11-16 11:32:33,882 - troubleshooter.log - WARNING - [*User Attention*] The compare directory information:
+ The orig dir: /tmp/ta9553n79z 
+ The target dir: /tmp/tb07pjiank
+100%|███████████████████████████████████████████████████████████████████████████████████████████████████| 2/2 [00:06<00:00,  3.21s/it]
++------------------------------------------------------------------------------------------------------------------------+
+|                                             The list of comparison results                                             |
++-----------------+-------------------+-----------------------+-------------------+-------------------+------------------+
+| orig array name | target array name |   result of allclose  | ratio of allclose | cosine similarity | mean & max diffs |
++-----------------+-------------------+-----------------------+-------------------+-------------------+------------------+
+|   0_data_0.npy  |    1_data_0.npy   |          True         |      100.00%      |      1.00000      | 0.00000, 0.00000 |
+|   0_data_1.npy  |    1_data_1.npy   | Shape is inconsistent |       0.00%       |        nan        |     nan, nan     |
++-----------------+-------------------+-----------------------+-------------------+-------------------+------------------+
+```
 
-自左至右分别为源文件名、目标文件名、`allclose`的比较结果、`allclose`的达标比例（符合`allclose`的数据占总数据的百分比）、余弦相似度、差异值的 $mean$ / $max$ 统计量。
-![compare_npy_dir](images/compare_npy_dir.png)
+### 梯度比较
 
-> **提示：**
->
-> 为方便获取文件的映射结果，TroubleShooter提供了多种策略函数获取`name_map_list`。
->
-> - `get_name_map_list_by_name(orig_dir, target_dir)`：名称完全一致时匹配；
->
-> - `get_name_map_list_by_number(orig_dir, target_dir)`：按照文件名中的数字升序后顺序配对；
->
-> - `get_name_map_list_by_shape_edit_distance(orig_dir, target_dir, *, del_cost=1, ins_cost=1, rep_cost=5)`：按照文件名中的数字排序后，根据shape信息计算最小编辑距离计算进行匹配。常用于结构不完全一致时的比较，例如梯度比较。
-> 
-> 以下为使用`ts.save`对不等长的数据进行连续保存，分别使用三种不同匹配算法获得的匹配效果。
-> ```python
-> data0 = mindspore.ops.randn((2,3))
-> data1 = mindspore.ops.randn((3,5))
-> data2 = mindspore.ops.randn((5,5))
-> path1 = tempfile.mkdtemp(prefix='ta')
-> path2 = tempfile.mkdtemp(prefix='tb')
->
-> ts.save(os.path.join(path1, 'data'), [data0, data1, data2])
-> ts.save(os.path.join(path2, 'data'), [data0, data2])
->
-> by_name = ts.migrator.get_name_map_list_by_name(path1, path2)
-> by_number = ts.migrator.get_name_map_list_by_number(path1, path2)
-> by_edit_shape = ts.migrator.get_name_map_list_by_shape_edit_distance(path1, path2)
-> ```
-> ![get_name_list](images/get_map_name_list.png)
+批量对比两个目录下使用`ts.save`保存梯度得到的npy文件。以下只做简单介绍，详细用法请参考[compare_grads_dir文档](api/migrator/compare_grads_dir.md)
 
-
-#### ```compare_grads_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, *, name_map_list=None)```
-批量对比两个目录下使用ts.save保存梯度得到的npy文件。和compare_npy_dir类似，同样会计算`numpy.allclose`、`allclose`达标比例、余弦相似度、差异值的 $mean$ / $max$ 统计量等信息，除此之外，还会显示梯度的shape信息。
-
-> **说明：**
->
-> 1. 目前MindSpore获取的梯度不包含名称信息，在一些情况下，两边的网络结构可能不完全相同，按照顺序匹配会导致很多文件匹配失败。梯度比较的匹配策略是根据shape计算最小[编辑距离](https://baike.baidu.com/item/%E7%BC%96%E8%BE%91%E8%B7%9D%E7%A6%BB/8010193)，其中删除、插入代价为1，替换代价为5。如果需要调整代价可以直接调用`get_name_map_list_by_shape_edit_distance`函数，在获取`name_map_list`后直接传入`compare_grads_dir`。
->
-> 2. torch的梯度需要通过`ts.widget.get_pt_grads`获取，如样例所示。
-
-**参数：**
-- orig_dir: 需要对比的npy文件所在的目录。
-- target_dir: 目标数据所在的目录。
-- rtol: 相对误差，默认值为`1e-4`，内部调用`numpy.allclose`的参数。
-- atol: 绝对误差，默认值为`1e-4`，内部调用`numpy.allclose`的参数。
-- equal_nan：是否将nan视为相等，默认值为 `False`，内部调用`numpy.allclose`的参数。
-- name_map_list: 自定义文件名映射列表，默认值为`None`。当需要指定源目录与目标目录的文件映射方式时，可以使用此参数。此参数类型为list[tuple[ori_file, target_file]]，例如`[(ms_file_0.npy, torch_file_0.npy),...]`
-
-**样例：**
+**样例**
 ```python
 import os
-import shutil
 import numpy as np
 import troubleshooter as ts
 import torch
 import mindspore as ms
 import tempfile
+from pathlib import Path
 class PtSimpleNet(torch.nn.Module):
     def __init__(self):
         super(PtSimpleNet, self).__init__()
@@ -443,8 +405,10 @@ class MsSimpleNet(ms.nn.Cell):
     def construct(self, x):
         return self.fc(x)
 
-pt_outpath = tempfile.mkdtemp(prefix="pt_")
-ms_outpath = tempfile.mkdtemp(prefix="ms_")
+pt_dir = tempfile.TemporaryDirectory(prefix="pt_")
+ms_dir = tempfile.TemporaryDirectory(prefix="ms_")
+pt_outpath = Path(pt_dir.name)
+ms_outpath = Path(ms_dir.name)
 inputs = np.random.randn(32, 10).astype(np.float32)
 targets = np.random.randn(32, 5).astype(np.float32)
 
@@ -457,7 +421,7 @@ pt_optimizer.zero_grad()
 pt_loss.backward()
 # use ts.widget.get_pt_grads get torch grads
 pt_grads = ts.widget.get_pt_grads(pt_net)
-ts.save(os.path.join(pt_outpath, "torch_grads"), pt_grads)
+ts.save(str(pt_outpath / "torch_grads"), pt_grads)
 
 ms_net = MsSimpleNet()
 ms_loss_fn = ms.nn.MSELoss()
@@ -469,14 +433,28 @@ def forward_fn(inputs, targets):
 
 grad_fn = ms.value_and_grad(forward_fn, None, ms_net.trainable_params())
 ms_loss, ms_grads = grad_fn(ms.Tensor(inputs), ms.Tensor(targets))
-ts.save(os.path.join(ms_outpath, "ms_grads"), ms_grads)
+ts.save(str(ms_outpath / "ms_grads"), ms_grads)
 ts.migrator.compare_grads_dir(pt_outpath, ms_outpath)
-shutil.rmtree(pt_outpath)
-shutil.rmtree(ms_outpath)
 ```
 **结果：**
+```bash
+2023-11-18 17:31:45,065 - troubleshooter.log - WARNING - [*User Warning*] The number of files or their corresponding shapes are inconsistent, and some files may not be correctly mapped.
+2023-11-18 17:31:45,066 - troubleshooter.log - WARNING - [*User Attention*] The compare directory information:
+ The orig dir: /tmp/pt_9xatcvr0 
+ The target dir: /tmp/ms_kfaide32
+100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 4/4 [00:07<00:00,  1.92s/it]
++---------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|                                                                    The list of comparison results                                                                   |
++-------------------------------+-------------------+---------------+-----------------+--------------------+-------------------+-------------------+------------------+
+|        orig array name        | target array name | shape of orig | shape of target | result of allclose | ratio of allclose | cosine similarity | mean & max diffs |
++-------------------------------+-------------------+---------------+-----------------+--------------------+-------------------+-------------------+------------------+
+| 0_torch_grads_fc.weight_0.npy |  1_ms_grads_0.npy |    (5, 10)    |     (5, 10)     |       False        |       0.00%       |      0.52350      | 0.10281, 0.34079 |
+|  0_torch_grads_fc.bias_1.npy  |  1_ms_grads_1.npy |      (5,)     |       (5,)      |       False        |       0.00%       |      0.17462      | 0.17567, 0.22836 |
+| 0_torch_grads_bn.weight_2.npy |        None       |      (5,)     |       None      |       False        |       0.00%       |        nan        |     nan, nan     |
+|  0_torch_grads_bn.bias_3.npy  |        None       |      (5,)     |       None      |       False        |       0.00%       |        nan        |     nan, nan     |
++-------------------------------+-------------------+---------------+-----------------+--------------------+-------------------+-------------------+------------------+
+```
 
-![compare_grads_dir](images/compare_grads_dir.png)
 
 ## 应用场景5：比较MindSpore和PyTorch网络输出是否一致
 

@@ -28,12 +28,12 @@
 
 ```python
 import os
-import shutil
 import numpy as np
 import troubleshooter as ts
 import torch
 import mindspore as ms
 import tempfile
+from pathlib import Path
 class PtSimpleNet(torch.nn.Module):
     def __init__(self):
         super(PtSimpleNet, self).__init__()
@@ -49,8 +49,10 @@ class MsSimpleNet(ms.nn.Cell):
     def construct(self, x):
         return self.fc(x)
 
-pt_outpath = tempfile.mkdtemp(prefix="pt_")
-ms_outpath = tempfile.mkdtemp(prefix="ms_")
+pt_dir = tempfile.TemporaryDirectory(prefix="pt_")
+ms_dir = tempfile.TemporaryDirectory(prefix="ms_")
+pt_outpath = Path(pt_dir.name)
+ms_outpath = Path(ms_dir.name)
 inputs = np.random.randn(32, 10).astype(np.float32)
 targets = np.random.randn(32, 5).astype(np.float32)
 
@@ -63,7 +65,7 @@ pt_optimizer.zero_grad()
 pt_loss.backward()
 # use ts.widget.get_pt_grads get torch grads
 pt_grads = ts.widget.get_pt_grads(pt_net)
-ts.save(os.path.join(pt_outpath, "torch_grads"), pt_grads)
+ts.save(str(pt_outpath / "torch_grads"), pt_grads)
 
 ms_net = MsSimpleNet()
 ms_loss_fn = ms.nn.MSELoss()
@@ -75,13 +77,27 @@ def forward_fn(inputs, targets):
 
 grad_fn = ms.value_and_grad(forward_fn, None, ms_net.trainable_params())
 ms_loss, ms_grads = grad_fn(ms.Tensor(inputs), ms.Tensor(targets))
-ts.save(os.path.join(ms_outpath, "ms_grads"), ms_grads)
+ts.save(str(ms_outpath / "ms_grads"), ms_grads)
 ts.migrator.compare_grads_dir(pt_outpath, ms_outpath)
-shutil.rmtree(pt_outpath)
-shutil.rmtree(ms_outpath)
 ```
 
 ### 结果：
 
-![compare_grads_dir](../../images/compare_grads_dir.png)
+```bash
+2023-11-18 17:31:45,065 - troubleshooter.log - WARNING - [*User Warning*] The number of files or their corresponding shapes are inconsistent, and some files may not be correctly mapped.
+2023-11-18 17:31:45,066 - troubleshooter.log - WARNING - [*User Attention*] The compare directory information:
+ The orig dir: /tmp/pt_9xatcvr0 
+ The target dir: /tmp/ms_kfaide32
+100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 4/4 [00:07<00:00,  1.92s/it]
++---------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+|                                                                    The list of comparison results                                                                   |
++-------------------------------+-------------------+---------------+-----------------+--------------------+-------------------+-------------------+------------------+
+|        orig array name        | target array name | shape of orig | shape of target | result of allclose | ratio of allclose | cosine similarity | mean & max diffs |
++-------------------------------+-------------------+---------------+-----------------+--------------------+-------------------+-------------------+------------------+
+| 0_torch_grads_fc.weight_0.npy |  1_ms_grads_0.npy |    (5, 10)    |     (5, 10)     |       False        |       0.00%       |      0.52350      | 0.10281, 0.34079 |
+|  0_torch_grads_fc.bias_1.npy  |  1_ms_grads_1.npy |      (5,)     |       (5,)      |       False        |       0.00%       |      0.17462      | 0.17567, 0.22836 |
+| 0_torch_grads_bn.weight_2.npy |        None       |      (5,)     |       None      |       False        |       0.00%       |        nan        |     nan, nan     |
+|  0_torch_grads_bn.bias_3.npy  |        None       |      (5,)     |       None      |       False        |       0.00%       |        nan        |     nan, nan     |
++-------------------------------+-------------------+---------------+-----------------+--------------------+-------------------+-------------------+------------------+
+```
 
