@@ -25,7 +25,7 @@ from tqdm import tqdm
 from troubleshooter import log as logger
 from troubleshooter.common.format_msg import print_diff_result, print_adapter_diff_result
 from troubleshooter.common.util import (find_file, none_and_isdir_check, type_check,
-                                        validate_and_normalize_path)
+                                        validate_and_normalize_path, extract_end_number, extract_front_end_number)
 
 __all__ = [
     "get_name_map_list_by_name",
@@ -68,9 +68,9 @@ def get_name_map_list_by_name(orig_dir, target_dir):
     return name_map_list
 
 
-def get_name_map_list_by_number(orig_dir, target_dir):
-    orig_name_list = find_file(orig_dir)
-    target_name_list = find_file(target_dir)
+def get_name_map_list_by_number(orig_dir, target_dir, sort_key=extract_front_end_number):
+    orig_name_list = find_file(orig_dir, sort_key)
+    target_name_list = find_file(target_dir, sort_key)
     if not (orig_name_list and target_name_list):
         raise ValueError("The comparison file is not found in the directory. Please \
             check whether the directory is correct")
@@ -305,7 +305,7 @@ def compare_grads_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=Fals
 def compare_list_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, compare_shape=False, output_file=None):
     none_and_isdir_check(orig_dir, 'orig_dir')
     none_and_isdir_check(target_dir, 'target_dir')
-    name_map_list = get_name_map_list_by_number(orig_dir, target_dir)
+    name_map_list = get_name_map_list_by_number(orig_dir, target_dir, extract_end_number)
     return compare_npy_dir(orig_dir, target_dir, rtol, atol, equal_nan,
                            name_map_list=name_map_list, compare_shape=compare_shape, output_file=output_file)
 

@@ -105,7 +105,14 @@ def extract_front_end_number(string):
     return []
 
 
-def find_file(dir, suffix=".npy"):
+def extract_end_number(string):
+    numbers = extract_number(string)
+    if numbers:
+        return numbers[-1]
+    return []
+
+
+def find_file(dir, suffix=".npy", sort_key=extract_front_end_number):
     file_list = []
     normal_dir = validate_and_normalize_path(dir)
     walk_generator = os.walk(normal_dir)
@@ -120,9 +127,8 @@ def find_file(dir, suffix=".npy"):
     file_list = sorted(file_list, key=lambda x: os.path.getctime(
         os.path.join(normal_dir, x)))
     # Second sort by number
-    file_list = sorted(file_list, key=extract_front_end_number)
+    file_list = sorted(file_list, key=sort_key)
     return file_list
-
 
 def make_directory(path: str):
     """Make directory."""
