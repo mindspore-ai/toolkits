@@ -41,8 +41,8 @@ if "mindspore" in FRAMEWORK_TYPE:
     from troubleshooter.migrator.api_dump.ms_dump import set_dump_path as ms_set_dump_path
     from troubleshooter.migrator.api_dump.ms_dump import set_dump_switch as ms_set_dump_switch
 
-if "msadapter" in FRAMEWORK_TYPE:
-    import msadapter.pytorch
+if "mindtorch" in FRAMEWORK_TYPE:
+    import mindtorch.torch
     from troubleshooter.migrator.api_dump.ad_dump import acc_cmp_dump as ad_acc_cmp_dump
     from troubleshooter.migrator.api_dump.ad_dump import register_hook as ad_register_hook
     from troubleshooter.migrator.api_dump.ms_dump import set_dump_path as ad_set_dump_path
@@ -111,8 +111,8 @@ def api_dump_init(net, output_path=os.path.join(os.getcwd(), "ts_api_dump"), *, 
         API_DUMP_FRAMEWORK_TYPE = "torch"
         pt_set_dump_path(output_path)
         pt_register_hook(net, pt_acc_cmp_dump, compare_statedict=compare_statedict)
-    elif "msadapter" in FRAMEWORK_TYPE and isinstance(net, msadapter.pytorch.nn.Module):
-        API_DUMP_FRAMEWORK_TYPE = "msadapter"
+    elif "mindtorch" in FRAMEWORK_TYPE and isinstance(net, mindtorch.torch.nn.Module):
+        API_DUMP_FRAMEWORK_TYPE = "mindtorch"
         ad_set_dump_path(output_path)
         ad_register_hook(net, ad_acc_cmp_dump, compare_statedict=compare_statedict)
     elif "mindspore" in FRAMEWORK_TYPE and isinstance(net, mindspore.nn.Cell):
@@ -121,7 +121,7 @@ def api_dump_init(net, output_path=os.path.join(os.getcwd(), "ts_api_dump"), *, 
         ms_register_hook(net, ms_acc_cmp_dump)
     else:
         raise TypeError("For 'troubleshooter.api_dump.init' function, the type of argument 'net' must be "
-                        f"mindspore.nn.Cell, torch.nn.Module or msadapter.pytorch.nn.Module, but got {type(net)}.")
+                        f"mindspore.nn.Cell, torch.nn.Module or mindtorch.torch.nn.Module, but got {type(net)}.")
 
 
 def api_dump_start(mode='all', scope=None, dump_type="all", filter_data=True, filter_stack=True):
@@ -138,7 +138,7 @@ def api_dump_start(mode='all', scope=None, dump_type="all", filter_data=True, fi
     elif API_DUMP_FRAMEWORK_TYPE == "mindspore":
         ms_set_dump_switch("ON", mode, scope=scope, api_list=scope, filter_switch=filter_switch,
                            dump_type=dump_type, filter_stack=filter_stack)
-    elif API_DUMP_FRAMEWORK_TYPE == "msadapter":
+    elif API_DUMP_FRAMEWORK_TYPE == "mindtorch":
         ad_set_dump_switch("ON", mode, scope=scope, api_list=scope, filter_switch=filter_switch,
                            dump_type=dump_type, filter_stack=filter_stack)
     else:
@@ -151,7 +151,7 @@ def api_dump_stop():
         pt_set_dump_switch("OFF")
     elif API_DUMP_FRAMEWORK_TYPE == "mindspore":
         ms_set_dump_switch("OFF")
-    elif API_DUMP_FRAMEWORK_TYPE == "msadapter":
+    elif API_DUMP_FRAMEWORK_TYPE == "mindtorch":
         ad_set_dump_switch("OFF")
     else:
         raise RuntimeError("You must call 'troubleshooter.api_dump.init' before calling"

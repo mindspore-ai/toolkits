@@ -1,4 +1,4 @@
-import msadapter
+import mindtorch
 from .hook_module import HOOKModule
 import os
 import yaml
@@ -9,13 +9,13 @@ with open(yaml_path, 'r') as f:
     WrapFunctionalOps = yaml.safe_load(f).get('torch')
 
 TorchFunc = {}
-for f in dir(msadapter.pytorch):
-    TorchFunc[f] = getattr(msadapter.pytorch, f)
+for f in dir(mindtorch.torch):
+    TorchFunc[f] = getattr(mindtorch.torch, f)
 
 
 def get_torch_ops():
     global WrapFunctionalOps
-    _torch_ops = dir(msadapter.pytorch)
+    _torch_ops = dir(mindtorch.torch)
     return set(WrapFunctionalOps) & set(_torch_ops)
     # return set(_torch_ops)
 

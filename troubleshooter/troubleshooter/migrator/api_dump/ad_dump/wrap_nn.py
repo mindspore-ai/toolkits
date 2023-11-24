@@ -1,4 +1,4 @@
-from msadapter.pytorch import nn
+from mindtorch.torch import nn
 from . import hook_module as _module
 import os
 import yaml

@@ -1,4 +1,4 @@
-from msadapter.pytorch import Tensor
+from mindtorch.torch import Tensor
 from .hook_module import HOOKModule
 import os
 import yaml

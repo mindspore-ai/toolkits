@@ -309,14 +309,14 @@ def get_dump_path(root_path):
     pt_npy_path = root_path.joinpath("rank0", "torch_api_dump")
     pt_npy_path_not_empty = pt_npy_path.exists() and list(pt_npy_path.iterdir())
 
-    ad_pkl_path = root_path.joinpath('rank0', 'msadapter_api_dump_info.pkl')
-    ad_npy_path = root_path.joinpath('rank0', 'msadapter_api_dump')
+    ad_pkl_path = root_path.joinpath('rank0', 'mindtorch_api_dump_info.pkl')
+    ad_npy_path = root_path.joinpath('rank0', 'mindtorch_api_dump')
     ad_npy_path_not_empty = ad_npy_path.exists() and list(ad_npy_path.iterdir())
 
     if ad_pkl_path.exists():
         return (
             str(ad_npy_path) if ad_npy_path_not_empty else None,
-            str(ad_pkl_path), 'msadapter',
+            str(ad_pkl_path), 'mindtorch',
         )
     elif ms_pkl_path.exists():
         return (
@@ -430,10 +430,10 @@ def compare_summary(origin_pkl_path, target_pkl_path, name_map_list, **print_kwa
 
     return result_list
 
-def _msadapter_pth2ckpt(pt_path, ms_path, isadapter=False):
+def _mindtorch_pth2ckpt(pt_path, ms_path, isadapter=False):
     import mindspore as ms
     if isadapter:
-        import msadapter.pytorch as torch
+        import mindtorch.torch as torch
     else:
         import torch
     torch_dict = torch.load(pt_path, map_location='cpu')
@@ -529,11 +529,11 @@ def compare_adapter_pth(orig_file_path, target_file_path, **kwargs):
     return diff_result
 
 def compare_adapter_torch_pth(pt_file_path, ad_file_path, **kwargs):
-    print_separator_line("Start comparing PyTorch and MSAdapter parameters", length=141)
+    print_separator_line("Start comparing PyTorch and MindTorch parameters", length=141)
     pt_conv_params_path = "compare_conv_pt.ckpt"
     ad_conv_params_path = "compare_conv_ad.ckpt"
-    _msadapter_pth2ckpt(pt_file_path, pt_conv_params_path)
-    _msadapter_pth2ckpt(ad_file_path, ad_conv_params_path, isadapter=True)
+    _mindtorch_pth2ckpt(pt_file_path, pt_conv_params_path)
+    _mindtorch_pth2ckpt(ad_file_path, ad_conv_params_path, isadapter=True)
     compare_adapter_pth(orig_file_path=pt_conv_params_path, target_file_path=ad_conv_params_path,
                     compare_value=True,
                     value_field_names=["Parameter name of PyTorch", "Parameter name of MindTorch",
@@ -579,7 +579,7 @@ def api_dump_compare(
     target_npy_path, target_pkl_path, target_framework = target_ret
 
     ad_pth_path = pt_pth_path = ''
-    if origin_framework == 'msadapter' or target_framework == 'msadapter':
+    if origin_framework == 'mindtorch' or target_framework == 'mindtorch':
         if target_framework == 'pytorch':
             ad_pth_path, pt_pth_path = (Path(origin_path).joinpath('rank0', 'ad_net.pth'),
                                         Path(target_path).joinpath('rank0', 'pt_net.pth'))
@@ -598,7 +598,7 @@ def api_dump_compare(
         f"ORIGIN NET ({origin_framework})",
         f"TARGET NET ({target_framework})",
     ]
-    if origin_framework == 'msadapter' or target_framework == 'msadapter':
+    if origin_framework == 'mindtorch' or target_framework == 'mindtorch':
         orig_frame = "pt" if origin_framework == 'pytorch' else 'mt'
         tgt_frame = "pt" if target_framework == 'pytorch' else 'mt'
         diff_field_names = [
@@ -650,7 +650,7 @@ def api_dump_compare(
             ignore_shape=False,
             convinced_match_method=convinced_match_method,
         )
-        if not origin_framework == 'msadapter' and not target_framework == 'msadapter':
+        if not origin_framework == 'mindtorch' and not target_framework == 'mindtorch':
             _print_apis_map_result(
                 apis_map,
                 title=f"The APIs mapping results of the two frameworks (step {step})",

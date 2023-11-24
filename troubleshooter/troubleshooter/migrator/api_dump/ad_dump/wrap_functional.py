@@ -1,6 +1,6 @@
 import os
 
-import msadapter.pytorch as torch
+import mindtorch.torch as torch
 import yaml
 
 from .hook_module import HOOKModule

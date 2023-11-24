@@ -1,6 +1,6 @@
 import functools
 import os
-import msadapter
+import mindtorch
 
 from .hooks import make_adapter_dump_dirs, make_pth_dir
 from . import wrap_torch, wrap_nn, wrap_tensor, wrap_functional
@@ -12,17 +12,17 @@ def initialize_hook(hook):
     wrap_tensor.wrap_tensor_ops_and_bind(hook)
     for attr_name in dir(wrap_tensor.HOOKTensor):
         if attr_name.startswith("wrap_"):
-            setattr(msadapter.pytorch.Tensor, attr_name[5:], getattr(wrap_tensor.HOOKTensor, attr_name))
+            setattr(mindtorch.torch.Tensor, attr_name[5:], getattr(wrap_tensor.HOOKTensor, attr_name))
 
     wrap_torch.wrap_torch_ops_and_bind(hook)
     for attr_name in dir(wrap_torch.HOOKTorchOps):
         if attr_name.startswith("wrap_"):
-            setattr(msadapter.pytorch, attr_name[5:], getattr(wrap_torch.HOOKTorchOps, attr_name))
+            setattr(mindtorch.torch, attr_name[5:], getattr(wrap_torch.HOOKTorchOps, attr_name))
 
     wrap_functional.wrap_functional_ops_and_bind(hook)
     for attr_name in dir(wrap_functional.HOOKFunctionalOP):
         if attr_name.startswith("wrap_"):
-            setattr(msadapter.pytorch.nn.functional, attr_name[5:], getattr(wrap_functional.HOOKFunctionalOP, attr_name))
+            setattr(mindtorch.torch.nn.functional, attr_name[5:], getattr(wrap_functional.HOOKFunctionalOP, attr_name))
 
     wrap_nn.wrap_nn_module_and_bind()
 
@@ -40,9 +40,9 @@ def register_hook(net, hook, **kwargs):
             logger.user_attention(f"Found existing state_dict info in '{ad_pth_path}'.")
             os.remove(ad_pth_path)
             logger.user_attention("Existing state_dict info removed.")
-        msadapter.pytorch.save(net.state_dict(), ad_pth_path)
+        mindtorch.torch.save(net.state_dict(), ad_pth_path)
         os.chmod(ad_pth_path, 0o400)
-        logger.user_attention(f"MSAdapter model's state_dict has been saved to {ad_pth_path}.")
+        logger.user_attention(f"MindTorch model's state_dict has been saved to {ad_pth_path}.")
     hook_name = hook.__name__
     print_info_log("Start mounting the {} hook function to the model.".format(hook_name))
     hook = functools.partial(hook, pid=pid, dump_mode=dump_mode, dump_config=dump_config_file)
