@@ -1,7 +1,7 @@
 import os
 from collections import defaultdict
 from pathlib import Path
-from troubleshooter.migrator.api_dump.ms_dump.hooks import DumpUtil, dump_acc_cmp
+from troubleshooter.migrator.api_dump.ms_dump.hooks import DumpUtil, ad_dump_acc_cmp
 from msadapter.pytorch.tensor import cast_to_adapter_tensor
 
 NNCount = defaultdict(int)
@@ -19,6 +19,9 @@ def make_adapter_dump_dirs(rank):
     dump_file_name = os.path.join(rank_dir, dump_file_name)
     dump_stack_path = os.path.join(rank_dir, dump_stack_file)
     DumpUtil.set_dump_path(dump_file_path, dump_file_name, dump_stack_path)
+
+def make_pth_dir():
+    return os.path.join(DumpUtil.dump_dir, "ad_net.pth")
 
 def acc_cmp_dump(name, **kwargs):
     dump_step = kwargs.get('dump_step', 1)
@@ -38,6 +41,6 @@ def acc_cmp_dump(name, **kwargs):
             NNCount[nn_name] = id + 1
             name = name_template.format(id)
         if pid == os.getpid():
-            return cast_to_adapter_tensor(dump_acc_cmp(name, in_feat, out_feat, dump_step))
+            return cast_to_adapter_tensor(ad_dump_acc_cmp(name, in_feat, out_feat, dump_step))
 
     return acc_cmp_hook

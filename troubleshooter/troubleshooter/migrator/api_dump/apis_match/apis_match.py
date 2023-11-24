@@ -112,9 +112,13 @@ class APINode:
         )
 
     def __str__(self):
+        if self.dump_type == 'LAYER':
+            return f"{self.dump_type}_{self.api_name}"
         return f"{self.dump_type}_{self.api_name}_{self.api_id}"
 
     def __repr__(self) -> str:
+        if self.dump_type == 'LAYER':
+            return f"{self.dump_type}_{self.api_name}"
         return f"{self.dump_type}_{self.api_name}_{self.api_id}"
 
     def update_api(
@@ -176,6 +180,23 @@ class APIList:
         api_data = APIDataNode(data_shape, data_type, data_summary)
 
         def _read_prefix(prefix):
+            if prefix[:6] == "LAYER_":
+                pattern = re.compile(
+                    r"^LAYER_(\w+)?_(backward|forward)_([io][nu]t?put)\.?(\d+)?\.?(\d+)?$"
+                )
+                prefix_con = re.findall(pattern, prefix)
+                if len(prefix_con) == 0:
+                    print(f"ignore {prefix}")
+                    return None
+                prefix_con = prefix_con[0]
+                return (
+                    'LAYER',
+                    prefix_con[0],
+                    0,
+                    prefix_con[1],
+                    prefix_con[2],
+                    '0',
+                )
             pattern = re.compile(
                 r"^(\w+?)_(\w+)_(\d+)+_(\w+)_([io][nu]t?put)\.?(\d+)?\.?(\d+)?$"
             )

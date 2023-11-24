@@ -110,19 +110,11 @@ def api_dump_init(net, output_path=os.path.join(os.getcwd(), "ts_api_dump"), *, 
     if "torch" in FRAMEWORK_TYPE and isinstance(net, torch.nn.Module):
         API_DUMP_FRAMEWORK_TYPE = "torch"
         pt_set_dump_path(output_path)
-        pt_register_hook(net, pt_acc_cmp_dump)
-        if compare_statedict:
-            pt_pth_path = os.path.join(output_path, "pt_net.pth")
-            torch.save(net.state_dict(), pt_pth_path)
-            logger.user_attention(f"Torch model's state_dict has been saved to {pt_pth_path}.")
+        pt_register_hook(net, pt_acc_cmp_dump, compare_statedict=compare_statedict)
     elif "msadapter" in FRAMEWORK_TYPE and isinstance(net, msadapter.pytorch.nn.Module):
         API_DUMP_FRAMEWORK_TYPE = "msadapter"
         ad_set_dump_path(output_path)
-        ad_register_hook(net, ad_acc_cmp_dump)
-        if compare_statedict:
-            ad_pth_path = os.path.join(output_path, "ad_net.pth")
-            msadapter.pytorch.save(net.state_dict(), ad_pth_path)
-            logger.user_attention(f"MSAdapter model's state_dict has been saved to {ad_pth_path}.")
+        ad_register_hook(net, ad_acc_cmp_dump, compare_statedict=compare_statedict)
     elif "mindspore" in FRAMEWORK_TYPE and isinstance(net, mindspore.nn.Cell):
         API_DUMP_FRAMEWORK_TYPE = "mindspore"
         ms_set_dump_path(output_path)

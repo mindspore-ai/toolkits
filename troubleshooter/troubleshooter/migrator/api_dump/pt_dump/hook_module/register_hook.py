@@ -27,7 +27,7 @@ from ..common import global_manage
 from ..common.utils import (CompareException, Const, check_file_or_directory_path, get_process_rank,
                             print_error_log)
 from ..dump import dump, utils
-from ..dump.utils import make_dump_dirs
+from ..dump.utils import make_dump_dirs, make_pth_dir
 from . import hook_module, wrap_functional, wrap_module, wrap_tensor, wrap_torch, wrap_vf
 
 try:
@@ -76,6 +76,7 @@ def register_hook(model, hook, **kwargs):
     assert hasattr(model, "named_modules"), "Please register hooks to nn.Module."
     dump_step = kwargs.get('dump_step', 1)
     overflow_nums = kwargs.get('overflow_nums', 1)
+    compare_statedict = kwargs.get('compare_statedict', False)
     dump_mode, dump_config_file = init_dump_config(kwargs)
 
     pid = os.getpid()
@@ -84,6 +85,15 @@ def register_hook(model, hook, **kwargs):
     if rank is None:
         rank, need_clear = get_process_rank(model)
     make_dump_dirs(rank)
+    if compare_statedict:
+        pt_pth_path = make_pth_dir()
+        if os.path.exists(pt_pth_path):
+            logger.user_attention(f"Found existing state_dict info in '{pt_pth_path}'.")
+            os.remove(pt_pth_path)
+            logger.user_attention("Existing state_dict info removed.")
+        torch.save(model.state_dict(), pt_pth_path)
+        os.chmod(pt_pth_path, 0o400)
+        logger.user_attention(f"Torch model's state_dict has been saved to {pt_pth_path}.")
     hook_module.module_count.clear()
     dump.NNCount.clear()
     utils.dump_count = 0
@@ -96,7 +106,7 @@ def register_hook(model, hook, **kwargs):
     if "overflow_check" in hook_name and not is_gpu:
         if hasattr(torch_npu._C, "_enable_overflow_npu"):
             torch_npu._C._enable_overflow_npu()
-            logger.info("Enable overflow function success.")            
+            logger.info("Enable overflow function success.")
         else:
             logger.user_warning("Api '_enable_overflow_npu' is not exist, "
                            "the overflow detection function on milan platform maybe not work! "
@@ -112,7 +122,10 @@ def register_hook(model, hook, **kwargs):
 
     initialize_hook(hook)
 
-    for _, module in model.named_modules():
+    for m_name, module in model.named_modules():
+        m_name = m_name.replace('.', '_')
+        if module is not None and m_name is not "":
+            module.register_forward_hook(hook(f"LAYER_{m_name}_forward"))
         if hasattr(module, 'hook_name'):
             prefix_nn_name_ = "NN_" + str(module.hook_name[5:]) + "_"
             module.register_forward_hook(hook(prefix_nn_name_ + "{}_" + "forward"))

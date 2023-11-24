@@ -21,6 +21,16 @@ __all__ = ["api_dump_compare"]
 
 def _get_npy_list(apis, io, file_dict):
     def _sorted_key(x):
+        if x[:6] == "LAYER_":
+            pattern = re.compile(
+                r"^LAYER_(\w+)?_(backward|forward)_([io][nu]t?put)\.?(\d+)?\.?(\d+)?$"
+            )
+            prefix_con = re.findall(pattern, x)
+            if len(prefix_con) == 0:
+                print(f"ignore {x}")
+                return None
+            return 0, 0
+
         pattern = re.compile(
             r"^(\w+?)_(\w+)_(\d+)+_(\w+)_([io][nu]t?put)\.?(\d+)?\.?(\d+)?$"
         )
@@ -456,7 +466,6 @@ def compare_adapter_pth(orig_file_path, target_file_path, **kwargs):
     name_map = None
     value_field_names = kwargs.get('value_field_names', ["Parameter name of original ckpt",
                                                          "Parameter name of target ckpt",
-                                                         "result of allclose",
                                                          "ratio of allclose", "cosine similarity", "mean & max diffs"])
     title = kwargs.get('title', 'The list of comparison results for values')
     compare_value = kwargs.get('compare_value', True)
@@ -468,6 +477,7 @@ def compare_adapter_pth(orig_file_path, target_file_path, **kwargs):
     rtol = kwargs.get('rtol', 1e-04)
     atol = kwargs.get('atol', 1e-04)
     equal_nan = kwargs.get('equal_nan', False)
+    frame_names = kwargs.get('frame_names', ('', ''))
 
     all_none_or_isfile_check(orig_file_path, 'orig_file_path', orig_ckpt_dict, 'orig_ckpt_dict')
     all_none_or_isfile_check(target_file_path, 'target_file_path', target_ckpt_dict, 'target_ckpt_dict')
@@ -497,21 +507,25 @@ def compare_adapter_pth(orig_file_path, target_file_path, **kwargs):
         target_para = target_ckpt_dict.get(orig_name)
         target_para_name = orig_name
 
+
+        target_para_np = target_para.value().asnumpy() if target_para is not None else None
+        rel_ratio, mean_cmp, max_cmp, min_cmp, cos_sim = adapter_cal_algorithm(orig_parameter.value().asnumpy(),
+                                                                               target_para_np,
+                                                                               rtol, atol, equal_nan)
+
         if target_para is not None:
-            result, rel_ratio, mean_cmp, max_cmp, min_cmp, cos_sim = adapter_cal_algorithm(orig_parameter.value().asnumpy(),
-                                                                    target_para.value().asnumpy(), rtol, atol,
-                                                                    equal_nan)
             value_map_list.append((new_orig_name, target_para_name,
                                    orig_parameter.dtype, target_para.dtype, orig_parameter.shape, target_para.shape,
-                                   result, rel_ratio, mean_cmp, max_cmp, min_cmp, cos_sim))
+                                   rel_ratio, mean_cmp, max_cmp, min_cmp, cos_sim))
             target_ckpt_dict.pop(target_para_name)
         else:
-            value_map_list.append((new_orig_name, target_para_name,
+            value_map_list.append((new_orig_name, None,
                                    orig_parameter.dtype, None, orig_parameter.shape, None,
-                                   result, rel_ratio, mean_cmp, max_cmp, min_cmp, None))
+                                   rel_ratio, mean_cmp, max_cmp, min_cmp, cos_sim))
 
-    diff_result = print_adapter_diff_result(value_map_list, print_level=print_level, title=title, field_names=value_field_names,
-                                            show_dtype_diff=True, show_shape_diff=True)
+    diff_result = print_adapter_diff_result(value_map_list, print_level=print_level, title=title,
+                                            field_names=value_field_names, show_dtype_diff=True, show_shape_diff=True,
+                                            frame_names=frame_names)
     return diff_result
 
 def compare_adapter_torch_pth(pt_file_path, ad_file_path, **kwargs):
@@ -522,10 +536,10 @@ def compare_adapter_torch_pth(pt_file_path, ad_file_path, **kwargs):
     _msadapter_pth2ckpt(ad_file_path, ad_conv_params_path, isadapter=True)
     compare_adapter_pth(orig_file_path=pt_conv_params_path, target_file_path=ad_conv_params_path,
                     compare_value=True,
-                    value_field_names=["Parameter name of torch", "Parameter name of MSAdapter",
-                                        "result of allclose", "ratio of allclose",
-                                        "mean cmp (orig, tgt)", "max cmp (orig, tgt)", "min cmp (orig, tgt)",
-                                        "cosine similarity"])
+                    value_field_names=["Parameter name of PyTorch", "Parameter name of MindTorch",
+                                        "ratio of allclose", "cosine similarity",
+                                        "mean cmp (pt, mt)", "max cmp (pt, mt)", "min cmp (pt, mt)"],
+                    frame_names=['pytorch', 'mindtorch'])
     os.remove(pt_conv_params_path)
     os.remove(ad_conv_params_path)
 
@@ -567,11 +581,11 @@ def api_dump_compare(
     ad_pth_path = pt_pth_path = ''
     if origin_framework == 'msadapter' or target_framework == 'msadapter':
         if target_framework == 'pytorch':
-            ad_pth_path, pt_pth_path = (Path(origin_path).joinpath('ad_net.pth'),
-                                        Path(target_path).joinpath('pt_net.pth'))
+            ad_pth_path, pt_pth_path = (Path(origin_path).joinpath('rank0', 'ad_net.pth'),
+                                        Path(target_path).joinpath('rank0', 'pt_net.pth'))
         elif origin_framework == 'pytorch':
-            ad_pth_path, pt_pth_path = (Path(target_path).joinpath('ad_net.pth'),
-                                        Path(origin_path).joinpath('pt_net.pth'))
+            ad_pth_path, pt_pth_path = (Path(target_path).joinpath('rank0', 'ad_net.pth'),
+                                        Path(origin_path).joinpath('rank0', 'pt_net.pth'))
         if os.path.isfile(ad_pth_path) and os.path.isfile(pt_pth_path):
             logger.user_attention(f"Found saved models in {pt_pth_path} and {ad_pth_path}.")
             logger.user_attention(f"Learnable parameters and registered buffers will be compared.")
@@ -585,13 +599,14 @@ def api_dump_compare(
         f"TARGET NET ({target_framework})",
     ]
     if origin_framework == 'msadapter' or target_framework == 'msadapter':
+        orig_frame = "pt" if origin_framework == 'pytorch' else 'mt'
+        tgt_frame = "pt" if target_framework == 'pytorch' else 'mt'
         diff_field_names = [
-            "result of allclose",
             "ratio of allclose",
-            "mean cmp (orig, tgt)",
-            "max cmp (orig, tgt)",
-            "min cmp (orig, tgt)",
             "cosine similarity",
+            f"mean cmp ({orig_frame}, {tgt_frame})",
+            f"max cmp ({orig_frame}, {tgt_frame})",
+            f"min cmp ({orig_frame}, {tgt_frame})",
         ]
     else:
         diff_field_names = [
@@ -600,7 +615,6 @@ def api_dump_compare(
             "cosine similarity",
             "mean & max diffs",
         ]
-
     diff_summary_name = ["max, min, mean diffs"]
 
     origin_pkl_list = APIList.get(origin_pkl_path, origin_framework)
@@ -652,6 +666,7 @@ def api_dump_compare(
             ignore_backward=ignore_backward,
             ignore_unmatched=ignore_unmatched,
         )
+
         if origin_npy_path is None or target_npy_path is None:
             logger.user_warning("npy files not found, use pkl files to compare.")
             ret = compare_summary(
@@ -686,6 +701,7 @@ def api_dump_compare(
                 output_file=save_forward_path,
                 title=f"The forward comparison results (step {step})",
                 field_names=field_names + diff_field_names,
+                frame_names=(origin_framework, target_framework),
             )
             if not ignore_backward:
                 npy_backward_list.reverse()
@@ -700,4 +716,5 @@ def api_dump_compare(
                     output_file=save_backward_path,
                     title=f"The backward comparison results (step {step})",
                     field_names=field_names + diff_field_names,
+                    frame_names=(origin_framework, target_framework),
                 )

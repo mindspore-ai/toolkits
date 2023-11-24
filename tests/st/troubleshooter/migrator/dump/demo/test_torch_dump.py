@@ -88,9 +88,9 @@ def test_api_dump_torch_all():
         train_pt_one_step_all(data_path, dump_path)
         pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
             dump_path, 'torch')
-        assert len(pkl_list) == 21
+        assert len(pkl_list) == 25  # 21 apis + 4 layers
         assert set(pkl_list) == set(npy_list)
-        assert len(stack_list) == 7
+        assert len(stack_list) == 11 # 7 apis + 4 layers
     finally:
         shutil.rmtree(data_path)
         shutil.rmtree(dump_path)
@@ -108,7 +108,7 @@ def test_api_dump_pt_all_with_scalar():
         train_pt_one_step_all(data_path, dump_path, filter_data=False)
         pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
             dump_path, 'torch')
-        assert len(pkl_list) == 25
+        assert len(pkl_list) == 29  # 25 apis + 4 layers
         assert 'Torch_clip_0_forward_input.1' in pkl_list
         assert 'Torch_clip_0_forward_input.2' in pkl_list
         assert 'Tensor_reshape_0_forward_input.1' in pkl_list
@@ -130,7 +130,7 @@ def test_api_dump_pt_all_with_full_stack():
         train_pt_one_step_all(data_path, dump_path, filter_stack=False)
         pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
             dump_path, 'torch')
-        assert len(stack_list) == 7
+        assert len(stack_list) == 11     # 7 apis + 4 layers
     finally:
         shutil.rmtree(data_path)
         shutil.rmtree(dump_path)
@@ -169,9 +169,9 @@ def test_api_dump_torch_part():
         train_pt_one_step_part(data_path, dump_path)
         pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
             dump_path, 'torch')
-        assert len(pkl_list) == 6
+        assert len(pkl_list) == 7   # 6 apis + 1 layer
         assert set(pkl_list) == set(npy_list)
-        assert len(stack_list) == 2
+        assert len(stack_list) == 3     # 2 apis + 1 layer
     finally:
         shutil.rmtree(data_path)
         shutil.rmtree(dump_path)
@@ -207,9 +207,9 @@ def test_api_dump_torch_api_list():
         pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
             dump_path, 'torch')
 
-        assert len(pkl_list) == 9
+        assert len(pkl_list) == 10   # 9 apis + 1 layer
         assert set(pkl_list) == set(npy_list)
-        assert len(stack_list) == 3
+        assert len(stack_list) == 4     # 3 apis + 1 layer
     finally:
         shutil.rmtree(data_path)
         shutil.rmtree(dump_path)
@@ -283,9 +283,9 @@ def test_api_dump_torch_range():
         pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
             dump_path, 'torch')
 
-        assert len(pkl_list) == 12
+        assert len(pkl_list) == 14  # 12 apis + 2 layers
         assert set(pkl_list) == set(npy_list)
-        assert len(stack_list) == 4
+        assert len(stack_list) == 6 # 4 apis + 2 layers
     finally:
         shutil.rmtree(data_path)
         shutil.rmtree(dump_path)

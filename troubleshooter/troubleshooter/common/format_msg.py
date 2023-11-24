@@ -116,25 +116,32 @@ def _format_compare_result(allclose_res, ratio, cos_sim, mean_max):
     mean_max = f'{truncate_decimal(mean_max[0], 5):.5f}, {truncate_decimal(mean_max[1], 5):.5f}'
     return [allclose_res, ratio, cos_sim, mean_max]
 
-def _adapter_format_compare_result(allclose_res, ratio, mean_cmp, max_cmp, min_cmp, cos_sim):
-    if allclose_res == False:
-        allclose_res = "\033[1;31mFalse\033[0m"
-    ratio = f"{truncate_decimal(ratio, 4):.2%}"
-    mean_cmp = f'{truncate_decimal(mean_cmp[0], 5):.5f}, {truncate_decimal(mean_cmp[1], 5):.5f}'
-    max_cmp = f'{truncate_decimal(max_cmp[0], 5):.5f}, {truncate_decimal(max_cmp[1], 5):.5f}'
-    min_cmp = f'{truncate_decimal(min_cmp[0], 5):.5f}, {truncate_decimal(min_cmp[1], 5):.5f}'
-    cos_sim = f"{truncate_decimal(cos_sim, 5):.5f}"
-    return [allclose_res, ratio, mean_cmp, max_cmp, min_cmp, cos_sim]
+def _adapter_diff_print(cmp):
+    cmp0, cmp1 = truncate_decimal(cmp[0], 5), truncate_decimal(cmp[1], 5)
+    if cmp1 != 0:
+        diff_ratio = abs(cmp0 - cmp1) / abs(cmp1)
+    else:
+        diff_ratio = abs(cmp0 - cmp1)
+    cmp = f'{cmp0:.5f}, {cmp1:.5f}'
+    if diff_ratio > 0.05:
+        cmp = f"\033[1;31m{cmp}\033[0m"
+    return cmp
 
-# TODO:
-def _parse_npy_file_name(name):
-    if name[:7] == 'Tensor_':
-        name = 'torch.Tensor.' + name[7:]
-    elif name[:6] == 'Torch_':
-        name = 'torch.' + name[6:]
-    elif name[:3] == 'NN_':
-        name = 'torch.nn.' + name[3:]
-    return name
+def _adapter_format_compare_result(ratio, mean_cmp, max_cmp, min_cmp, cos_sim):
+    ratio_flt = ratio
+    ratio = f"{truncate_decimal(ratio, 4):.2%}"
+    if ratio_flt < 0.95:
+        ratio = f"\033[1;31m{ratio}\033[0m"
+
+    cos_sim_flt = cos_sim
+    cos_sim = f"{truncate_decimal(cos_sim, 5):.5f}"
+    if cos_sim_flt < 0.95:
+        cos_sim = f"\033[1;31m{cos_sim}\033[0m"
+
+    _adapter_diff_print(mean_cmp)
+    _adapter_diff_print(max_cmp)
+    _adapter_diff_print(min_cmp)
+    return [ratio, cos_sim, _adapter_diff_print(mean_cmp), _adapter_diff_print(max_cmp), _adapter_diff_print(min_cmp)]
 
 def print_diff_result(result_list, *, print_level=1, title=None, field_names=None,
                       show_shape_diff=False, output_file=None):
@@ -164,6 +171,11 @@ def print_diff_result(result_list, *, print_level=1, title=None, field_names=Non
             orig_name, target_name, orig_shape, target_shape, allclose_res, ratio, cos_sim, mean_max = result
         else:
             orig_name, target_name, allclose_res, ratio, cos_sim, mean_max = result
+
+        if (orig_name is not None and orig_name[:6] == 'LAYER_') or (
+            target_name is not None and target_name[:6] == 'LAYER_'):
+            continue
+
         if print_level == 2 and allclose_res is True:
             continue
         compare_res = _format_compare_result(allclose_res, ratio, cos_sim, mean_max)
@@ -181,8 +193,56 @@ def print_diff_result(result_list, *, print_level=1, title=None, field_names=Non
             f.write(x.get_csv_string(dialect='unix') + os.linesep)
     return x.get_string()
 
+def _parse_layer_name(name):
+    pattern = re.compile(
+        r"^LAYER_(\w+)?_(backward|forward)_(input|output)\.?(\d+)?$"
+    )
+    prefix_con = re.findall(pattern, name)
+    if len(prefix_con) != 0:
+        prefix_con = prefix_con[0]
+        new_prefix_con = re.findall(re.compile(r"([A-Za-z0-9_]+?)_([0-9].?)"), prefix_con[0])
+        if len(new_prefix_con) != 0:
+            name = "LAYER: " + new_prefix_con[0][0] + "." + new_prefix_con[0][-1]
+        else:
+            name = "LAYER: " + prefix_con[0]
+
+    line_len = (45 - len(name)) // 2
+    name = "-" * line_len + name + "-" * line_len
+    if len(name) == 44 :
+        name = "-" + name
+    return name
+
+def _parse_api_name(name):
+    pattern = re.compile(
+        r"^(\w+?)_(\w+)_(\d+)+_(backward|forward)_([io][nu]t?put)\.?(\d+)?\.?(\d+)?$"
+    )
+    prefix_con = re.findall(pattern, name)
+    is_output = False
+    if len(prefix_con) != 0:
+        prefix_con = prefix_con[0]
+        suffix = prefix_con[1] + "(" + prefix_con[2] + ") " + prefix_con[4] \
+                + ("[" + prefix_con[5] + "]" if prefix_con[5] != "" else "") \
+                + ("[" + prefix_con[6] + "]" if prefix_con[6] != "" else "")
+        if prefix_con[0] == 'Tensor':
+            name = 'torch.Tensor.' + suffix
+        elif prefix_con[0] == 'Torch':
+            name = 'torch.' + suffix
+        elif prefix_con[0] == 'NN':
+            name = 'torch.nn.' + suffix
+        elif prefix_con[0] == 'Functional':
+            name = 'torch.nn.functional.' + suffix
+        # don't draw line above input.0 because it might not be dumped if it's not float tensor
+        if prefix_con[4] == 'output':
+            is_output = True
+    return name, is_output
+
 def print_adapter_diff_result(result_list, *, print_level=1, title=None, field_names=None, show_dtype_diff=False,
-                      show_shape_diff=False, output_file=None):
+                      show_shape_diff=False, output_file=None, frame_names=None):
+
+    orig_frame, tgt_frame = frame_names
+    orig_frame = "pt" if orig_frame == 'pytorch' else 'mt'
+    tgt_frame = "pt" if tgt_frame == 'pytorch' else 'mt'
+
     # 0 Do not print
     # Print All
     # print False
@@ -191,46 +251,78 @@ def print_adapter_diff_result(result_list, *, print_level=1, title=None, field_n
     if not result_list:
         return
     if field_names is None:
-        field_names = ["orig array name", "target array name",
-                       "result of allclose", "ratio of allclose",
-                       "cosine similarity", "mean & max diffs"]
-
+        field_names = ["orig array name", "target array name", "ratio of allclose", "cosine similarity",
+                       "mean cmp (orig, target)", "max cmp (orig, target)", "min cmp (orig, target)"]
+    column_width = [45, 45, 17, 17, 25, 25, 25]
     if show_shape_diff:
-        field_names = field_names + ["shape of orig", "shape of target"]
+        field_names = field_names + [f"shape cmp ({orig_frame}, {tgt_frame})"]
+        column_width += [18]
     if show_dtype_diff:
-        field_names = field_names + ["dtype of orig", "dtype of target"]
+        field_names = field_names + [f"dtype cmp ({orig_frame}, {tgt_frame})"]
+        column_width += [18]
 
     x = PrettyTable()
+    x._max_width = dict(zip(field_names, column_width))
+    x.padding_width = 0
     if title is None:
         x.title = 'The list of comparison results'
     else:
         x.title = title
     x.field_names = field_names
 
+    is_below_output = is_below_layer = False
     for result in result_list:
         if show_shape_diff:
             if show_dtype_diff:
-                orig_name, target_name, orig_dtype, target_dtype, orig_shape, target_shape, allclose_res, ratio, \
+                orig_name, target_name, orig_dtype, target_dtype, orig_shape, target_shape, ratio, \
                     mean_cmp, max_cmp, min_cmp, cosine_sim = result
             else:
-                orig_name, target_name, orig_shape, target_shape, allclose_res, ratio, mean_cmp, max_cmp, min_cmp, \
+                orig_name, target_name, orig_shape, target_shape, ratio, mean_cmp, max_cmp, min_cmp, \
                     cosine_sim = result
         else:
-            orig_name, target_name, allclose_res, ratio, mean_cmp, max_cmp, min_cmp, cosine_sim = result
+            orig_name, target_name, ratio, mean_cmp, max_cmp, min_cmp, cosine_sim = result
 
-        # orig_name = _parse_npy_file_name(orig_name)
-        # target_name = _parse_npy_file_name(target_name)
-
-        if print_level == 2 and allclose_res is True:
+        if print_level == 2 and ratio == 1:
             continue
-        compare_res = _adapter_format_compare_result(allclose_res, ratio, mean_cmp, max_cmp, min_cmp, cosine_sim)
+
+        is_layer = False
+        if target_name is not None:
+            if target_name[:6] == "LAYER_":
+                target_name = _parse_layer_name(target_name)
+                is_layer = True
+            else:
+                target_name, is_output = _parse_api_name(target_name)
+        if orig_name is not None:
+            if orig_name[:6] == "LAYER_":
+                orig_name = _parse_layer_name(orig_name)
+                is_layer = True
+            else:
+                orig_name, is_output = _parse_api_name(orig_name)
+
         name_info = [orig_name, target_name]
         basic_info = []
         if show_shape_diff:
-            basic_info = [orig_shape, target_shape]
+            if orig_shape !=  target_shape:
+                shape_cmp = f"\033[1;31m{orig_shape}, {target_shape}\033[0m"
+            else:
+                shape_cmp = str(orig_shape)
+            basic_info = [shape_cmp]
             if show_dtype_diff:
-                basic_info = [orig_shape, target_shape, orig_dtype, target_dtype]
-        x.add_row([*name_info, *compare_res, *basic_info])
+                if orig_dtype !=  target_dtype:
+                    dtype_cmp = f"\033[1;31m{orig_dtype}, {target_dtype}\033[0m"
+                else:
+                    dtype_cmp = str(orig_dtype)
+                basic_info = [shape_cmp, dtype_cmp]
+        if is_layer:
+            x.add_row([*name_info] + ["-" * i for i in column_width[2:]])
+            is_below_layer = True
+        else:
+            if is_below_output and not is_below_layer:
+                x.add_row(["-" * i for i in column_width])
+            compare_res = _adapter_format_compare_result(ratio, mean_cmp, max_cmp, min_cmp, cosine_sim)
+            x.add_row([*name_info, *compare_res, *basic_info])
+            is_below_output = True if is_output else False
+            is_below_layer = False
     print(x.get_string())
 
     if output_file:
