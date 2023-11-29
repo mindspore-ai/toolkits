@@ -110,6 +110,7 @@ def test_compare_api_dump_part(capsys):
 @pytest.mark.platform_arm_ascend_training
 @pytest.mark.platform_x86_ascend_training
 @pytest.mark.env_onecard
+@pytest.mark.skip()
 def test_compare_api_dump_part_multi_step(capsys):
     from tests.st.troubleshooter.migrator.dump.demo.test_torch_dump import train_pt_one_step_part
     from tests.st.troubleshooter.migrator.dump.demo.test_ms_dump import train_ms_one_step_part

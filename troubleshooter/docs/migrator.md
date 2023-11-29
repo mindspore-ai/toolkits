@@ -238,36 +238,16 @@ ts.migrator.compare_pth_and_ckpt("torch_net_map.json", "pt_net.pth", "ms_net.ckp
 ![compare_pth_ckpt](images/compare_pth_ckpt.png)
 
 ## 应用场景3：保存tensor
-在网络迁移精度问题排查时，需要对网络中的数据进行保存。`troubleshooter`提供了支持`MindSpore`和`PyTorch`的统一数据保存接口，并支持文件自动编号功能。
+在网络迁移精度问题排查时，需要对网络中的数据进行保存。`troubleshooter`提供了支持`MindSpore`和`PyTorch`的统一数据保存接口，并支持文件自动编号功能。以下只做简单介绍，详细用法请参考[save文档](api/migrator/save.md)。
 
-### 接口定义
+**样例**
 
-#### ```save(file:str, data:Union(Tensor, list[Tensor], tuple[Tensor], dict[str, Tensor], auto_id=True, suffix=None))```
+支持MindSpore与Pytorch。
 
-- file: 文件名路径。当`file`为`None`或`''`时，文件名会自动设置为`tensor_(shape)`，文件路径为当前路径。
-- data: 数据，支持保存`Tensor`（包括`mindspore.Tensor`和`pytorch.tensor`），以及`Tensor`构成的`list/tuple/dict`。当为`list/tuple`类型时，会按照顺序添加编号；当为`dict`类型时，文件名中会添加`key`。
-- auto_id: 自动编号，默认值为`True`。当为`True`时，保存时会自动为文件添加全局编号，编号从0开始。
-- suffix: 文件名后缀，默认值为`None`。
-
-> **Warning:**
->
-> - 在MindSpore 2.0版本中，save函数暂时不支持图模式。
->
-> - 在2.1版本中，save函数支持MindSpore图模式，但实现依赖于[JIT Fallback](https://mindspore.cn/docs/zh-CN/master/design/dynamic_graph_and_static_graph.html#jit-fallback)特性。因此，在图模式中使用时，需要将`context`中的`jit_syntax_level`设置为`LAX`级别（2.1版本默认为此级别，无需修改）。此外，`save`语法的限制与该特性限制相同。目前已知的主要限制如下：
->   - `data`参数不支持传入函数返回值或表达式，例如`ts.save(file, func(x))`或`ts.save(file, x + 1)`可能会导致未定义行为。您可以使用临时变量保存中间结果，然后调用`save`函数来规避此问题，例如`t = func(x);ts.save(file, t)`。
->   - `file`参数对于全局变量的支持不完善，它只能获取全局变量在图编译完成后的值，无法获取在运行过程中修改的值；
-
-**文件保存格式**
-
-存储的文件名称为 `{id}_name_{idx/key}_{suffix}.npy`
-
-### 如何使用
-
-**支持MindSpore动态图和静态图**
-
+**MindSpore**
 ```python
-import os
-import shutil
+import tempfile
+from pathlib import Path
 
 import troubleshooter as ts
 import mindspore as ms
@@ -284,55 +264,51 @@ class NetWorkSave(nn.Cell):
 
 x1 = Tensor(-0.5962, ms.float32)
 x2 = Tensor(0.4985, ms.float32)
-try:
-    shutil.rmtree("/tmp/save/")
-except FileNotFoundError:
-    pass
-os.makedirs("/tmp/save/")
-net = NetWorkSave('/tmp/save/ms_tensor')
+dir = tempfile.TemporaryDirectory(prefix="save")
+path = Path(dir.name)
+net = NetWorkSave(str(path / "ms_tensor"))
 
-# 支持自动编号
+# 文件会自动编号
 out1 = net(x1)
-# /tmp/save/0_ms_tensor.npy
+# 0_ms_tensor.npy
 
 out2 = net(x2)
-# /tmp/save/1_ms_tensor.npy
+# 1_ms_tensor.npy
 
 out3 = net([x1, x2])
-# /tmp/save/2_ms_tensor_0.npy
-# /tmp/save/2_ms_tensor_1.npy
+# 2_ms_tensor.0.npy
+# 3_ms_tensor.1.npy
 
 out4 = net({"x1": x1, "x2":x2})
-# /tmp/save/3_ms_tensor_x1.npy
-# /tmp/save/3_ms_tensor_x2.npy
+# 4_ms_tensor.x1.npy
+# 5_ms_tensor.x2.npy
 ```
-
-**支持PyTorch**
-
+**Pytorch**
 ```python
-import os
-import shutil
+import tempfile
+from pathlib import Path
 
 import troubleshooter as ts
 import torch
 x1 = torch.tensor([-0.5962, 0.3123], dtype=torch.float32)
 x2 = torch.tensor([[0.4985],[0.4323]], dtype=torch.float32)
-
-try:
-    shutil.rmtree("/tmp/save/")
-except FileNotFoundError:
-    pass
-os.makedirs("/tmp/save/")
-
-file = '/tmp/save/torch_tensor'
+dir = tempfile.TemporaryDirectory(prefix="save")
+path = Path(dir.name)
+file = str(path / "torch_tensor")
 
 ts.save(file, x1)
-# /tmp/save/0_torch_tensor.npy
+# 0_torch_tensor.npy
+
 ts.save(file, x2)
-# /tmp/save/1_torch_tensor.npy
-ts.save(None, {"x1":x1, "x2":x2}, suffix="torch")
-# ./2_tensor_x1_(2,)_torch.npy
-# ./2_tensor_x2_(2, 1)_torch.npy
+# 1_torch_tensor.npy
+
+ts.save(file, {"x1":x1, "x2":x2})
+# 2_torch_tensor.x1.npy
+# 3_torch_tensor.x2.npy
+
+ts.save(file, {"x1":x1, "x2":x2}, suffix="torch")
+# 4_torch_tensor.x1_torch.npy
+# 5_torch_tensor.x2_torch.npy
 ```
 
 ## 应用场景4：比较两组tensor值(npy文件)是否相等

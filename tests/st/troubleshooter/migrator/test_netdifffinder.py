@@ -55,6 +55,7 @@ class ConstMS(m_nn.Cell):
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard
 def test_model(capsys):
+    ts.fix_random()
     input1 = (np.random.randn(1, 12).astype(np.float32),
               np.random.randn(1, 13).astype(np.float32))
     input2 = (np.random.randn(1, 12).astype(np.float32),
