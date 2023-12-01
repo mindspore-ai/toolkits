@@ -108,6 +108,17 @@ def torch_TensorDump(file, data):
     os.chmod(file, stat.S_IRUSR)
 
 
+def _wrapper_torch_save_grad(file, use_print):
+    def _save_grad_func(grad):
+        if use_print:
+            format_name = f"{SAVE_NAME_MARK}{file}"
+            print(format_name, grad)
+        else:
+            torch_TensorDump(file, grad)
+        return grad
+    return _save_grad_func
+
+
 if {"torch", "mindspore"}.issubset(FRAMEWORK_TYPE):
     import torch
     import mindspore as ms
@@ -121,6 +132,41 @@ if {"torch", "mindspore"}.issubset(FRAMEWORK_TYPE):
             raise TypeError(f"For 'ts.save', the type of argument 'data' must be mindspore.Tensor or torch.tensor, "
                             f"but got {type(data)}")
 
+    def _wrapper_save_grad_func(file, use_print):
+        def _save_grad_func(grad):
+            if use_print:
+                format_name = f"{SAVE_NAME_MARK}{file}"
+                print(format_name, grad)
+            else:
+                ms.ops.TensorDump()(file, grad)
+            return grad
+        return _save_grad_func
+
+    class SaveGradCell(ms.nn.Cell):
+        def __init__(self, file, suffix="backward", use_print=False):
+            super(SaveGradCell, self).__init__()
+            path, name = handle_path(file)
+            if suffix:
+                name = f"{name}_{suffix}"
+            if use_print:
+                file = name
+            else:
+                file = f"{path}{name}"
+            self.ms_save_grad = ms.ops.InsertGradientOf(
+                _wrapper_save_grad_func(file, use_print))
+            self.pt_save_func = _wrapper_torch_save_grad(file, use_print)
+
+        def construct(self, x):
+            if isinstance(x, ms.Tensor):
+                return self.ms_save_grad(x)
+            elif isinstance(x, torch.Tensor):
+                x.register_hook(self.pt_save_func)
+                return x
+            else:
+                raise TypeError(f"For 'ts.save_grad', the type of argument 'data' must be mindspore.Tensor or torch.tensor, "
+                                f"but got {type(x)}")
+
+
 elif "torch" in FRAMEWORK_TYPE:
     import torch
 
@@ -131,6 +177,24 @@ elif "torch" in FRAMEWORK_TYPE:
             raise TypeError(f"For 'ts.save', the type of argument 'data' must be mindspore.Tensor or torch.tensor, "
                             f"but got {type(data)}")
 
+    class SaveGradCell:
+        def __init__(self, file, suffix="backward", use_print=False):
+            path, name = handle_path(file)
+            if suffix:
+                name = f"{name}_{suffix}"
+            if use_print:
+                file = name
+            else:
+                file = f"{path}{name}"
+            self.pt_save_func = _wrapper_torch_save_grad(file, use_print)
+
+        def __call__(self, x):
+            if isinstance(x, torch.Tensor):
+                x.register_hook(self.pt_save_func)
+                return x
+            else:
+                raise TypeError(f"For 'ts.save_grad', the type of argument 'data' must be mindspore.Tensor or torch.tensor, "
+                                f"but got {type(x)}")
 elif "mindspore" in FRAMEWORK_TYPE:
     import mindspore as ms
 
@@ -141,7 +205,35 @@ elif "mindspore" in FRAMEWORK_TYPE:
             raise TypeError(f"For 'ts.save', the type of argument 'data' must be mindspore.Tensor or torch.tensor, "
                             f"but got {type(data)}")
 
+    def _wrapper_save_grad_func(file, use_print):
+        def _save_grad_func(grad):
+            if use_print:
+                format_name = f"{SAVE_NAME_MARK}{file}"
+                print(format_name, grad)
+            else:
+                ms.ops.TensorDump()(file, grad)
+            return grad
+        return _save_grad_func
 
+    class SaveGradCell(ms.nn.Cell):
+        def __init__(self, file, suffix="backward", use_print=False):
+            super(SaveGradCell, self).__init__()
+            path, name = handle_path(file)
+            if suffix:
+                name = f"{name}_{suffix}"
+            if use_print:
+                file = name
+            else:
+                file = f"{path}{name}"
+            self.ms_save_grad = ms.ops.InsertGradientOf(
+                _wrapper_save_grad_func(file, use_print))
+
+        def construct(self, x):
+            if isinstance(x, ms.Tensor):
+                return self.ms_save_grad(x)
+            else:
+                raise TypeError(f"For 'ts.save_grad', the type of argument 'data' must be mindspore.Tensor or torch.tensor, "
+                                f"but got {type(x)}")
 else:
     def numpy(data):
         return data
@@ -275,7 +367,7 @@ if "mindspore" in FRAMEWORK_TYPE:
             converter.run(item)
         logger.user_attention(
             f"Convert data has been saved in {output_path.absolute()}")
-       
+
     class SaveCell(ms.nn.Cell):
         def __init__(self, file):
             super(SaveCell, self).__init__()
@@ -293,6 +385,7 @@ else:
     def save_convert(file, output_path='npy_files'):
         raise ValueError("There is no 'mindspore' package in the current environment, "
                          "and 'convert_data' does not support calling.")
+
     class SaveCell:
         def __init__(self, file):
             path, name = handle_path(file)
@@ -336,3 +429,7 @@ def save(file, data, suffix=None, use_print=False):
     save tensor to npy file.
     """
     SaveCell(file)(data, suffix, use_print)
+
+
+def save_grad(file, data, suffix="backward", use_print=False):
+    return SaveGradCell(file, suffix, use_print)(data)
