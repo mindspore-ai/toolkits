@@ -21,11 +21,11 @@
 
 > **Warning:**
 >
-> - 在MindSpore 2.0版本中，save函数暂时不支持图模式。
+> - 在MindSpore 2.3之前的版本中，save只支持使用print输出。
 >
-> - 在2.1版本中，save函数支持MindSpore图模式，但实现依赖于[JIT Fallback](https://mindspore.cn/docs/zh-CN/master/design/dynamic_graph_and_static_graph.html#jit-fallback)特性。因此，在图模式中使用时，需要将`context`中的`jit_syntax_level`设置为`LAX`级别（2.1版本默认为此级别，无需修改）。此外，`save`语法的限制与该特性限制相同。目前已知的主要限制如下：
->   - `data`参数不支持传入函数返回值或表达式，例如`ts.save(file, func(x))`或`ts.save(file, x + 1)`可能会导致未定义行为。您可以使用临时变量保存中间结果，然后调用`save`函数来规避此问题，例如`t = func(x);ts.save(file, t)`。
->   - `file`参数对于全局变量的支持不完善，它只能获取全局变量在图编译完成后的值，无法获取在运行过程中修改的值；
+> - MindSpore 中数据保存是异步处理的。当数据量过大或主进程退出过快时，可能出现数据丢失的问题，需要主动控制主进程销毁时间，例如使用sleep。
+>
+> - 如果在短时间内保存大量数据，可能会导致内存溢出。可以考虑对数据进行切片，以减小数据规模。
 
 ### 样例
 
