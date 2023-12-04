@@ -216,6 +216,7 @@ def _adapter_cal_compare_npy_single_process(name, normal_orig_dir, normal_target
         res = res[:2] + (orig_dtype, target_dtype) + res[2:]
     return res
 
+
 def compare_npy_dir(
     orig_dir,
     target_dir,
@@ -226,6 +227,7 @@ def compare_npy_dir(
     name_map_list=None,
     compare_shape=False,
     output_file=None,
+    num_processes=None,
     **kwargs
 ):
     none_and_isdir_check(orig_dir, 'orig_dir')
@@ -244,13 +246,17 @@ def compare_npy_dir(
         if key in expected_kwargs:
             expected_type = type(expected_kwargs[key])
             if not isinstance(value, expected_type):
-                raise TypeError(f"Invalid type for '{key}'. Expected {expected_type}, but got {type(value)}.")
+                raise TypeError(
+                    f"Invalid type for '{key}'. Expected {expected_type}, but got {type(value)}.")
         else:
             raise ValueError(f"Unexpected keyword argument: '{key}'")
 
     title = kwargs.get('title', None)
     field_names = kwargs.get('field_names', None)
     frame_names = kwargs.get('frame_names', ('', ''))
+
+    if num_processes is None:
+        num_processes = max(1, min(8, multiprocessing.cpu_count() - 1))
 
     if name_map_list is None:
         name_map_list = get_name_map_list_by_name(orig_dir, target_dir)
@@ -264,7 +270,7 @@ def compare_npy_dir(
     )
 
     if field_names is not None and 'mindtorch' in frame_names:
-        with multiprocessing.Pool() as pool:
+        with multiprocessing.Pool(processes=num_processes) as pool:
             _compare_npy_single_process = functools.partial(
                 _adapter_cal_compare_npy_single_process,
                 normal_orig_dir=normal_orig_dir,
@@ -275,13 +281,14 @@ def compare_npy_dir(
                 compare_shape=compare_shape,
                 compare_dtype=True,
             )
-            result_list = list(tqdm(pool.imap(_compare_npy_single_process, name_map_list), total=len(name_map_list)))
+            result_list = list(tqdm(pool.imap(
+                _compare_npy_single_process, name_map_list), total=len(name_map_list)))
 
         return print_adapter_diff_result(result_list, title=title, field_names=field_names,
-                                output_file=output_file, show_shape_diff=compare_shape, show_dtype_diff=True,
-                                frame_names=frame_names)
+                                         output_file=output_file, show_shape_diff=compare_shape, show_dtype_diff=True,
+                                         frame_names=frame_names)
     else:
-        with multiprocessing.Pool() as pool:
+        with multiprocessing.Pool(processes=num_processes) as pool:
             _compare_npy_single_process = functools.partial(
                 _ms_cal_compare_npy_single_process,
                 normal_orig_dir=normal_orig_dir,
@@ -291,34 +298,37 @@ def compare_npy_dir(
                 equal_nan=equal_nan,
                 compare_shape=compare_shape,
             )
-            result_list = list(tqdm(pool.imap(_compare_npy_single_process, name_map_list), total=len(name_map_list)))
+            result_list = list(tqdm(pool.imap(
+                _compare_npy_single_process, name_map_list), total=len(name_map_list)))
 
         return print_diff_result(result_list, title=title, field_names=field_names,
-                                output_file=output_file, show_shape_diff=compare_shape)
+                                 output_file=output_file, show_shape_diff=compare_shape)
 
 
-def compare_grads_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, compare_shape=True, output_file=None):
+def compare_grads_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, compare_shape=True, output_file=None, num_processes=None):
     none_and_isdir_check(orig_dir, 'orig_dir')
     none_and_isdir_check(target_dir, 'target_dir')
-    name_map_list = get_name_map_list_by_shape_edit_distance(orig_dir, target_dir)
+    name_map_list = get_name_map_list_by_shape_edit_distance(
+        orig_dir, target_dir)
     return compare_npy_dir(orig_dir, target_dir, rtol, atol, equal_nan,
-                           name_map_list=name_map_list, compare_shape=compare_shape, output_file=output_file)
+                           name_map_list=name_map_list, compare_shape=compare_shape, output_file=output_file, num_processes=num_processes)
 
 
-def compare_list_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, compare_shape=False, output_file=None):
+def compare_list_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, compare_shape=False, output_file=None, num_processes=None):
     none_and_isdir_check(orig_dir, 'orig_dir')
     none_and_isdir_check(target_dir, 'target_dir')
-    name_map_list = get_name_map_list_by_number(orig_dir, target_dir, extract_end_number)
+    name_map_list = get_name_map_list_by_number(
+        orig_dir, target_dir, extract_end_number)
     return compare_npy_dir(orig_dir, target_dir, rtol, atol, equal_nan,
-                           name_map_list=name_map_list, compare_shape=compare_shape, output_file=output_file)
+                           name_map_list=name_map_list, compare_shape=compare_shape, output_file=output_file, num_processes=num_processes)
 
 
-def compare_dict_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, compare_shape=False, output_file=None):
+def compare_dict_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, compare_shape=False, output_file=None, num_processes=None):
     none_and_isdir_check(orig_dir, 'orig_dir')
     none_and_isdir_check(target_dir, 'target_dir')
     name_map_list = get_name_map_list_by_name(orig_dir, target_dir)
     return compare_npy_dir(orig_dir, target_dir, rtol, atol, equal_nan,
-                           name_map_list=name_map_list, compare_shape=compare_shape, output_file=output_file)
+                           name_map_list=name_map_list, compare_shape=compare_shape, output_file=output_file, num_processes=num_processes)
 
 
 def cal_algorithm(orig_value, target_value, rtol, atol, equal_nan):

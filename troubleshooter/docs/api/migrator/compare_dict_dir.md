@@ -17,3 +17,4 @@
 - equal_nan(`bool`): 是否将nan视为相等，默认值为 `False`，内部调用`numpy.allclose`的参数。
 - compare_shape(`bool`): 是否比较shape信息，默认值`False`。
 - output_file(`str`): 比较结果导出为csv文件的路径，默认值`None`。
+- num_processes(`int`): 比较结果时的进程数，默认值`None`，将设置为8和CPU核心数-1的最小值。

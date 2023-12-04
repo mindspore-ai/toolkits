@@ -18,6 +18,7 @@
 - name_map_list(`list[tuple[str, str]]`): 自定义文件名映射列表，默认值为`None`。当需要指定源目录与目标目录的文件映射方式时，可以使用此参数。此参数类型为list[tuple[ori_file, target_file]]，例如`[(ms_file_0.npy, torch_file_0.npy),...]`
 - compare_shape(`bool`): 是否比较shape信息，默认值`False`。
 - output_file(`str`): 比较结果导出为csv文件的路径，默认值`None`，推荐使用绝对路径。
+- num_processes(`int`): 比较结果时的进程数，默认值`None`，将设置为8和CPU核心数-1的最小值。
 
 ### 样例
 
