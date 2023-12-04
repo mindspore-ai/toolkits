@@ -302,7 +302,7 @@ class APIInterNode:
 def _get_uni_io(api_list: List, framework) -> Any:
     if framework == 'mindspore':
         return
-    elif framework in ('pytorch', 'msadapter'):
+    elif framework in ('pytorch', 'mindtorch'):
         api_io_dict = pt_io_dict
     else:
         raise NotImplementedError(f'Not support {framework} now.')
@@ -336,7 +336,7 @@ def _get_uni_name(framework: str, dump_type: str, name: str) -> str:
     Returns:
         str: 统一的算子名称
     """
-    if framework == "msadapter":
+    if framework == "mindtorch":
         return f'{dump_type.lower()}_{name}'
     if framework not in [
         "pytorch",

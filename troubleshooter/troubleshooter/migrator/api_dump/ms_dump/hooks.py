@@ -362,7 +362,7 @@ def ad_dump_acc_cmp(name, in_feat, out_feat, dump_step):
             if DumpUtil.check_switch_scope(name.rstrip('_forward')):
                 ad_dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
                 if name[:6] == "LAYER_":
-                    from msadapter.pytorch.tensor import Tensor
+                    from mindtorch.torch.tensor import Tensor
                     # backward hook will not be executed if we move this func to another file, bug?
                     return dump_api_tensor(dump_step, Tensor([0]), name_template, None, dump_file_name, DumpUtil.dump_type)
                 return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
@@ -413,8 +413,8 @@ def is_not_blacklisted(stack_path):
                    '/mindspore/train/', '/mindspore/boost/', '/mindspore/parallel/',
                    '/mindspore/profiler/', '/mindspore/rewrite/', '/mindspore/scipy/',
                    '/troubleshooter/migrator/api_dump/',
-                   '/msadapter/pytorch/', '/msadapter/tools/', '/msadapter/torchaudio/',
-                   '/msadapter/torchvision/']
+                   '/mindtorch/torch', '/mindtorch/tools/', '/mindtorch/torchaudio/',
+                   '/mindtorch/torchvision/']
     for black in black_lists:
         if black in stack_path:
             return False

@@ -2,13 +2,13 @@ import os
 from collections import defaultdict
 from pathlib import Path
 from troubleshooter.migrator.api_dump.ms_dump.hooks import DumpUtil, ad_dump_acc_cmp
-from msadapter.pytorch.tensor import cast_to_adapter_tensor
+from mindtorch.torch.tensor import cast_to_adapter_tensor
 
 NNCount = defaultdict(int)
 
 def make_adapter_dump_dirs(rank):
-    dump_file_name, dump_path = "msadapter_api_dump_info.pkl", "msadapter_api_dump"
-    dump_stack_file = "msadapter_api_dump_stack.json"
+    dump_file_name, dump_path = "mindtorch_api_dump_info.pkl", "mindtorch_api_dump"
+    dump_stack_file = "mindtorch_api_dump_stack.json"
     dump_root_dir = DumpUtil.dump_ori_dir if DumpUtil.dump_ori_dir else "./"
     Path(dump_root_dir).mkdir(mode=0o700, parents=True, exist_ok=True)
     rank_dir = os.path.join(dump_root_dir, 'rank' + str(rank))

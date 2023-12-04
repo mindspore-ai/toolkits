@@ -263,7 +263,7 @@ def compare_npy_dir(
         target_dir,
     )
 
-    if field_names is not None and 'msadapter' in frame_names:
+    if field_names is not None and 'mindtorch' in frame_names:
         with multiprocessing.Pool() as pool:
             _compare_npy_single_process = functools.partial(
                 _adapter_cal_compare_npy_single_process,

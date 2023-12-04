@@ -236,7 +236,7 @@ class NetDifferenceFinder:
                                            ms_file_save_path=self.conv_ckpt_name, print_level=self.print_level,
                                            print_save_path=False)
         elif self.auto_conv_ckpt == 2:
-            self._msadapter_pth2ckpt(self.pt_org_pth_name, self.conv_ckpt_name)
+            self._mindtorch_pth2ckpt(self.pt_org_pth_name, self.conv_ckpt_name)
         else:
             raise ValueError("For 'NetDifferenceFinder',  the parameter 'auto_conv_ckpt' "
                              f"currently only supports 0, 1, and 2, but got {self.auto_conv_ckpt}.")
@@ -251,15 +251,17 @@ class NetDifferenceFinder:
         ms.save_checkpoint(self.ms_net, ms_params_path)
         torch.save(self.pt_net.state_dict(), pt_params_path)
         if self.auto_conv_ckpt == 2:
-            print_separator_line("Start comparing PyTorch and MSAdapter parameters", length=141)
+            print_separator_line("Start comparing PyTorch and MindTorch parameters", length=141)
             pt_conv_params_path = os.path.join(self.out_path, "compare_conv_pt.ckpt")
-            self._msadapter_pth2ckpt(pt_params_path, pt_conv_params_path)
+            self._mindtorch_pth2ckpt(pt_params_path, pt_conv_params_path)
             weight_migrator.compare_ms_ckpt(orig_file_path=pt_conv_params_path, target_file_path=ms_params_path,
                                             compare_value=True,
-                                            shape_field_names=["Parameter name of torch", "Parameter name of MSAdapter",
+                                            shape_field_names=["Parameter name of PyTorch",
+                                                               "Parameter name of MindTorch",
                                                                "Whether shape are equal", "Parameter shape of torch",
-                                                               "Parameter shape of MSAdapter"],
-                                            value_field_names=["Parameter name of torch", "Parameter name of MSAdapter",
+                                                               "Parameter shape of MindTorch"],
+                                            value_field_names=["Parameter name of PyTorch",
+                                                               "Parameter name of MindTorch",
                                                                "result of allclose", "ratio of allclose",
                                                                "cosine similarity", "mean & max diffs"])
         else:
@@ -280,7 +282,7 @@ class NetDifferenceFinder:
         result_ms = self._run_ms_net(ms_net, input_data)
         end_ms = time.time()
         if self.auto_conv_ckpt == 2:
-            print(f"In test case {idx}, the MSAdapter net inference completed cost %.5f seconds." % (end_ms - start_ms))
+            print(f"In test case {idx}, the MindTorch net inference completed cost %.5f seconds." % (end_ms - start_ms))
         else:
             print(f"In test case {idx}, the MindSpore net inference completed cost %.5f seconds." % (end_ms - start_ms))
         if isinstance(result_ms, (tuple, list)):
@@ -326,7 +328,7 @@ class NetDifferenceFinder:
                                     "the result index is " + str(index))
         return compare_result
 
-    def _msadapter_pth2ckpt(self, pt_path, ms_path):
+    def _mindtorch_pth2ckpt(self, pt_path, ms_path):
         torch_dict = torch.load(pt_path, map_location='cpu')
         ms_params = []
         for name, value in torch_dict.items():

@@ -1,5 +1,5 @@
 from collections import defaultdict
-import msadapter.pytorch.nn as nn
+import mindtorch.torch.nn as nn
 
 module_count = defaultdict(int)
 g_stop_hook = False

@@ -50,7 +50,7 @@ def _detect_framework():
     try:
         import mindtorch
 
-        FRAMEWORK_TYPE.add("msadapter")
+        FRAMEWORK_TYPE.add("mindtorch")
     except ModuleNotFoundError as e:
         e_msg = e.msg
         no_module_msg = "No module named 'mindtorch'"
