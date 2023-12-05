@@ -28,7 +28,7 @@ from __future__ import absolute_import
 # so the framework identification must be carried out first.
 from troubleshooter.common import FRAMEWORK_TYPE
 from troubleshooter import common, migrator, proposer, tracker, widget
-from troubleshooter.migrator import save, save_convert, save_grad
+from troubleshooter.migrator import save, save_grad
 from troubleshooter.widget import fix_random
 from troubleshooter.proposer import ProposalAction as proposal
 from troubleshooter.tracker import Tracker as tracking

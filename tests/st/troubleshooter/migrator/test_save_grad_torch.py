@@ -65,8 +65,8 @@ def test_torch_save_grad_should_equal_to_parameter_save():
 
     out1 = net1(torch.tensor(data))
     out1 = torch.unsqueeze(out1, 0)
-    loss2 = loss_fun(out1, torch.tensor(label_pt, dtype=torch.long))
-    loss2.backward()
+    loss1 = loss_fun(out1, torch.tensor(label_pt, dtype=torch.long))
+    loss1.backward()
 
     out2 = net2(torch.tensor(data))
     out2 = torch.unsqueeze(out2, 0)

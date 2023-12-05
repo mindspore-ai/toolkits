@@ -2,7 +2,7 @@
 
 ## 应用场景
 
-PyTorch 网络迁移到 MindSpore，以及 MindSpore 不同后端/版本迁移时，容易产生精度问题。正向问题往往需要二分保存中间变量，反向问题定位更是困难。API级别自动化比较功能实现了PyTorch 和 MindSpore 网络正、反向 API 级别(MindSpore:nn/ops/tensor, PyTorch:nn/funcitonal/torch.xx/tensor)输入、输出数据的自动保存以及对比，可以极大提高迁移效率。
+PyTorch 网络迁移到 MindSpore，以及 MindSpore 不同后端/版本迁移时，容易产生精度问题。正向问题往往需要二分保存中间变量，反向问题定位更是困难。API级别自动化比较功能实现了PyTorch 和 MindSpore 网络正、反向 API 级别(MindSpore:nn/ops/Tensor, PyTorch:nn/funcitonal/torch.xx/Tensor)输入、输出数据的自动保存以及对比，可以极大提高迁移效率。
 
 > 注意：
 >

@@ -237,7 +237,7 @@ ts.migrator.compare_pth_and_ckpt("torch_net_map.json", "pt_net.pth", "ms_net.ckp
 ```
 ![compare_pth_ckpt](images/compare_pth_ckpt.png)
 
-## 应用场景3：保存tensor
+## 应用场景3：保存Tensor
 在网络迁移精度问题排查时，需要对网络中的数据进行保存。`troubleshooter`提供了支持`MindSpore`和`PyTorch`的统一数据保存接口，并支持文件自动编号功能。以下只做简单介绍，详细用法请参考[save文档](api/migrator/save.md)。
 
 **样例**
@@ -311,8 +311,8 @@ ts.save(file, {"x1":x1, "x2":x2}, suffix="torch")
 # 5_torch_tensor.x2_torch.npy
 ```
 
-## 应用场景4：比较两组tensor值(npy文件)是否相等
-进行网络迁移精度问题排查等场景，需要获取网络中的tensor或者梯度等数据进行比较。
+## 应用场景4：比较两组Tensor值(npy文件)是否相等
+进行网络迁移精度问题排查等场景，需要获取网络中的Tensor或者梯度等数据进行比较。
 
 ### 文件批量比较
 TroubleShooter提供了批量对比两个目录下npy文件的功能，以下只做简单介绍，详细用法请参考[compare_npy_dir文档](api/migrator/compare_npy_dir.md)。
@@ -458,7 +458,7 @@ ts.migrator.compare_grads_dir(pt_outpath, ms_outpath)
 
 | 参数            | 类型                                                         | 说明                                                         |
 | --------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| inputs      | 单输入：`Union(tuple[torch.tensor], tuple[mindspore.Tensor], tuple[numpy.ndarray], tuple[str])`；多输入：`list[Union(tuple[torch.tensor], tuple[mindspore.Tensor], tuple[numpy.ndarray], tuple[str])]` | 模型输入。模型输入支持`torch.Tensor`, `mindspore.Tensor`, `np.ndarray`以及`str`，每个`tuple`中包含一个模型输入；当用户想要同时验证多组数据时，请使用一个列表存放所有输入。 |
+| inputs      | 单输入：`Union(tuple[torch.Tensor], tuple[mindspore.Tensor], tuple[numpy.ndarray], tuple[str])`；多输入：`list[Union(tuple[torch.Tensor], tuple[mindspore.Tensor], tuple[numpy.ndarray], tuple[str])]` | 模型输入。模型输入支持`torch.Tensor`, `mindspore.Tensor`, `np.ndarray`以及`str`，每个`tuple`中包含一个模型输入；当用户想要同时验证多组数据时，请使用一个列表存放所有输入。 |
 | auto_inputs | 单输入：`tuple[tuple[numpy.shape, numpy.dtype]]`；多输入：`{'input': tuple[tuple[numpy.shape, numpy.dtype]], 'num':int}` | 默认为`None`，为了方便用户快速验证。用户可以不输入`inputs`，而是输入`auto_inputs`，`auto_inputs`每一个元素为模型输入的`shape`，如果需要使用多次测试，可以传入一个字典，字典的键为`'input'`和`'num'`，分别表示每次的输入以及输入个数 |
 | rtol            | `float`                                                      | 相对误差，默认值为`1e-4`，内部调用`numpy.allclose`的参数。 |
 | atol            | `float`                                                      | 绝对误差，默认值为`1e-4`，内部调用`numpy.allclose`的参数。 |

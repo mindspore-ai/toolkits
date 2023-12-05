@@ -19,9 +19,9 @@ from troubleshooter import FRAMEWORK_TYPE
 from troubleshooter.migrator import api_dump, diff_handler
 from troubleshooter.migrator.api_dump import *
 from troubleshooter.migrator.diff_handler import *
-from troubleshooter.migrator.save import save, save_convert, save_grad
+from troubleshooter.migrator.save import save, save_grad
 
-__all__ = ["save", "save_convert", "save_grad"]
+__all__ = ["save", "save_grad"]
 __all__.extend(diff_handler.__all__)
 __all__.extend(api_dump.__all__)
 

@@ -24,7 +24,9 @@
 | 接口名                             | 描述                                   |
 | ---------------------------------- | -------------------------------------- |
 | [troubleshooter.save](api/save.md) | 用于保存MindSpore和PyTorch的Tensor数据 |
-|[troubleshooter.migrator.save_net_and_weight_params](api/migrator/save_net_and_weight_params.md)|将网络对象保存成文件|
+| [troubleshooter.save_grad](api/save_grad.md) | 用于保存MindSpore和PyTorch的Tensor对应的反向梯度数据 |
+| [troubleshooter.widget.save_convert](api/widget/save_convert.md) | 将save使用print方式保存的文件转化为npy文件 |
+| [troubleshooter.migrator.save_net_and_weight_params](api/migrator/save_net_and_weight_params.md)|将网络对象保存成文件|
 
 ## 数据比较
 

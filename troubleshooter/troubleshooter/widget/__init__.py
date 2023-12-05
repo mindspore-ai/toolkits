@@ -15,6 +15,7 @@
 from . import widget_pocket
 from .parse_pb import precision_tracker
 from .widget_pocket import *
+from .save_convert import save_convert
 
-__all__ = ["precision_tracker"]
+__all__ = ["precision_tracker", 'save_convert']
 __all__.extend(widget_pocket.__all__)
