@@ -18,9 +18,10 @@ if "mindspore" in FRAMEWORK_TYPE:
     import re
     import os
     import stat
-    from pathlib import Path
     import mindspore as ms
     import numpy as np
+    from tqdm import tqdm
+    from pathlib import Path
     from troubleshooter import log as logger
     from troubleshooter.common.util import isfile_check, validate_and_normalize_path
     from troubleshooter.migrator.save import SAVE_NAME_MARK
@@ -29,15 +30,7 @@ if "mindspore" in FRAMEWORK_TYPE:
     class _ConvertData:
         """
         Offline conversion of files saved by ts.save to npy files.
-        Using a finite state machine, state switching is as follows.
-        +------------+----------------------------------------------+---------------------------------------------+
-        | now \ next | pepare                                       | parse_data                                  |
-        +============+==============================================+=============================================+
-        | pepare     | condition: normal                            | condition: input starts with SAVE_NAME_MARK |
-        |            | action: skip                                 | action: parse_data                          |
-        | parse_data | condition: parsing completed or illegal data | no exist                                    |
-        |            | action:reset                                 | no exist                                    |
-        +------------+----------------------------------------------+---------------------------------------------+
+        Using a finite state machine.
         """
         tensor_to_np_type = {"Int8": np.int8, "UInt8": np.uint8, "Int16": np.int16, "UInt16": np.uint16,
                              "Int32": np.int32, "UInt32": np.uint32, "Int64": np.int64, "UInt64": np.uint64,
@@ -57,7 +50,7 @@ if "mindspore" in FRAMEWORK_TYPE:
             self.actions = {state: dict() for state in self.states}
             self._add_event('pepare', self.pepare)
             self._add_action('pepare', 'pepare', self.skip)
-            self._add_action('pepare', 'parse_data', self.parse_name)
+            self._add_action('pepare', 'parse_data', self.skip)
             self._add_event('parse_data', self.parse_data)
             self._add_action('parse_data', 'pepare', self.reset)
 
@@ -82,10 +75,17 @@ if "mindspore" in FRAMEWORK_TYPE:
 
         def pepare(self, inputs):
             if isinstance(inputs, str) and inputs.startswith(SAVE_NAME_MARK):
-                return self.states[1], inputs
+                self.parse_name(inputs)
+                converted_data = self._convert_str2ndarray(inputs)
+                if converted_data is None:
+                    return self.states[1], inputs
+                else:
+                    self._save_data(converted_data)
+                    return self.states[0], None
             return self.states[0], None
 
         def parse_name(self, data_info):
+            data_info = data_info.split('\n')[0]
             self.name = data_info[len(SAVE_NAME_MARK):]
             self.auto_id += 1
 
@@ -117,7 +117,7 @@ if "mindspore" in FRAMEWORK_TYPE:
                 value = np.fromstring(
                     value_str, dtype=dtype, sep=' ').reshape(shape)
                 return value
-            raise ValueError(f"Data type error, miss Tensor")
+            return None
 
         def _convert2ndarray(self, data):
             if isinstance(data, ms.Tensor):
@@ -132,6 +132,8 @@ if "mindspore" in FRAMEWORK_TYPE:
             file_path = str(self.output_path/self.name)
             if not file_path.endswith(".npy"):
                 file_path = file_path + ".npy"
+            if os.path.exists(file_path):
+                os.chmod(file_path, stat.S_IWUSR)
             np.save(file_path, data)
             os.chmod(file_path, stat.S_IRUSR)
 
@@ -151,7 +153,7 @@ if "mindspore" in FRAMEWORK_TYPE:
         output_path = Path(output_path)
         converter = _ConvertData(output_path)
         logger.info("Print dump data total len is ", len(data))
-        for item in data:
+        for item in tqdm(data):
             converter.run(item)
         logger.user_attention(
             f"Convert data has been saved in {output_path.absolute()}")

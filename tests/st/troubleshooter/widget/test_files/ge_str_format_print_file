@@ -1,0 +1,19 @@
+
+F
+D_TS_SAVE_NAME:add
+Tensor(shape=[4], dtype=Float32, value=
+[2 3 4 5])
+F
+D_TS_SAVE_NAME:add
+Tensor(shape=[4], dtype=Float32, value=
+[4 5 6 7])
+4
+2Tensor(shape=[4], dtype=Float32, value=
+[4 5 6 7])
+J
+H_TS_SAVE_NAME:mul
+Tensor(shape=[4], dtype=Float32, value=
+[20 25 30 35])
+8
+6Tensor(shape=[4], dtype=Float32, value=
+[20 25 30 35])
