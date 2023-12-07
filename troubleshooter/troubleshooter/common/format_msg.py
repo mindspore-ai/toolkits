@@ -19,6 +19,7 @@ import os
 import re
 import traceback
 from textwrap import fill
+import copy
 
 from prettytable import PrettyTable
 
@@ -122,26 +123,26 @@ def _adapter_diff_print(cmp):
         diff_ratio = abs(cmp0 - cmp1) / abs(cmp1)
     else:
         diff_ratio = abs(cmp0 - cmp1)
-    cmp = f'{cmp0:.5f}, {cmp1:.5f}'
+    cmp_uncolored = cmp = f'{cmp0:.5f}, {cmp1:.5f}'
     if diff_ratio > 0.05:
         cmp = f"\033[1;31m{cmp}\033[0m"
-    return cmp
+    return cmp_uncolored, cmp
 
 def _adapter_format_compare_result(ratio, mean_cmp, max_cmp, min_cmp, cos_sim):
     ratio_flt = ratio
-    ratio = f"{truncate_decimal(ratio, 4):.2%}"
+    ratio_uncolored = ratio = f"{truncate_decimal(ratio, 4):.2%}"
     if ratio_flt < 0.95:
         ratio = f"\033[1;31m{ratio}\033[0m"
 
     cos_sim_flt = cos_sim
-    cos_sim = f"{truncate_decimal(cos_sim, 5):.5f}"
+    cos_sim_uncolored = cos_sim = f"{truncate_decimal(cos_sim, 5):.5f}"
     if cos_sim_flt < 0.95:
         cos_sim = f"\033[1;31m{cos_sim}\033[0m"
 
-    _adapter_diff_print(mean_cmp)
-    _adapter_diff_print(max_cmp)
-    _adapter_diff_print(min_cmp)
-    return [ratio, cos_sim, _adapter_diff_print(mean_cmp), _adapter_diff_print(max_cmp), _adapter_diff_print(min_cmp)]
+    return [ratio_uncolored, cos_sim_uncolored,
+            _adapter_diff_print(mean_cmp)[0], _adapter_diff_print(max_cmp)[0], _adapter_diff_print(min_cmp)[0]], [
+            ratio, cos_sim,
+            _adapter_diff_print(mean_cmp)[1], _adapter_diff_print(max_cmp)[1], _adapter_diff_print(min_cmp)[1]]
 
 def print_diff_result(result_list, *, print_level=1, title=None, field_names=None,
                       show_shape_diff=False, output_file=None):
@@ -269,6 +270,7 @@ def print_adapter_diff_result(result_list, *, print_level=1, title=None, field_n
     else:
         x.title = title
     x.field_names = field_names
+    csv_x = copy.deepcopy(x)
 
     is_below_output = is_below_layer = False
     for result in result_list:
@@ -301,26 +303,35 @@ def print_adapter_diff_result(result_list, *, print_level=1, title=None, field_n
 
         name_info = [orig_name, target_name]
         basic_info = []
+        basic_info_uncolored = []
         if show_shape_diff:
             if orig_shape !=  target_shape:
-                shape_cmp = f"\033[1;31m{orig_shape}, {target_shape}\033[0m"
+                shape_cmp_uncolored = f"{orig_shape}, {target_shape}"
+                shape_cmp = f"\033[1;31m{shape_cmp_uncolored}\033[0m"
             else:
-                shape_cmp = str(orig_shape)
+                shape_cmp_uncolored = shape_cmp = str(orig_shape)
             basic_info = [shape_cmp]
+            basic_info_uncolored = [shape_cmp_uncolored]
             if show_dtype_diff:
                 if orig_dtype !=  target_dtype:
-                    dtype_cmp = f"\033[1;31m{orig_dtype}, {target_dtype}\033[0m"
+                    dtype_cmp_uncolored = f"{orig_dtype}, {target_dtype}"
+                    dtype_cmp = f"\033[1;31m{dtype_cmp_uncolored}\033[0m"
                 else:
-                    dtype_cmp = str(orig_dtype)
+                    dtype_cmp_uncolored = dtype_cmp = str(orig_dtype)
                 basic_info = [shape_cmp, dtype_cmp]
+                basic_info_uncolored = [shape_cmp_uncolored, dtype_cmp_uncolored]
         if is_layer:
             x.add_row([*name_info] + ["-" * i for i in column_width[2:]])
+            csv_x.add_row([*name_info] + ["-" * i for i in column_width[2:]])
             is_below_layer = True
         else:
             if is_below_output and not is_below_layer:
                 x.add_row(["-" * i for i in column_width])
-            compare_res = _adapter_format_compare_result(ratio, mean_cmp, max_cmp, min_cmp, cosine_sim)
+                csv_x.add_row(["-" * i for i in column_width])
+            compare_res_uncolored, compare_res = _adapter_format_compare_result(ratio, mean_cmp,
+                                                                                max_cmp, min_cmp, cosine_sim)
             x.add_row([*name_info, *compare_res, *basic_info])
+            csv_x.add_row([*name_info, *compare_res_uncolored, *basic_info_uncolored])
             is_below_output = True if is_output else False
             is_below_layer = False
     print(x.get_string())
@@ -329,7 +340,7 @@ def print_adapter_diff_result(result_list, *, print_level=1, title=None, field_n
         if not os.path.exists(os.path.dirname(output_file)):
             raise ValueError(f"output_file {output_file} not exist")
         with os.fdopen(os.open(output_file, os.O_WRONLY | os.O_CREAT, 0o600), 'w') as f:
-            f.write(x.get_csv_string(dialect='unix') + os.linesep)
+            f.write(csv_x.get_csv_string(dialect='unix') + os.linesep)
     return x.get_string()
 
 def print_net_infer_diff_result(result_list):
