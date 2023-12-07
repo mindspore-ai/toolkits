@@ -123,6 +123,8 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
         return
     elif isinstance(x, torch.Tensor):
         def backward_hook(grad, get_info):
+            if grad is None:
+                return
             nonlocal dump_file_name, dump_step, prefix, dump_npy, compute_summary
             prefix = prefix.replace('_forward_output', '_backward_input')
             data_info_ = get_info(grad, compute_summary)

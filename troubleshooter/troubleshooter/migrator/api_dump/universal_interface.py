@@ -75,7 +75,7 @@ def check_mode_and_scope(mode, scope):
                              "'scope' param set invalid, it's should not be an empty list.")
         if not _check_scope_format(scope):
             raise ValueError("For 'api_dump_start',  current mode is 'list', "
-                             "'scope' param set invalid. The list item"
+                             "'scope' param set invalid. The list item "
                              "should be in the 'Type_Name_ID' format.")
     elif mode == 'api_list':
         type_check(scope, 'scope', list)
