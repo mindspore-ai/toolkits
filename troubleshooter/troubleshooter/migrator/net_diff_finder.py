@@ -45,7 +45,10 @@ class NetDifferenceFinder:
         self.out_path = tempfile.mkdtemp(prefix="tmp_net_diff_finder_")
         self._check_kwargs(kwargs)
         self._handle_kwargs(**kwargs)
-        self.pt_device = next(pt_net.parameters()).device
+        try:
+            self.pt_device = next(pt_net.parameters()).device
+        except:
+            self.pt_device = 'cpu'
         if self.fix_seed:
             self.fix_random(self.fix_seed)
 
