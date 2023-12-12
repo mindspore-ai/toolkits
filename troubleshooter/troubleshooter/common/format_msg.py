@@ -17,6 +17,7 @@
 import math
 import os
 import re
+import stat
 import traceback
 from textwrap import fill
 import copy
@@ -190,7 +191,7 @@ def print_diff_result(result_list, *, print_level=1, title=None, field_names=Non
     if output_file:
         if not os.path.exists(os.path.dirname(output_file)):
             raise ValueError(f"output_file {output_file} not exist")
-        with os.fdopen(os.open(output_file, os.O_WRONLY | os.O_CREAT, 0o600), 'w') as f:
+        with os.fdopen(os.open(output_file, os.O_WRONLY | os.O_CREAT, stat.S_IRUSR | stat.S_IWUSR), 'w') as f:
             f.write(x.get_csv_string(dialect='unix') + os.linesep)
     return x.get_string()
 
@@ -339,7 +340,7 @@ def print_adapter_diff_result(result_list, *, print_level=1, title=None, field_n
     if output_file:
         if not os.path.exists(os.path.dirname(output_file)):
             raise ValueError(f"output_file {output_file} not exist")
-        with os.fdopen(os.open(output_file, os.O_WRONLY | os.O_CREAT, 0o600), 'w') as f:
+        with os.fdopen(os.open(output_file, os.O_WRONLY | os.O_CREAT, stat.S_IRUSR | stat.S_IWUSR), 'w') as f:
             f.write(csv_x.get_csv_string(dialect='unix') + os.linesep)
     return x.get_string()
 

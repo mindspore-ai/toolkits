@@ -91,13 +91,11 @@ def _iterate_items(data):
         raise TypeError("Unsupported data type")
 
 
-def _add_id_prefix_to_filename(original_path):
-    path, filename = os.path.split(original_path)
+def _add_id_prefix_to_filename(filename):
     global TORCH_SAVE_COUNT
     new_filename = f"{TORCH_SAVE_COUNT}_{filename}"
     TORCH_SAVE_COUNT += 1
-    new_path = os.path.join(path, new_filename)
-    return new_path
+    return new_filename
 
 
 class _SaveBase:
@@ -125,7 +123,11 @@ class _SaveGradBase:
 
 
 def torch_TensorDump(file, data):
-    file = _add_id_prefix_to_filename(file)
+    directory, filename = os.path.split(file)
+    if directory and not os.path.exists(directory):
+        os.makedirs(directory, mode=stat.S_IRWXU, exist_ok=True)
+    filename = _add_id_prefix_to_filename(filename)
+    file = os.path.join(directory, filename)
     if not file.endswith(".npy"):
         file = file + ".npy"
     if os.path.exists(file):

@@ -36,6 +36,8 @@
 > - 在MindSpore 2.3之前的版本中，save_grad只支持使用print输出。
 >
 > - MindSpore 中数据保存是异步处理的。当数据量过大或主进程退出过快时，可能出现数据丢失的问题，需要主动控制主进程销毁时间，例如使用sleep。
+>
+> - 当前MindSpore支持保存的最大数据为2GB，包含100字节左右的数据描述头，当Tensor大小超过2GB时需要切片后再保存。
 
 ### 样例
 
@@ -50,7 +52,6 @@ import numpy as np
 import mindspore as ms
 from mindspore.common.initializer import initializer, Zero
 
-from tempfile import TemporaryDirectory
 from pathlib import Path
 
 
@@ -66,29 +67,27 @@ class NetWithSaveGrad(ms.nn.Cell):
             cell.weight.set_data(
                 initializer(Zero(), cell.weight.shape, cell.weight.dtype)
             )
-            cell.bias.set_data(initializer(Zero(), cell.bias.shape, cell.bias.dtype))
+            cell.bias.set_data(initializer(
+                Zero(), cell.bias.shape, cell.bias.dtype))
 
     def construct(self, x):
         x = self.dense(x)
         # save the gradient of the input of the dense layer
-        x = ts.save_grad(self.path, x)
+        x = ts.save_grad(self.path + "dense", x)
         return x
 
 
 if __name__ == "__main__":
     ms.set_context(mode=ms.PYNATIVE_MODE)
+    path = './ms_ts_save/'
+    data = np.array([[0.2, 0.5, 0.2]], dtype=np.float32)
+    label = np.array([[1, 0]], dtype=np.float32)
 
-    temp_dir = TemporaryDirectory()
-    path = Path(temp_dir.name)
-    file_name = path / "dense"
-    data = np.array([0.2, 0.5, 0.2], dtype=np.float32)
-    label = np.array([1, 0], dtype=np.float32)
-
-    net = NetWithSaveGrad(str(file_name))
+    net = NetWithSaveGrad(path)
     loss_fn = ms.nn.CrossEntropyLoss()
 
     def forward_fn(data, label):
-        logits = ms.ops.squeeze(net(data))
+        logits = net(data)
         loss = loss_fn(logits, label)
         return loss, logits
 
@@ -99,11 +98,12 @@ if __name__ == "__main__":
         has_aux=True,
         return_ids=True,
     )
-    grads, _ = grad_fn(ms.ops.unsqueeze(ms.Tensor(data), dim=0), ms.Tensor(label))
+    grads, _ = grad_fn(ms.Tensor(data), ms.Tensor(label))
     time.sleep(0.1)
-    files = list(map(str, path.glob("*.npy")))
+    path = Path(path)
+    files = sorted(map(str, path.glob("*.npy")))
     print(files)
-    # ['/tmp/tmpu67ch7a2/0_dense_backward.npy']
+    # ['ms_ts_save/0_dense_backward.npy']
     print(np.load(path / "0_dense_backward.npy"))
     # [[-0.5  0.5]]
 ```
@@ -116,7 +116,6 @@ import time
 import numpy as np
 import torch
 
-from tempfile import TemporaryDirectory
 from pathlib import Path
 
 
@@ -134,29 +133,26 @@ class NetWithSaveGrad(torch.nn.Module):
 
     def forward(self, x):
         x = self.dense(x)
-        x = ts.save_grad(self.path, x)
+        x = ts.save_grad(self.path + "dense", x)
         return x
 
 
 if __name__ == "__main__":
-    temp_dir = TemporaryDirectory()
-    path = Path(temp_dir.name)
-    file_name = path / "dense"
-    data = np.array([0.2, 0.5, 0.2], dtype=np.float32)
-    label = np.array([1, 0], dtype=np.float32)
-    label_pt = np.array([0], dtype=np.float32)
+    path = './torch_ts_save/'
+    data = np.array([[0.2, 0.5, 0.2]], dtype=np.float32)
+    label = np.array([[1, 0]], dtype=np.float32)
 
-    net = NetWithSaveGrad(str(file_name))
+    net = NetWithSaveGrad(path)
     loss_fun = torch.nn.CrossEntropyLoss()
 
     out = net(torch.tensor(data))
-    out = torch.unsqueeze(out, 0)
-    loss = loss_fun(out, torch.tensor(label_pt, dtype=torch.long))
+    loss = loss_fun(out, torch.tensor(label))
     loss.backward()
     time.sleep(0.1)
-    files = list(map(str, path.glob("*.npy")))
+    path = Path(path)
+    files = sorted(map(str, path.glob("*.npy")))
     print(files)
-    # ['/tmp/tmpl0vsvtio/0_dense_backward.npy']
+    # ['torch_ts_save/0_dense_backward.npy']
     print(np.load(path / "0_dense_backward.npy"))
     # [[-0.5  0.5]]
 ```
