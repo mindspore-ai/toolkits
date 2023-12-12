@@ -34,7 +34,7 @@ pip install output/troubleshooter-*-py3-none-any.whl
 * [应用场景4：比较两组Tensor值(npy文件)是否相等](docs/migrator.md#应用场景4比较两组Tensor值npy文件是否相等)
 * [应用场景5：比较pytorch和mindspore的网络输出是否相等](docs/migrator.md#应用场景5比较mindspore和pytorch网络输出是否一致)
 * [应用场景6：API级别网络结果自动比较](docs/api_compare.md)
-
+* [应用场景7：API级别数据保存与对比](docs/api_save_and_compare.md)
 ## [网络错误调试](docs/proposer.md)
 * [应用场景1：网络抛出异常后自动生成报错处理建议（在线分析）](docs/proposer.md#应用场景1自动生成报错处理建议在线分析)
 * [应用场景2：已产生的报错生成处理建议（离线分析）](docs/proposer.md#应用场景2已生成的报错自动分析离线分析)
