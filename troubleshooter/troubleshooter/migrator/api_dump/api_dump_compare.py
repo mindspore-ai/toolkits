@@ -3,6 +3,7 @@ import re
 from collections import defaultdict
 from pathlib import Path
 from typing import List, Optional
+import copy
 
 import numpy as np
 from prettytable import PrettyTable
@@ -10,7 +11,8 @@ from tqdm import tqdm
 
 from troubleshooter import log as logger
 from troubleshooter.migrator.diff_handler import compare_npy_dir, min_edit_distance, adapter_cal_algorithm
-from troubleshooter.common.format_msg import truncate_decimal, print_adapter_diff_result, print_separator_line
+from troubleshooter.common.format_msg import truncate_decimal, print_adapter_diff_result, print_separator_line, \
+    _parse_layer_name, _parse_api_name
 from troubleshooter.widget import object_load
 
 from .apis_match import APIList, _print_apis_map_result, flow_match, load_pkl
@@ -385,6 +387,145 @@ def print_summary_result(
             f.write(x.get_csv_string(dialect="unix") + os.linesep)
     return x.get_string()
 
+def print_mindtorch_summary_result(
+    result_list,
+    frame_names=None,
+    *,
+    print_level=1,
+    title=None,
+    field_names=None,
+    output_file=None,
+):
+    orig_frame, tgt_frame = frame_names
+    orig_frame = "pt" if orig_frame == 'pytorch' else 'mt'
+    tgt_frame = "pt" if tgt_frame == 'pytorch' else 'mt'
+
+    # 0 Do not print
+    # Print All
+    # print False
+    if print_level == 0:
+        return
+    if not result_list:
+        return
+    if field_names is None:
+        field_names = ["orig array name", "target array name", "max, min, mean diffs"]
+
+    field_names += [f"shape cmp ({orig_frame}, {tgt_frame})", f"dtype cmp ({orig_frame}, {tgt_frame})"]
+
+    x = PrettyTable()
+    column_width = [45, 45, 28, 18, 40]
+    x._max_width = dict(zip(field_names, column_width))
+    x.padding_width = 0
+
+    if title is None:
+        x.title = "The list of comparison results"
+    else:
+        x.title = title
+    x.field_names = field_names
+    csv_x = copy.deepcopy(x)
+
+    is_below_output = is_below_layer = False
+    for result in result_list:
+        orig_name, target_name, orig_shape, target_shape, orig_dtype, target_dtype,  summary_diffs = result
+
+        if print_level == 2:
+            continue
+
+        is_layer = False
+        if target_name is not None:
+            if target_name[:6] == "LAYER_":
+                target_name = _parse_layer_name(target_name)
+                is_layer = True
+            else:
+                target_name, is_output = _parse_api_name(target_name)
+        if orig_name is not None:
+            if orig_name[:6] == "LAYER_":
+                orig_name = _parse_layer_name(orig_name)
+                is_layer = True
+            else:
+                orig_name, is_output = _parse_api_name(orig_name)
+
+        if orig_shape !=  target_shape:
+            shape_cmp_uncolored = f"{orig_shape}, {target_shape}"
+            shape_cmp = f"\033[1;31m{shape_cmp_uncolored}\033[0m"
+        else:
+            shape_cmp_uncolored = shape_cmp = str(orig_shape)
+
+        dtype_cmp = orig_dtype, target_dtype
+        basic_info = [shape_cmp, dtype_cmp]
+        basic_info_uncolored = [shape_cmp_uncolored, dtype_cmp]
+        name_info = [orig_name, target_name]
+
+        if is_layer:
+            x.add_row([*name_info] + ["-" * i for i in column_width[2:]])
+            csv_x.add_row([*name_info] + ["-" * i for i in column_width[2:]])
+            is_below_layer = True
+        else:
+            if is_below_output and not is_below_layer:
+                x.add_row(["-" * i for i in column_width])
+                csv_x.add_row(["-" * i for i in column_width])
+            x.add_row([*name_info, summary_diffs, *basic_info])
+            csv_x.add_row([*name_info, summary_diffs, *basic_info_uncolored])
+            is_below_output = True if is_output else False
+            is_below_layer = False
+
+    print(x.get_string())
+
+    if output_file:
+        if not os.path.exists(os.path.dirname(output_file)):
+            raise ValueError(f"output_file {output_file} not exist")
+        with os.fdopen(os.open(output_file, os.O_WRONLY | os.O_CREAT, 0o600), "w") as f:
+            f.write(csv_x.get_csv_string(dialect="unix") + os.linesep)
+    return x.get_string()
+
+def compare_mindtorch_summary(origin_pkl_path, target_pkl_path, name_map_list, frame_names, **print_kwargs):
+    def get_api_info(pkl_path):
+        def _read_line(line):
+            prefix, dump_step, _, data_type, data_shape, data_summary = line
+            return {prefix: (data_type, data_shape, data_summary)}
+
+        ret = {}
+
+        pkl = load_pkl(pkl_path)
+        for l in pkl:
+            summary = _read_line(l)
+            if summary:
+                ret.update(summary)
+        return ret
+
+    origin_info_map = get_api_info(origin_pkl_path)
+    target_info_map = get_api_info(target_pkl_path)
+
+    if all([np.all(np.isnan(i[1])) for i in origin_info_map.values()]) or all(
+        [np.all(np.isnan(i[1])) for i in target_info_map.values()]
+    ):
+        logger.user_attention("all the data in the pkl files are nan.")
+        return []
+    result_list = []
+    for origin_key, target_key in name_map_list:
+        summary_diff = "nan, nan, nan"
+        origin_dtype, target_dtype, origin_shape, target_shape = None, None, None, None
+        if origin_key:
+            origin_dtype = origin_info_map[origin_key][0]
+            origin_shape = origin_info_map[origin_key][1]
+        if target_key:
+            target_dtype = target_info_map[target_key][0]
+            target_shape = target_info_map[target_key][1]
+        if origin_key and target_key:
+            origin_summary = np.array(origin_info_map[origin_key][2])
+            target_summary = np.array(target_info_map[target_key][2])
+            diff = list(np.abs(origin_summary - target_summary))
+            summary_diff = ", ".join(
+                map(lambda x: f"{truncate_decimal(x, 5):.5f}", diff)
+            )
+
+        result_list.append(
+            (origin_key, target_key, origin_shape, target_shape, origin_dtype, target_dtype, summary_diff)
+        )
+
+    print_mindtorch_summary_result(result_list, frame_names, **print_kwargs)
+
+    return result_list
 
 def compare_summary(origin_pkl_path, target_pkl_path, name_map_list, **print_kwargs):
     def get_api_info(pkl_path):
@@ -669,26 +810,48 @@ def api_dump_compare(
 
         if origin_npy_path is None or target_npy_path is None:
             logger.user_warning("npy files not found, use pkl files to compare.")
-            ret = compare_summary(
-                origin_pkl_path,
-                target_pkl_path,
-                npy_forward_list,
-                title=f"The forward comparison results (step {step})",
-                field_names=field_names + diff_summary_name,
-                show_shape_diff=True,
-                output_file=save_forward_path,
-            )
-            if not ignore_backward and len(ret) != 0:
-                npy_backward_list.reverse()
-                compare_summary(
+            if 'mindtorch' in (origin_framework, target_framework):
+                ret = compare_mindtorch_summary(
                     origin_pkl_path,
                     target_pkl_path,
-                    npy_backward_list,
-                    title=f"The backward comparison results (step {step})",
+                    npy_forward_list,
+                    title=f"The forward comparison results (step {step})",
+                    field_names=field_names + diff_summary_name,
+                    output_file=save_forward_path,
+                    frame_names = (origin_framework, target_framework),
+                )
+            else:
+                ret = compare_summary(
+                    origin_pkl_path,
+                    target_pkl_path,
+                    npy_forward_list,
+                    title=f"The forward comparison results (step {step})",
                     field_names=field_names + diff_summary_name,
                     show_shape_diff=True,
-                    output_file=save_backward_path,
+                    output_file=save_forward_path,
                 )
+            if not ignore_backward and len(ret) != 0:
+                npy_backward_list.reverse()
+                if 'mindtorch' in (origin_framework, target_framework):
+                    compare_mindtorch_summary(
+                        origin_pkl_path,
+                        target_pkl_path,
+                        npy_backward_list,
+                        title=f"The backward comparison results (step {step})",
+                        field_names=field_names + diff_summary_name,
+                        output_file=save_backward_path,
+                        frame_names = (origin_framework, target_framework),
+                    )
+                else:
+                    compare_summary(
+                        origin_pkl_path,
+                        target_pkl_path,
+                        npy_backward_list,
+                        title=f"The backward comparison results (step {step})",
+                        field_names=field_names + diff_summary_name,
+                        show_shape_diff=True,
+                        output_file=save_backward_path,
+                    )
         else:
             compare_npy_dir(
                 origin_npy_path,
