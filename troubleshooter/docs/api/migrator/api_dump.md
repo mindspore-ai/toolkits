@@ -2,13 +2,14 @@
 
 ## troubleshooter.migrator.api_dump_init
 
-> troubleshooter.migrator.api_dump_init(net, output_path='./ts_api_dump', *, retain_backward=False)
+> troubleshooter.migrator.api_dump_init(net, output_path='./ts_api_dump', *, retain_backward=False, compare_statedict=False)
 
 ### 参数
 
-- net(`torch.nn.Module`/`mindspore.nn.Cell`): 需要保存数据的网络，支持 MindSpore 的 Cell 和 Torch 的 Module。
+- net(`torch.nn.Module`/`mindspore.nn.Cell`/`mindtorch.torch.nn.Module`): 需要保存数据的网络，支持 MindSpore 的 Cell、Torch 的 Module 和 MindTorch 的 Module。
 - output_path(`str`):输出文件保存的路径。
 - retain_backward(`bool`): 是否保存反向梯度数据，默认值为 `False`，不保存反向数据。
+- compare_statedict(`bool`): 是否比较 PyTorch 和 MindTorch 网络 state_dict 中的内容，默认值为 `False`, 不比较。设置为 `True` 时，会在 `output_path` 路径下生成相应的储存网络state_dict的pth 文件。目前只支持mindtorch与pytorch比较场景。
 
 > 注意：
 >
@@ -33,7 +34,19 @@ output_path # 输出目录
 └── rank0
     ├── torch_api_dump # npy数据目录
     ├── torch_api_dump_info.pkl # dump的info信息
-    └── torch_api_dump_stack.json # dump的堆栈信息
+    ├── torch_api_dump_stack.json # dump的堆栈信息
+    └── pt_net.pth # 存储的网络 state_dict 中的内容(仅在compare_statedict 为 `True`时保存)
+```
+
+MindTorch 生成的目录结构。
+
+```
+output_path # 输出目录
+└── rank0
+    ├── mindtorch_api_dump # npy数据目录
+    ├── mindtorch_api_dump_info.pkl # dump的info信息
+    ├── mindtorch_api_dump_stack.json # dump的堆栈信息
+    └── ad_net.pth # 存储的网络 state_dict 中的内容(仅在compare_statedict 为 `True`时保存)
 ```
 
 - dump的数据为**正向输入与输出**，**反向梯度的输入**，每个数据单独保存到一个npy文件，数据名称格式如下：
@@ -47,6 +60,14 @@ output_path # 输出目录
   例如"Functional_pad_0_forward_input.0.npy" 表示函数接口`pad`在正向第0次执行时输入的第0号位置元素的数据；
 
   "Tensor_permute_3_backward_input" 表示`Tensor`接口`permute`在反向第3次执行时的输入的梯度数据。
+
+  Torch 和 MindTorch还会对网络模块（named_modules）名称进行存储，每个模块单独保存到一个npy文件，仅用于标识模块名称，内部数据无实际意义，数据名称格式如下：
+
+  ```
+  LAYER_LAYERNAME_forward_input.npy
+  ```
+
+  其中LAYER表示该npy文件用于存储模块名称；LAYERNAME表示模块的名称。
 
 - `api_dump_info.pkl`文件为网络在dump时按照API的执行顺序保存的信息，文件项格式如下：
   ```
