@@ -3,6 +3,8 @@ import os
 import mindtorch
 
 from .hooks import make_adapter_dump_dirs, make_pth_dir
+from . import hook_module
+from . import hooks
 from . import wrap_torch, wrap_nn, wrap_tensor, wrap_functional
 from troubleshooter.migrator.api_dump.ms_dump.initialize import init_dump_config
 from troubleshooter.migrator.api_dump.ms_dump.utils import print_info_log
@@ -46,6 +48,11 @@ def register_hook(net, hook, **kwargs):
     hook_name = hook.__name__
     print_info_log("Start mounting the {} hook function to the model.".format(hook_name))
     hook = functools.partial(hook, pid=pid, dump_mode=dump_mode, dump_config=dump_config_file)
+    hook_module.module_count.clear()
+    hooks.NNCount.clear()
+    hooks.range_begin_flag = False
+    hooks.range_end_flag = False
+    hooks.backward_threading_id = 0
 
     initialize_hook(hook)
     for m_name, module in net.named_modules():
