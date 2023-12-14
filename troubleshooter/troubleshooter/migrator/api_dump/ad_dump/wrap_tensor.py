@@ -29,7 +29,7 @@ class TensorOPTemplate(HOOKModule):
         self.prefix_op_name_ = "Tensor_" + str(op_name) + "_"
         super().__init__(hook)
 
-    def construct(self, *args, **kwargs):
+    def forward(self, *args, **kwargs):
         return TensorFunc[str(self.op_name_)](*args, **kwargs)
 
 
