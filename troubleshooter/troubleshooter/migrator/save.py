@@ -202,7 +202,7 @@ elif "torch" in FRAMEWORK_TYPE:
 
     class _SaveGradCell(_SaveGradBase):
         def __init__(self, file, suffix, output_mode):
-            super(_SaveGradCell, _SaveGradBase).__init__(file, suffix, output_mode)
+            super(_SaveGradCell, self).__init__(file, suffix, output_mode)
             self.pt_save_func = _wrapper_torch_save_grad(self.file, output_mode)
 
         def __call__(self, x):
