@@ -126,7 +126,7 @@ comparator.save_as_xlsx('report.xlsx')
 其中，`Graph.create(graph_type, framework_version)` 创建指定的深度学习框架计算图对象。同时，在使用时将路径调节至./mindinsightx的上一级路径中。
 `comparator.compare()` 是一个优化过程，当内部目标函数数值被最大化后便会自动停止。优化过程会产生以下类似的列印信息：
 
-![](https://gitee.com/bochen2023/toolkits/raw/master/toolkits/experimental/mindinsightx/nv/images/comparator_prints.png)
+![](https://gitee.com/bochen2023/toolkits/raw/network-validator/experimental/mindinsightx/nv/images/comparator_prints.png)
 
 用户可以自行设定最大的优化步数 (默认为无限)：
 ```python
@@ -134,11 +134,11 @@ comparator.compare(max_steps=10)
 ```
 打开最终输出保存的对比报告 "report.txt"，第一个表是概榄 "summary"。它会列出计算图的种类，各种算子的总算及被成功映射的算目。
 
-![](https://gitee.com/bochen2023/toolkits/raw/master/toolkits/experimental/mindinsightx/nv/images/report_summary.png)
+![](https://gitee.com/bochen2023/toolkits/raw/network-validator/experimental/mindinsightx/nv/images/report_summary.png)
 
 第二个表是"graph0 mapped"，会列出所有graph0(本例中为MindSpore的VM计算图)的算子及其在graph1(本例中为MindSpore的GE计算图)中的映射算子。最后一列"Similarity" 是两个算子之间的拓朴相似性，0.0代表完全不相似，1.0代表拓朴结构完全相同。如果没找到映射关系，映射算子相关的列便会被留空。
 
-![](https://gitee.com/bochen2023/toolkits/raw/master/toolkits/experimental/mindinsightx/nv/images/graph0_mapped.png)
+![](https://gitee.com/bochen2023/toolkits/raw/network-validator/experimental/mindinsightx/nv/images/graph0_mapped.png)
 
 在本例子中graph0的算子名称非常长，是因为MindSpore算子的显示名称为"scope: name"格式，scope能告诉用户很多脚本及网络结构的信息。用户可用以下方法指示只显示算子的原始名称：
 ```python
@@ -147,7 +147,7 @@ comparator.save_as_xlsx('report.xlsx', show_scoped_name=False)
 
 第三个表是 "graph0 top-5"，会列出所有graph0的算子及跟其在拓朴上最相似的五个graph1算子，最后一列Mapped会列出成功匹配算子的信息。
 
-![](https://gitee.com/bochen2023/toolkits/raw/master/toolkits/experimental/mindinsightx/nv/images/graph0_topk.png)
+![](https://gitee.com/bochen2023/toolkits/raw/network-validator/experimental/mindinsightx/nv/images/graph0_topk.png)
 
 用户可以用以下方法设定相似算子的显示数目：
 ```python
@@ -208,7 +208,7 @@ comparator = GraphComparator(graph0, graph1, "graph0_dump_dir", "graph1_dump_dir
 
 若用户添加使用了dump文件的对比策略，在输出report.xlsx表时会多增加两个表格graph0 dump和graph1 dump，它们分别对应graph0和graph1中的dump文件映射情况，每一个节点所对应的dump文件会被呈现在”dump“项中，若没有找到该节点的dump文件，则会出现”missing“字样，如下图所示：
 
-![](https://gitee.com/bochen2023/toolkits/raw/master/toolkits/experimental/mindinsightx/nv/images/graph1_dump.png)
+![](https://gitee.com/bochen2023/toolkits/raw/network-validator/experimental/mindinsightx/nv/images/graph1_dump.png)
 
 ## <span id="jump10">五、进阶使用</span>
 ### <span id="jump11">1. 多种API使用策略</span>
