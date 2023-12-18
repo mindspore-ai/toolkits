@@ -1,0 +1,2075 @@
+{
+  "F.adaptive_avg_pool1d": {
+    "ms_api": [
+      "ops.adaptive_avg_pool1d",
+      {
+        "input": "REQUIRED",
+        "output_size": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "F.adaptive_avg_pool1d",
+      {
+        "input": "REQUIRED",
+        "output_size": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "output_size": "output_size"
+    },
+    "gen_explicit_map": null
+  },
+  "F.adaptive_avg_pool2d": {
+    "ms_api": [
+      "ops.adaptive_avg_pool2d",
+      {
+        "input": "REQUIRED",
+        "output_size": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "F.adaptive_avg_pool2d",
+      {
+        "input": "REQUIRED",
+        "output_size": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "output_size": "output_size"
+    },
+    "gen_explicit_map": null
+  },
+  "F.adaptive_avg_pool3d": {
+    "ms_api": [
+      "ops.adaptive_avg_pool3d",
+      {
+        "input": "REQUIRED",
+        "output_size": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "F.adaptive_avg_pool3d",
+      {
+        "input": "REQUIRED",
+        "output_size": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "output_size": "output_size"
+    },
+    "gen_explicit_map": null
+  },
+  "F.adaptive_max_pool1d": {
+    "ms_api": [
+      "ops.adaptive_max_pool1d",
+      {
+        "input": "REQUIRED",
+        "output_size": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "F.adaptive_max_pool1d",
+      {
+        "input": "REQUIRED",
+        "output_size": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "output_size": "output_size"
+    },
+    "gen_explicit_map": null
+  },
+  "F.adaptive_max_pool2d": {
+    "ms_api": [
+      "ops.adaptive_max_pool2d",
+      {
+        "input": "REQUIRED",
+        "output_size": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "F.adaptive_max_pool2d",
+      {
+        "input": "REQUIRED",
+        "output_size": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "output_size": "output_size"
+    },
+    "gen_explicit_map": null
+  },
+  "F.affine_grid": {
+    "ms_api": [
+      "ops.affine_grid",
+      {
+        "theta": "REQUIRED",
+        "size": "REQUIRED",
+        "align_corners": null
+      }
+    ],
+    "pt_api": [
+      "F.affine_grid",
+      {
+        "theta": "REQUIRED",
+        "size": "REQUIRED",
+        "align_corners": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "theta": "theta",
+      "size": "size",
+      "align_corners": "align_corners"
+    },
+    "gen_explicit_map": null
+  },
+  "F.avg_pool1d": {
+    "ms_api": [
+      "ops.avg_pool1d",
+      {
+        "input_x": "REQUIRED",
+        "kernel_size": 1,
+        "stride": 1,
+        "padding": 0,
+        "ceil_mode": false,
+        "count_include_pad": true
+      }
+    ],
+    "pt_api": [
+      "F.avg_pool1d",
+      {
+        "input": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "padding": 0,
+        "ceil_mode": false,
+        "count_include_pad": true
+      }
+    ],
+    "ms2pt_mapping": {
+      "input_x": "input",
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "padding": "padding",
+      "ceil_mode": "ceil_mode",
+      "count_include_pad": "count_include_pad"
+    },
+    "gen_explicit_map": null
+  },
+  "F.avg_pool2d": {
+    "ms_api": [
+      "ops.avg_pool2d",
+      {
+        "input_x": "REQUIRED",
+        "kernel_size": 1,
+        "stride": 1,
+        "padding": 0,
+        "ceil_mode": false,
+        "count_include_pad": true
+      }
+    ],
+    "pt_api": [
+      "F.avg_pool2d",
+      {
+        "input": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "padding": 0,
+        "ceil_mode": false,
+        "count_include_pad": true
+      }
+    ],
+    "ms2pt_mapping": {
+      "input_x": "input",
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "padding": "padding",
+      "ceil_mode": "ceil_mode",
+      "count_include_pad": "count_include_pad"
+    },
+    "gen_explicit_map": null
+  },
+  "F.avg_pool3d": {
+    "ms_api": [
+      "ops.avg_pool3d",
+      {
+        "input_x": "REQUIRED",
+        "kernel_size": 1,
+        "stride": 1,
+        "padding": 0,
+        "ceil_mode": false,
+        "count_include_pad": true
+      }
+    ],
+    "pt_api": [
+      "F.avg_pool3d",
+      {
+        "input": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "padding": 0,
+        "ceil_mode": false,
+        "count_include_pad": true
+      }
+    ],
+    "ms2pt_mapping": {
+      "input_x": "input",
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "padding": "padding",
+      "ceil_mode": "ceil_mode",
+      "count_include_pad": "count_include_pad"
+    },
+    "gen_explicit_map": null
+  },
+  "F.batch_norm": {
+    "ms_api": [
+      "ops.batch_norm",
+      {
+        "input_x": "REQUIRED",
+        "running_mean": "REQUIRED",
+        "running_var": "REQUIRED",
+        "weight": "REQUIRED",
+        "bias": "REQUIRED",
+        "training": false,
+        "momentum": 0.1,
+        "eps": 1e-05
+      }
+    ],
+    "pt_api": [
+      "F.batch_norm",
+      {
+        "input": "REQUIRED",
+        "running_mean": "REQUIRED",
+        "running_var": "REQUIRED",
+        "weight": null,
+        "bias": null,
+        "training": false,
+        "momentum": 0.1,
+        "eps": 1e-05
+      }
+    ],
+    "ms2pt_mapping": {
+      "input_x": "input",
+      "running_mean": "running_mean",
+      "running_var": "running_var",
+      "weight": "weight",
+      "bias": "bias",
+      "training": "training",
+      "momentum": "momentum",
+      "eps": "eps"
+    },
+    "gen_explicit_map": null
+  },
+  "F.bilinear": {
+    "ms_api": [
+      "ops.bidense",
+      {
+        "input1": "REQUIRED",
+        "input2": "REQUIRED",
+        "weight": "REQUIRED",
+        "bias": null
+      }
+    ],
+    "pt_api": [
+      "F.bilinear",
+      {
+        "input1": "REQUIRED",
+        "input2": "REQUIRED",
+        "weight": "REQUIRED",
+        "bias": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input1": "input1",
+      "input2": "input2",
+      "weight": "weight",
+      "bias": "bias"
+    },
+    "gen_explicit_map": null
+  },
+  "F.binary_cross_entropy_with_logits": {
+    "ms_api": [
+      "ops.binary_cross_entropy_with_logits",
+      {
+        "logits": "REQUIRED",
+        "label": "REQUIRED",
+        "weight": null,
+        "pos_weight": null,
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "F.binary_cross_entropy_with_logits",
+      {
+        "input": "REQUIRED",
+        "target": "REQUIRED",
+        "weight": null,
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean",
+        "pos_weight": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "logits": "input",
+      "label": "target",
+      "weight": "weight",
+      "pos_weight": "pos_weight",
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "F.celu": {
+    "ms_api": [
+      "ops.celu",
+      {
+        "x": "REQUIRED",
+        "alpha": 1.0
+      }
+    ],
+    "pt_api": [
+      "F.celu",
+      {
+        "input": "REQUIRED",
+        "alpha": 1.0,
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input",
+      "alpha": "alpha"
+    },
+    "gen_explicit_map": null
+  },
+  "F.conv1d": {
+    "ms_api": [
+      "ops.conv1d",
+      {
+        "input": "REQUIRED",
+        "weight": "REQUIRED",
+        "bias": null,
+        "stride": 1,
+        "pad_mode": "valid",
+        "padding": 0,
+        "dilation": 1,
+        "groups": 1
+      }
+    ],
+    "pt_api": [
+      "F.conv1d",
+      {
+        "input": "REQUIRED",
+        "weight": "REQUIRED",
+        "bias": null,
+        "stride": 1,
+        "padding": 0,
+        "dilation": 1,
+        "groups": 1
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "weight": "weight",
+      "bias": "bias",
+      "stride": "stride",
+      "padding": "padding",
+      "dilation": "dilation",
+      "groups": "groups"
+    },
+    "gen_explicit_map": null
+  },
+  "F.conv2d": {
+    "ms_api": [
+      "ops.conv2d",
+      {
+        "input": "REQUIRED",
+        "weight": "REQUIRED",
+        "bias": null,
+        "stride": 1,
+        "pad_mode": "valid",
+        "padding": 0,
+        "dilation": 1,
+        "groups": 1
+      }
+    ],
+    "pt_api": [
+      "F.conv2d",
+      {
+        "input": "REQUIRED",
+        "weight": "REQUIRED",
+        "bias": null,
+        "stride": 1,
+        "padding": 0,
+        "dilation": 1,
+        "groups": 1
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "weight": "weight",
+      "bias": "bias",
+      "stride": "stride",
+      "padding": "padding",
+      "dilation": "dilation",
+      "groups": "groups"
+    },
+    "gen_explicit_map": null
+  },
+  "F.conv3d": {
+    "ms_api": [
+      "ops.conv3d",
+      {
+        "input": "REQUIRED",
+        "weight": "REQUIRED",
+        "bias": null,
+        "stride": 1,
+        "pad_mode": "valid",
+        "padding": 0,
+        "dilation": 1,
+        "groups": 1
+      }
+    ],
+    "pt_api": [
+      "F.conv3d",
+      {
+        "input": "REQUIRED",
+        "weight": "REQUIRED",
+        "bias": null,
+        "stride": 1,
+        "padding": 0,
+        "dilation": 1,
+        "groups": 1
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "weight": "weight",
+      "bias": "bias",
+      "stride": "stride",
+      "padding": "padding",
+      "dilation": "dilation",
+      "groups": "groups"
+    },
+    "gen_explicit_map": null
+  },
+  "F.cosine_embedding_loss": {
+    "ms_api": [
+      "ops.cosine_embedding_loss",
+      {
+        "input1": "REQUIRED",
+        "input2": "REQUIRED",
+        "target": "REQUIRED",
+        "margin": 0.0,
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "F.cosine_embedding_loss",
+      {
+        "input1": "REQUIRED",
+        "input2": "REQUIRED",
+        "target": "REQUIRED",
+        "margin": 0,
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input1": "input1",
+      "input2": "input2",
+      "target": "target",
+      "margin": "margin",
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "F.cosine_similarity": {
+    "ms_api": [
+      "ops.cosine_similarity",
+      {
+        "x1": "REQUIRED",
+        "x2": "REQUIRED",
+        "dim": 1,
+        "eps": 1e-08
+      }
+    ],
+    "pt_api": [
+      "F.cosine_similarity",
+      {
+        "x1": "REQUIRED",
+        "x2": "REQUIRED",
+        "dim": 1,
+        "eps": 1e-08
+      }
+    ],
+    "ms2pt_mapping": {
+      "x1": "x1",
+      "x2": "x2",
+      "dim": "dim",
+      "eps": "eps"
+    },
+    "gen_explicit_map": null
+  },
+  "F.cross_entropy": {
+    "ms_api": [
+      "ops.cross_entropy",
+      {
+        "input": "REQUIRED",
+        "target": "REQUIRED",
+        "weight": null,
+        "ignore_index": -100,
+        "reduction": "mean",
+        "label_smoothing": 0.0
+      }
+    ],
+    "pt_api": [
+      "F.cross_entropy",
+      {
+        "input": "REQUIRED",
+        "target": "REQUIRED",
+        "weight": null,
+        "size_average": null,
+        "ignore_index": -100,
+        "reduce": null,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "target": "target",
+      "weight": "weight",
+      "ignore_index": "ignore_index",
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "F.ctc_loss": {
+    "ms_api": [
+      "ops.ctc_loss",
+      {
+        "log_probs": "REQUIRED",
+        "targets": "REQUIRED",
+        "input_lengths": "REQUIRED",
+        "target_lengths": "REQUIRED",
+        "blank": 0,
+        "reduction": "mean",
+        "zero_infinity": false
+      }
+    ],
+    "pt_api": [
+      "F.ctc_loss",
+      {
+        "log_probs": "REQUIRED",
+        "targets": "REQUIRED",
+        "input_lengths": "REQUIRED",
+        "target_lengths": "REQUIRED",
+        "blank": 0,
+        "reduction": "mean",
+        "zero_infinity": false
+      }
+    ],
+    "ms2pt_mapping": {
+        "log_probs": "log_probs",
+        "targets": "targets",
+        "input_lengths": "input_lengths",
+        "target_lengths": "target_lengths",
+        "blank": "blank",
+        "reduction": "reduction",
+        "zero_infinity": "zero_infinity"
+    },
+    "gen_explicit_map": null
+  },
+  "F.linear": {
+    "ms_api": [
+      "ops.dense",
+      {
+        "input": "REQUIRED",
+        "weight": "REQUIRED",
+        "bias": null
+      }
+    ],
+    "pt_api": [
+      "F.linear",
+      {
+        "input": "REQUIRED",
+        "weight": "REQUIRED",
+        "bias": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "weight": "weight",
+      "bias": "bias"
+    },
+    "gen_explicit_map": null
+  },
+  "F.dropout": {
+    "ms_api": [
+      "ops.dropout",
+      {
+        "input": "REQUIRED",
+        "p": 0.5,
+        "training": true,
+        "seed": null
+      }
+    ],
+    "pt_api": [
+      "F.dropout",
+      {
+        "input": "REQUIRED",
+        "p": 0.5,
+        "training": true,
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "p": "p",
+      "training": "training"
+    },
+    "gen_explicit_map": null
+  },
+  "F.dropout2d": {
+    "ms_api": [
+      "ops.dropout2d",
+      {
+        "input": "REQUIRED",
+        "p": 0.5,
+        "training": true
+      }
+    ],
+    "pt_api": [
+      "F.dropout2d",
+      {
+        "input": "REQUIRED",
+        "p": 0.5,
+        "training": true,
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "p": "p",
+      "training": "training"
+    },
+    "gen_explicit_map": null
+  },
+  "F.dropout3d": {
+    "ms_api": [
+      "ops.dropout",
+      {
+        "input": "REQUIRED",
+        "p": 0.5,
+        "training": true
+      }
+    ],
+    "pt_api": [
+      "F.dropout",
+      {
+        "input": "REQUIRED",
+        "p": 0.5,
+        "training": true,
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "p": "p",
+      "training": "training"
+    },
+    "gen_explicit_map": null
+  },
+  "F.elu": {
+    "ms_api": [
+      "ops.elu",
+      {
+        "input_x": "REQUIRED",
+        "alpha": 1.0
+      }
+    ],
+    "pt_api": [
+      "F.elu",
+      {
+        "input": "REQUIRED",
+        "alpha": 1.0,
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "input_x": "input",
+      "alpha": "alpha"
+    },
+    "gen_explicit_map": null
+  },
+  "F.fold": {
+    "ms_api": [
+      "ops.fold",
+      {
+        "input": "REQUIRED",
+        "output_size": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "dilation": 1,
+        "padding": 0,
+        "stride": 1
+      }
+    ],
+    "pt_api": [
+      "F.fold",
+      {
+        "input": "REQUIRED",
+        "output_size": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "dilation": 1,
+        "padding": 0,
+        "stride": 1
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "output_size": "output_size",
+      "kernel_size": "kernel_size",
+      "dilation": "dilation",
+      "padding": "padding",
+      "stride": "stride"
+    },
+    "gen_explicit_map": null
+  },
+  "F.gelu": {
+    "ms_api": [
+      "ops.gelu",
+      {
+        "input_x": "REQUIRED",
+        "approximate": null
+      }
+    ],
+    "pt_api": [
+      "F.gelu",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input_x": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "F.glu": {
+    "ms_api": [
+      "ops.glu",
+      {
+        "x": "REQUIRED",
+        "axis": -1
+      }
+    ],
+    "pt_api": [
+      "F.glu",
+      {
+        "input": "REQUIRED",
+        "dim": -1
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input",
+      "axis": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  "F.grid_sample": {
+    "ms_api": [
+      "ops.grid_sample",
+      {
+        "input": "REQUIRED",
+        "grid": "REQUIRED",
+        "mode": "bilinear",
+        "padding_mode": "zero",
+        "align_corners": false
+      }
+    ],
+    "pt_api": [
+      "F.grid_sample",
+      {
+        "input": "REQUIRED",
+        "grid": "REQUIRED",
+        "mode": "bilinear",
+        "padding_mode": "zero",
+        "align_corners": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "grid": "grid",
+      "mode": "mode",
+      "padding_mode": "padding_mode",
+      "align_corners": "align_corners"
+    },
+    "gen_explicit_map": null
+  },
+  "F.gumbel_softmax": {
+    "ms_api": [
+      "ops.gumbel_softmax",
+      {
+        "logits": "REQUIRED",
+        "tau": 1,
+        "hard": false,
+        "dim": -1
+      }
+    ],
+    "pt_api": [
+      "F.gumbel_softmax",
+      {
+        "logits": "REQUIRED",
+        "tau": 1,
+        "hard": false,
+        "eps": 1e-10,
+        "dim": -1
+      }
+    ],
+    "ms2pt_mapping": {
+      "logits": "logits",
+      "tau": "tau",
+      "hard": "hard",
+      "dim": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  "F.hardshrink": {
+    "ms_api": [
+      "ops.hardshrink",
+      {
+        "x": "REQUIRED",
+        "lambd": 0.5
+      }
+    ],
+    "pt_api": [
+      "F.hardshrink",
+      {
+        "input": "REQUIRED",
+        "lambd": 0.5
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input",
+      "lambd": "lambd"
+    },
+    "gen_explicit_map": null
+  },
+  "F.hardswish": {
+    "ms_api": [
+      "ops.hardswish",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "F.hardswish",
+      {
+        "input": "REQUIRED",
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "F.hardsigmoid": {
+    "ms_api": [
+      "ops.hardswish",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "F.hardswish",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "F.hardtanh": {
+    "ms_api": [
+      "ops.hardtanh",
+      {
+        "input": "REQUIRED",
+        "min_val": -1.0,
+        "max_val": 1.0
+      }
+    ],
+    "pt_api": [
+      "F.hardtanh",
+      {
+        "input": "REQUIRED",
+        "min_val": -1.0,
+        "max_val": 1.0,
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "min_val": "min_val",
+      "max_val": "max_val"
+    },
+    "gen_explicit_map": null
+  },
+  "F.hinge_embedding_loss": {
+    "ms_api": [
+      "ops.hinge_embedding_loss",
+      {
+        "input": "REQUIRED",
+        "targets": "REQUIRED",
+        "margin": 1.0,
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "F.hinge_embedding_loss",
+      {
+        "input": "REQUIRED",
+        "target": "REQUIRED",
+        "margin": 1.0,
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "targets": "target",
+      "margin": "margin",
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "F.interpolate": {
+    "ms_api": [
+      "ops.interpolate",
+      {
+        "input": "REQUIRED",
+        "size": null,
+        "scale_factor": null,
+        "mode": "nearest",
+        "align_corners": null,
+        "recompute_scale_factor": null
+      }
+    ],
+    "pt_api": [
+      "F.interpolate",
+      {
+        "input": "REQUIRED",
+        "size": null,
+        "scale_factor": null,
+        "mode": "nearest",
+        "align_corners": null,
+        "recompute_scale_factor": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "size": "size",
+      "scale_factor": "scale_factor",
+      "mode": "mode",
+      "align_corners": "align_corners",
+      "recompute_scale_factor": "recompute_scale_factor"
+    },
+    "gen_explicit_map": null
+  },
+  "F.kl_div": {
+    "ms_api": [
+      "ops.kl_div",
+      {
+        "logits": "REQUIRED",
+        "labels": "REQUIRED",
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "F.kl_div",
+      {
+        "input": "REQUIRED",
+        "target": "REQUIRED",
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean",
+        "log_target": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "logits": "input",
+      "labels": "target",
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "F.l1_loss": {
+    "ms_api": [
+      "ops.l1_loss",
+      {
+        "input": "REQUIRED",
+        "target": "REQUIRED",
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "F.l1_loss",
+      {
+        "input": "REQUIRED",
+        "target": "REQUIRED",
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "target": "target",
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "F.leaky_relu": {
+    "ms_api": [
+      "ops.leaky_relu",
+      {
+        "input": "REQUIRED",
+        "alpha": 0.2
+      }
+    ],
+    "pt_api": [
+      "F.leaky_relu",
+      {
+        "input": "REQUIRED",
+        "negative_slope": 0.01,
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "alpha": "negative_slope"
+    },
+    "gen_explicit_map": null
+  },
+  "F.logsigmoid": {
+    "ms_api": [
+      "ops.logsigmoid",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "F.logsigmoid",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "F.log_softmax": {
+    "ms_api": [
+      "ops.log_softmax",
+      {
+        "logits": "REQUIRED",
+        "axis": -1
+      }
+    ],
+    "pt_api": [
+      "F.log_softmax",
+      {
+        "input": "REQUIRED",
+        "dim": null,
+        "_stacklevel": 3,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "logits": "input",
+      "axis": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  "F.lp_pool1d": {
+    "ms_api": [
+      "ops.lp_pool1d",
+      {
+        "x": "REQUIRED",
+        "norm_type": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "ceil_mode": false
+      }
+    ],
+    "pt_api": [
+      "F.lp_pool1d",
+      {
+        "input": "REQUIRED",
+        "norm_type": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "ceil_mode": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input",
+      "norm_type": "norm_type",
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "ceil_mode": "ceil_mode"
+    },
+    "gen_explicit_map": null
+  },
+  "F.lp_pool2d": {
+    "ms_api": [
+      "ops.lp_pool2d",
+      {
+        "x": "REQUIRED",
+        "norm_type": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "ceil_mode": false
+      }
+    ],
+    "pt_api": [
+      "F.lp_pool2d",
+      {
+        "input": "REQUIRED",
+        "norm_type": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "ceil_mode": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input",
+      "norm_type": "norm_type",
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "ceil_mode": "ceil_mode"
+    },
+    "gen_explicit_map": null
+  },
+  "F.margin_ranking_loss": {
+    "ms_api": [
+      "ops.margin_ranking_loss",
+      {
+        "input1": "REQUIRED",
+        "input2": "REQUIRED",
+        "target": "REQUIRED",
+        "margin": 0.0,
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "F.margin_ranking_loss",
+      {
+        "input1": "REQUIRED",
+        "input2": "REQUIRED",
+        "target": "REQUIRED",
+        "margin": 0.0,
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input1": "input1",
+      "input2": "input2",
+      "target": "target",
+      "margin": "margin",
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "F.max_pool3d": {
+    "ms_api": [
+      "ops.max_pool3d",
+      {
+        "x": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "padding": 0,
+        "dilation": 1,
+        "ceil_mode": false,
+        "return_indices": false
+      }
+    ],
+    "pt_api": [
+      "F.max_pool3d",
+      {
+        "input": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "padding": 0,
+        "dilation": 1,
+        "ceil_mode": false,
+        "return_indices": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input",
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "padding": "padding",
+      "dilation": "dilation",
+      "ceil_mode": "ceil_mode",
+      "return_indices": "return_indices"
+    },
+    "gen_explicit_map": null
+  },
+  "F.max_unpool1d": {
+    "ms_api": [
+      "ops.max_unpool1d",
+      {
+        "x": "REQUIRED",
+        "indices": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "padding": 0,
+        "output_size": null
+      }
+    ],
+    "pt_api": [
+      "F.max_unpool1d",
+      {
+        "input": "REQUIRED",
+        "indices": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "padding": 0,
+        "output_size": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input",
+      "indices": "indices",
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "padding": "padding",
+      "output_size": "output_size"
+    },
+    "gen_explicit_map": null
+  },
+  "F.max_unpool2d": {
+    "ms_api": [
+      "ops.max_unpool2d",
+      {
+        "x": "REQUIRED",
+        "indices": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "padding": 0,
+        "output_size": null
+      }
+    ],
+    "pt_api": [
+      "F.max_unpool2d",
+      {
+        "input": "REQUIRED",
+        "indices": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "padding": 0,
+        "output_size": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input",
+      "indices": "indices",
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "padding": "padding",
+      "output_size": "output_size"
+    },
+    "gen_explicit_map": null
+  },
+  "F.max_unpool3d": {
+    "ms_api": [
+      "ops.max_unpool3d",
+      {
+        "x": "REQUIRED",
+        "indices": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "padding": 0,
+        "output_size": null
+      }
+    ],
+    "pt_api": [
+      "F.max_unpool3d",
+      {
+        "input": "REQUIRED",
+        "indices": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "padding": 0,
+        "output_size": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input",
+      "indices": "indices",
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "padding": "padding",
+      "output_size": "output_size"
+    },
+    "gen_explicit_map": null
+  },
+  "F.mse_loss": {
+    "ms_api": [
+      "ops.mse_loss",
+      {
+        "input": "REQUIRED",
+        "target": "REQUIRED",
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "F.mse_loss",
+      {
+        "input": "REQUIRED",
+        "target": "REQUIRED",
+        "size_average": "REQUIRED",
+        "reduce": null,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "target": "target",
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "F.multi_margin_loss": {
+    "ms_api": [
+      "ops.multi_margin_loss",
+      {
+        "input": "REQUIRED",
+        "target": "REQUIRED",
+        "p": 1,
+        "margin": 1,
+        "weight": null,
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "F.multi_margin_loss",
+      {
+        "input": "REQUIRED",
+        "target": "REQUIRED",
+        "p": 1,
+        "margin": 1,
+        "weight": null,
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "target": "target",
+      "p": "p",
+      "margin": "margin",
+      "weight": "weight",
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "F.multilabel_margin_loss": {
+    "ms_api": [
+      "ops.multilabel_margin_loss",
+      {
+        "input": "REQUIRED",
+        "target": "REQUIRED",
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "F.multilabel_margin_loss",
+      {
+        "input": "REQUIRED",
+        "target": "REQUIRED",
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "target": "target",
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "F.multilabel_soft_margin_loss": {
+    "ms_api": [
+      "ops.multilabel_soft_margin_loss",
+      {
+        "input": "REQUIRED",
+        "target": "REQUIRED",
+        "weight": null,
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "F.multilabel_soft_margin_loss",
+      {
+        "input": "REQUIRED",
+        "target": "REQUIRED",
+        "weight": null,
+        "size_average": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "REQUIRED",
+      "target": "REQUIRED",
+      "weight": "weight"
+    },
+    "gen_explicit_map": null
+  },
+  "F.nll_loss": {
+    "ms_api": [
+      "ops.nll_loss",
+      {
+        "input": "REQUIRED",
+        "target": "REQUIRED",
+        "weight": null,
+        "ignore_index": -100,
+        "reduction": "mean",
+        "label_smoothing": 0.0
+      }
+    ],
+    "pt_api": [
+      "F.nll_loss",
+      {
+        "input": "REQUIRED",
+        "target": "REQUIRED",
+        "weight": null,
+        "size_average": null,
+        "ignore_index": -100,
+        "reduce": null,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "target": "target",
+      "weight": "weight",
+      "ignore_index": "ignore_index",
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "F.pad": {
+    "ms_api": [
+      "ops.pad",
+      {
+        "input_x": "REQUIRED",
+        "padding": "REQUIRED",
+        "mode": "constant",
+        "value": null
+      }
+    ],
+    "pt_api": [
+      "F.pad",
+      {
+        "input": "REQUIRED",
+        "pad": "REQUIRED",
+        "mode": "constant",
+        "value": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input_x": "input",
+      "padding": "pad",
+      "mode": "mode",
+      "value": "value"
+    },
+    "gen_explicit_map": null
+  },
+  "F.pdist": {
+    "ms_api": [
+      "ops.pdist",
+      {
+        "input": "REQUIRED",
+        "p": 2.0
+      }
+    ],
+    "pt_api": [
+      "F.pdist",
+      {
+        "input": "REQUIRED",
+        "p": 2.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "p": "p"
+    },
+    "gen_explicit_map": null
+  },
+  "F.pixel_shuffle": {
+    "ms_api": [
+      "ops.pixel_shuffle",
+      {
+        "input": "REQUIRED",
+        "upscale_factor": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "F.pixel_shuffle",
+      {
+        "input": "REQUIRED",
+        "upscale_factor": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "upscale_factor": "upscale_factor"
+    },
+    "gen_explicit_map": null
+  }, 
+  "F.pixel_unshuffle": {
+    "ms_api": [
+      "ops.pixel_unshuffle",
+      {
+        "input": "REQUIRED",
+        "downscale_factor": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "F.pixel_unshuffle",
+      {
+        "input": "REQUIRED",
+        "downscale_factor": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "downscale_factor": "downscale_factor"
+    },
+    "gen_explicit_map": null
+  }, 
+  "F.prelu": {
+    "ms_api": [
+      "ops.prelu",
+      {
+        "x": "REQUIRED",
+        "weight": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "F.prelu",
+      {
+        "input": "REQUIRED",
+        "weight": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input",
+      "weight": "weight"
+    },
+    "gen_explicit_map": null
+  },
+  "F.relu": {
+    "ms_api": [
+      "ops.relu",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "F.relu",
+      {
+        "input": "REQUIRED",
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "F.relu6": {
+    "ms_api": [
+      "ops.relu6",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "F.relu6",
+      {
+        "input": "REQUIRED",
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "F.rrelu": {
+    "ms_api": [
+      "ops.rrelu",
+      {
+        "input": "REQUIRED",
+        "lower": "1/8",
+        "upper": "1/3"
+      }
+    ],
+    "pt_api": [
+      "F.rrelu",
+      {
+        "input": "REQUIRED",
+        "lower": "1/8",
+        "upper": "1/3",
+        "training": false,
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "lower": "lower",
+      "upper": "upper"
+    },
+    "gen_explicit_map": null
+  },
+  "F.selu": {
+    "ms_api": [
+      "ops.selu",
+      {
+        "input_x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "F.selu",
+      {
+        "input": "REQUIRED",
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "input_x": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "F.sigmoid": {
+    "ms_api": [
+      "ops.sigmoid",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "F.sigmoid",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "F.silu": {
+    "ms_api": [
+      "ops.silu",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "F.silu",
+      {
+        "input": "REQUIRED",
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "F.softmax": {
+    "ms_api": [
+      "ops.softmax",
+      {
+        "x": "REQUIRED",
+        "axis": -1,
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      "F.softmax",
+      {
+        "input": "REQUIRED",
+        "dim": null,
+        "_stacklevel": 3,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input",
+      "axis": "dim",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "F.softmin": {
+    "ms_api": [
+      "ops.softmin",
+      {
+        "x": "REQUIRED",
+        "axis": -1,
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      "F.softmin",
+      {
+        "input": "REQUIRED",
+        "dim": null,
+        "_stacklevel": 3,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input",
+      "axis": "dim",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "F.softsign": {
+    "ms_api": [
+      "ops.softsign",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "F.softsign",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "F.smooth_l1_loss": {
+    "ms_api": [
+      "ops.smooth_l1_loss",
+      {
+        "input": "REQUIRED",
+        "target": "REQUIRED",
+        "beta": 1.0,
+        "reduction": "none"
+      }
+    ],
+    "pt_api": [
+      "F.smooth_l1_loss",
+      {
+        "input": "REQUIRED",
+        "target": "REQUIRED",
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean",
+        "beta": 1.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "target": "target",
+      "beta": "beta",
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "F.soft_margin_loss": {
+    "ms_api": [
+      "ops.soft_margin_loss",
+      {
+        "input": "REQUIRED",
+        "target": "REQUIRED",
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "F.soft_margin_loss",
+      {
+        "input": "REQUIRED",
+        "target": "REQUIRED",
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "target": "target",
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "F.softshrink": {
+    "ms_api": [
+      "ops.softshrink",
+      {
+        "x": "REQUIRED",
+        "lambd": 0.5
+      }
+    ],
+    "pt_api": [
+      "F.softshrink",
+      {
+        "input": "REQUIRED",
+        "lambd": 0.5
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input",
+      "lambd": "lambd"
+    },
+    "gen_explicit_map": null
+  },
+  "F.tanh": {
+    "ms_api": [
+      "ops.tanh",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "F.tanh",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "F.tanhshrink": {
+    "ms_api": [
+      "ops.tanhshrink",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "F.tanhshrink",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "F.threshold": {
+    "ms_api": [
+      "ops.threshold",
+      {
+        "input": "REQUIRED",
+        "thr": "REQUIRED",
+        "value": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "F.threshold",
+      {
+        "input": "REQUIRED",
+        "threshold": "REQUIRED",
+        "value": "REQUIRED",
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "thr": "threshold",
+      "value": "value"
+    },
+    "gen_explicit_map": null
+  },
+  "F.triplet_margin_loss": {
+    "ms_api": [
+      "ops.triplet_margin_loss",
+      {
+        "anchor": "REQUIRED",
+        "positive": "REQUIRED",
+        "negative": "REQUIRED",
+        "margin": 1.0,
+        "p": 2,
+        "eps": 1e-06,
+        "swap": false,
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "F.triplet_margin_loss",
+      {
+        "anchor": "REQUIRED",
+        "positive": "REQUIRED",
+        "negative": "REQUIRED",
+        "margin": 1.0,
+        "p": 2,
+        "eps": 1e-06,
+        "swap": false,
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "anchor": "anchor",
+      "positive": "positive",
+      "negative": "negative",
+      "margin": "margin",
+      "p": "p",
+      "eps": "eps",
+      "swap": "swap",
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "F.unfold": {
+    "ms_api": [
+      "ops.unfold",
+      {
+        "input": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "dilation": 1,
+        "padding": 0,
+        "stride": 1
+      }
+    ],
+    "pt_api": [
+      "F.unfold",
+      {
+        "input": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "dilation": 1,
+        "padding": 0,
+        "stride": 1
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "kernel_size": "kernel_size",
+      "dilation": "dilation",
+      "padding": "padding",
+      "stride": "stride"
+    },
+    "gen_explicit_map": null
+  },
+  "F.upsample": {
+    "ms_api": [
+      "ops.upsample",
+      {
+        "input": "REQUIRED",
+        "size": "REQUIRED",
+        "scale_factor": null,
+        "mode": "nearest",
+        "align_corners": null,
+        "recompute_scale_factor": null
+      }
+    ],
+    "pt_api": [
+      "F.upsample",
+      {
+        "input": "REQUIRED",
+        "size": "REQUIRED",
+        "scale_factor": null,
+        "mode": "nearest",
+        "align_corners": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "size": "size",
+      "scale_factor": "scale_factor",
+      "mode": "mode",
+      "align_corners": "align_corners"
+    },
+    "gen_explicit_map": null
+  },
+  "F.max_pool2d": {
+    "ms_api": [
+      "ops.MaxPool",
+      {
+        "ksize": 1,
+        "strides": 1,
+        "padding": "valid",
+        "input": "REQUIRED"
+      },
+      [
+        "ksize",
+        "strides",
+        "padding"
+      ]
+    ],
+    "pt_api": [
+      "F.max_pool2d",
+      {
+        "input": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "padding": 0,
+        "dilation": 1,
+        "ceil_mode": false,
+        "return_indices": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "ksize": "kernel_size",
+      "input": "input"
+    },
+    "gen_explicit_map": "gen_explicit_map_f_max_pool2d"
+  },
+  "F.normalize": {
+    "ms_api": [
+      "ops.L2Normalize",
+      {
+        "axis": 0,
+        "epsilon": 0.0001,
+        "input_x": "REQUIRED"
+      },
+      [
+        "axis",
+        "epsilon"
+      ]
+    ],
+    "pt_api": [
+      "F.normalize",
+      {
+        "input": "REQUIRED",
+        "p": 2,
+        "dim": 1,
+        "eps": 1e-12
+      }
+    ],
+    "ms2pt_mapping": {
+      "input_x": "input",
+      "epsilon": "eps",
+      "axis": "dim"
+    }
+  }
+}

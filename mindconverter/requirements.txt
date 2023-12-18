@@ -1,0 +1,7 @@
+google-pasta
+numpy>=1.17.0
+protobuf>=3.13.0
+yapf
+networkx
+fuzzywuzzy
+beautifulsoup4

@@ -1,0 +1,6164 @@
+{
+  "torch.abs": {
+    "ms_api": [
+      "ops.abs",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.abs",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.absolute": {
+    "ms_api": [
+      "ops.absolute",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.absolute",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.acos": {
+    "ms_api": [
+      "ops.acos",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.acos",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.acosh": {
+    "ms_api": [
+      "ops.acosh",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.acosh",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.add": {
+    "ms_api": [
+      "ops.add",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.add",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "alpha": 1.0,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.addbmm": {
+    "ms_api": [
+      "ops.addbmm",
+      {
+        "input": "REQUIRED",
+        "batch1": "REQUIRED",
+        "batch2": "REQUIRED",
+        "beta": 1.0,
+        "alpha": 1.0
+      }
+    ],
+    "pt_api": [
+      "torch.addbmm",
+      {
+        "input": "REQUIRED",
+        "batch1": "REQUIRED",
+        "batch2": "REQUIRED",
+        "beta": 1.0,
+        "alpha": 1.0,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "batch1": "batch1",
+      "batch2": "batch2",
+      "beta": "beta",
+      "alpha": "alpha"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.addcdiv": {
+    "ms_api": [
+      "ops.addcdiv",
+      {
+        "input": "REQUIRED",
+        "tensor1": "REQUIRED",
+        "tensor2": "REQUIRED",
+        "value": 1.0
+      }
+    ],
+    "pt_api": [
+      "torch.addcdiv",
+      {
+        "input": "REQUIRED",
+        "tensor1": "REQUIRED",
+        "tensor2": "REQUIRED",
+        "value": 1.0,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "tensor1": "tensor1",
+      "tensor2": "tensor2",
+      "value": "value"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.addcmul": {
+    "ms_api": [
+      "ops.addcmul",
+      {
+        "input": "REQUIRED",
+        "tensor1": "REQUIRED",
+        "tensor2": "REQUIRED",
+        "value": 1.0
+      }
+    ],
+    "pt_api": [
+      "torch.addcmul",
+      {
+        "input": "REQUIRED",
+        "tensor1": "REQUIRED",
+        "tensor2": "REQUIRED",
+        "value": 1.0,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "tensor1": "tensor1",
+      "tensor2": "tensor2",
+      "value": "value"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.addmm": {
+    "ms_api": [
+      "ops.addmm",
+      {
+        "input": "REQUIRED",
+        "mat1": "REQUIRED",
+        "mat2": "REQUIRED",
+        "beta": 1.0,
+        "alpha": 1.0
+      }
+    ],
+    "pt_api": [
+      "torch.addmm",
+      {
+        "input": "REQUIRED",
+        "mat1": "REQUIRED",
+        "mat2": "REQUIRED",
+        "beta": 1.0,
+        "alpha": 1.0,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "mat1": "mat1",
+      "mat2": "mat2",
+      "beta": "beta",
+      "alpha": "alpha"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.addmv": {
+    "ms_api": [
+      "ops.addmv",
+      {
+        "input": "REQUIRED",
+        "mat": "REQUIRED",
+        "vec": "REQUIRED",
+        "beta": 1.0,
+        "alpha": 1.0
+      }
+    ],
+    "pt_api": [
+      "torch.addmv",
+      {
+        "input": "REQUIRED",
+        "mat": "REQUIRED",
+        "vec": "REQUIRED",
+        "beta": 1.0,
+        "alpha": 1.0,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "mat": "mat",
+      "vec": "vec",
+      "beta": "beta",
+      "alpha": "alpha"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.addr": {
+    "ms_api": [
+      "ops.addr",
+      {
+        "x": "REQUIRED",
+        "vec1": "REQUIRED",
+        "vec2": "REQUIRED",
+        "beta": 1.0,
+        "alpha": 1.0
+      }
+    ],
+    "pt_api": [
+      "torch.addr",
+      {
+        "input": "REQUIRED",
+        "vec1": "REQUIRED",
+        "vec2": "REQUIRED",
+        "beta": 1.0,
+        "alpha": 1.0,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input",
+      "vec1": "vec1",
+      "vec2": "vec2",
+      "beta": "beta",
+      "alpha": "alpha"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.all": {
+    "ms_api": [
+      "ops.all",
+      {
+        "input": "REQUIRED",
+        "axis": null,
+        "keep_dims": false
+      }
+    ],
+    "pt_api": [
+      "torch.all",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.amax": {
+    "ms_api": [
+      "ops.amax",
+      {
+        "input": "REQUIRED",
+        "axis": null,
+        "keepdims": false,
+        "initial": null,
+        "where": null
+      }
+    ],
+    "pt_api": [
+      "torch.amax",
+      {
+        "input": "REQUIRED",
+        "dim": "REQUIRED",
+        "keepdim": false,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "axis": "dim",
+      "keepdims": "keepdim"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.amin": {
+    "ms_api": [
+      "ops.amin",
+      {
+        "input": "REQUIRED",
+        "axis": null,
+        "keepdims": false,
+        "initial": null,
+        "where": null
+      }
+    ],
+    "pt_api": [
+      "torch.amin",
+      {
+        "input": "REQUIRED",
+        "dim": "REQUIRED",
+        "keepdim": false,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "axis": "dim",
+      "keepdims": "keepdim"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.angle": {
+    "ms_api": [
+      "ops.angle",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.angle",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.any": {
+    "ms_api": [
+      "ops.any",
+      {
+        "input": "REQUIRED",
+        "axis": null,
+        "keep_dims": false
+      }
+    ],
+    "pt_api": [
+      "torch.any",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.arange": {
+    "ms_api": [
+      "ops.arange",
+      {
+        "start": 0.0,
+        "end": null,
+        "step": 1.0,
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      "torch.arange",
+      {
+        "start": 0.0,
+        "end": "REQUIRED",
+        "step": 1.0,
+        "out": null,
+        "dtype": null,
+        "layout": "torch.strided",
+        "device": null,
+        "requires_grad": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "start": "start",
+      "end": "end",
+      "step": "step"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.arccos": {
+    "ms_api": [
+      "ops.arccos",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.arccos",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.arccosh": {
+    "ms_api": [
+      "ops.arccosh",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.arccosh",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.arcsin": {
+    "ms_api": [
+      "ops.arcsin",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.arcsin",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.arcsinh": {
+    "ms_api": [
+      "ops.arcsinh",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.arcsinh",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.arctan": {
+    "ms_api": [
+      "ops.arctan",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.arctan",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.arctanh": {
+    "ms_api": [
+      "ops.arctanh",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.arctanh",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.argmax": {
+    "ms_api": [
+      "ops.argmax",
+      {
+        "input": "REQUIRED",
+        "dim": null,
+        "keepdim": false
+      }
+    ],
+    "pt_api": [
+      "torch.argmax",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.argmin": {
+    "ms_api": [
+      "ops.argmin",
+      {
+        "input": "REQUIRED",
+        "axis": null,
+        "keepdims": false
+      }
+    ],
+    "pt_api": [
+      "torch.argmin",
+      {
+        "input": "REQUIRED",
+        "dim": null,
+        "keepdim": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "axis": "dim",
+      "keepdims": "keepdim"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.argsort": {
+    "ms_api": [
+      "ops.argsort",
+      {
+        "input": "REQUIRED",
+        "axis": -1,
+        "descending": false
+      }
+    ],
+    "pt_api": [
+      "torch.argsort",
+      {
+        "input": "REQUIRED",
+        "dim": -1.0,
+        "descending": false,
+        "stable": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "axis": "dim",
+      "descending": "descending"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.asin": {
+    "ms_api": [
+      "ops.asin",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.asin",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.asinh": {
+    "ms_api": [
+      "ops.asinh",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.asinh",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.atan": {
+    "ms_api": [
+      "ops.atan",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.atan",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.atan2": {
+    "ms_api": [
+      "ops.atan2",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.atan2",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.atanh": {
+    "ms_api": [
+      "ops.atanh",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.atanh",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.atleast_1d": {
+    "ms_api": [
+      "ops.atleast_1d",
+      {
+        "inputs": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.atleast_1d",
+      {
+        "*tensors": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "inputs": "*tensors"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.atleast_2d": {
+    "ms_api": [
+      "ops.atleast_2d",
+      {
+        "inputs": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.atleast_2d",
+      {
+        "*tensors": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "inputs": "*tensors"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.atleast_3d": {
+    "ms_api": [
+      "ops.atleast_3d",
+      {
+        "inputs": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.atleast_3d",
+      {
+        "*tensors": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "inputs": "*tensors"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.baddbmm": {
+    "ms_api": [
+      "ops.baddbmm",
+      {
+        "input": "REQUIRED",
+        "batch1": "REQUIRED",
+        "batch2": "REQUIRED",
+        "beta": 1.0,
+        "alpha": 1.0
+      }
+    ],
+    "pt_api": [
+      "torch.baddbmm",
+      {
+        "input": "REQUIRED",
+        "batch1": "REQUIRED",
+        "batch2": "REQUIRED",
+        "beta": 1.0,
+        "alpha": 1.0,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "batch1": "batch1",
+      "batch2": "batch2",
+      "beta": "beta",
+      "alpha": "alpha"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.bartlett_window": {
+    "ms_api": [
+      "ops.bartlett_window",
+      {
+        "window_length": "REQUIRED",
+        "periodic": true,
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      "torch.bartlett_window",
+      {
+        "window_length": "REQUIRED",
+        "periodic": true,
+        "dtype": null,
+        "layout": "torch.strided",
+        "device": null,
+        "requires_grad": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "window_length": "window_length",
+      "periodic": "periodic",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.bernoulli": {
+    "ms_api": [
+      "ops.bernoulli",
+      {
+        "input": "REQUIRED",
+        "p": 0.5,
+        "seed": null
+      }
+    ],
+    "pt_api": [
+      "torch.bernoulli",
+      {
+        "input": "REQUIRED",
+        "generator": null,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.bincount": {
+    "ms_api": [
+      "ops.bincount",
+      {
+        "input": "REQUIRED",
+        "weights": null,
+        "minlength": 0.0
+      }
+    ],
+    "pt_api": [
+      "torch.bincount",
+      {
+        "input": "REQUIRED",
+        "weights": null,
+        "minlength": 0.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "weights": "weights",
+      "minlength": "minlength"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.bitwise_and": {
+    "ms_api": [
+      "ops.bitwise_and",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.bitwise_and",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.bitwise_or": {
+    "ms_api": [
+      "ops.bitwise_or",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.bitwise_or",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.bitwise_xor": {
+    "ms_api": [
+      "ops.bitwise_xor",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.bitwise_xor",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.blackman_window": {
+    "ms_api": [
+      "ops.blackman_window",
+      {
+        "window_length": "REQUIRED",
+        "periodic": true,
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      "torch.blackman_window",
+      {
+        "window_length": "REQUIRED",
+        "periodic": true,
+        "dtype": null,
+        "layout": "torch.strided",
+        "device": null,
+        "requires_grad": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "window_length": "window_length",
+      "periodic": "periodic",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.block_diag": {
+    "ms_api": [
+      "ops.block_diag",
+      {
+        "*inputs": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.block_diag",
+      {
+        "*tensors": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "*inputs": "*tensors"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.bmm": {
+    "ms_api": [
+      "ops.bmm",
+      {
+        "input_x": "REQUIRED",
+        "mat2": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.bmm",
+      {
+        "input": "REQUIRED",
+        "mat2": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input_x": "input",
+      "mat2": "mat2"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.bucketize": {
+    "ms_api": [
+      "ops.bucketize",
+      {
+        "input": "REQUIRED",
+        "boundaries": "REQUIRED",
+        "right": false
+      }
+    ],
+    "pt_api": [
+      "torch.bucketize",
+      {
+        "input": "REQUIRED",
+        "boundaries": "REQUIRED",
+        "out_int32": false,
+        "right": false,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "boundaries": "boundaries",
+      "right": "right"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.broadcast_to": {
+    "ms_api": [
+      "ops.broadcast_to",
+      {
+        "input": "REQUIRED",
+        "shape": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.broadcast_to",
+      {
+        "input": "REQUIRED",
+        "shape": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "shape": "shape"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.cat": {
+    "ms_api": [
+      "ops.cat",
+      {
+        "tensors": "REQUIRED",
+        "axis": 0.0
+      }
+    ],
+    "pt_api": [
+      "torch.cat",
+      {
+        "tensors": "REQUIRED",
+        "dim": 0.0,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "tensors": "tensors",
+      "axis": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.cdist": {
+    "ms_api": [
+      "ops.cdist",
+      {
+        "x1": "REQUIRED",
+        "x2": "REQUIRED",
+        "p": 2.0
+      }
+    ],
+    "pt_api": [
+      "torch.cdist",
+      {
+        "x1": "REQUIRED",
+        "x2": "REQUIRED",
+        "p": 2.0,
+        "compute_mode": "use_mm_for_euclid_dist_if_necessary"
+      }
+    ],
+    "ms2pt_mapping": {
+      "x1": "x1",
+      "x2": "x2",
+      "p": "p"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.ceil": {
+    "ms_api": [
+      "ops.ceil",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.ceil",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.cholesky": {
+    "ms_api": [
+      "ops.cholesky",
+      {
+        "input_x": "REQUIRED",
+        "upper": false
+      }
+    ],
+    "pt_api": [
+      "torch.cholesky",
+      {
+        "input": "REQUIRED",
+        "upper": false,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input_x": "input",
+      "upper": "upper"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.cholesky_solve": {
+    "ms_api": [
+      "ops.cholesky_solve",
+      {
+        "input": "REQUIRED",
+        "input2": "REQUIRED",
+        "upper": false
+      }
+    ],
+    "pt_api": [
+      "torch.cholesky_solve",
+      {
+        "input": "REQUIRED",
+        "input2": "REQUIRED",
+        "upper": false,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "input2": "input2",
+      "upper": "upper"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.chunk": {
+    "ms_api": [
+      "ops.chunk",
+      {
+        "input": "REQUIRED",
+        "chunks": "REQUIRED",
+        "axis": 0.0
+      }
+    ],
+    "pt_api": [
+      "torch.chunk",
+      {
+        "input": "REQUIRED",
+        "chunks": "REQUIRED",
+        "dim": 0.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "chunks": "chunks",
+      "axis": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.clamp": {
+    "ms_api": [
+      "ops.clamp",
+      {
+        "input": "REQUIRED",
+        "min": null,
+        "max": null
+      }
+    ],
+    "pt_api": [
+      "torch.clamp",
+      {
+        "input": "REQUIRED",
+        "min": null,
+        "max": null,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "min": "min",
+      "max": "max"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.clip": {
+    "ms_api": [
+      "ops.clip",
+      {
+        "input": "REQUIRED",
+        "min": null,
+        "max": null
+      }
+    ],
+    "pt_api": [
+      "torch.clip",
+      {
+        "input": "REQUIRED",
+        "min": null,
+        "max": null,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "min": "min",
+      "max": "max"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.column_stack": {
+    "ms_api": [
+      "ops.column_stack",
+      {
+        "tensors": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.column_stack",
+      {
+        "tensors": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "tensors": "tensors"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.combinations": {
+    "ms_api": [
+      "ops.combinations",
+      {
+        "input": "REQUIRED",
+        "r": 2.0,
+        "with_replacement": false
+      }
+    ],
+    "pt_api": [
+      "torch.combinations",
+      {
+        "input": "REQUIRED",
+        "r": 2.0,
+        "with_replacement": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "r": "r",
+      "with_replacement": "with_replacement"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.conj": {
+    "ms_api": [
+      "ops.conj",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.conj",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.copysign": {
+    "ms_api": [
+      "ops.copysign",
+      {
+        "x": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.copysign",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.cos": {
+    "ms_api": [
+      "ops.cos",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.cos",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.cosh": {
+    "ms_api": [
+      "ops.cosh",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.cosh",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.count_nonzero": {
+    "ms_api": [
+      "ops.count_nonzero",
+      {
+        "x": "REQUIRED",
+        "axis": "REQUIRED",
+        "keep_dims": false,
+        "dtype": "mstype.int32"
+      }
+    ],
+    "pt_api": [
+      "torch.count_nonzero",
+      {
+        "input": "REQUIRED",
+        "dim": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input",
+      "axis": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.cross": {
+    "ms_api": [
+      "ops.cross",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "dim": null
+      }
+    ],
+    "pt_api": [
+      "torch.cross",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "dim": null,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other",
+      "dim": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.cummax": {
+    "ms_api": [
+      "ops.cummax",
+      {
+        "input": "REQUIRED",
+        "axis": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.cummax",
+      {
+        "input": "REQUIRED",
+        "dim": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "axis": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.cummin": {
+    "ms_api": [
+      "ops.cummin",
+      {
+        "input": "REQUIRED",
+        "axis": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.cummin",
+      {
+        "input": "REQUIRED",
+        "dim": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "axis": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.cumprod": {
+    "ms_api": [
+      "ops.cumprod",
+      {
+        "input": "REQUIRED",
+        "dim": "REQUIRED",
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      "torch.cumprod",
+      {
+        "input": "REQUIRED",
+        "dim": "REQUIRED",
+        "dtype": null,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "dim": "dim",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.cumsum": {
+    "ms_api": [
+      "ops.cumsum",
+      {
+        "x": "REQUIRED",
+        "axis": "REQUIRED",
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      "torch.cumsum",
+      {
+        "input": "REQUIRED",
+        "dim": "REQUIRED",
+        "dtype": null,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input",
+      "axis": "dim",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.deg2rad": {
+    "ms_api": [
+      "ops.deg2rad",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.deg2rad",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.diag": {
+    "ms_api": [
+      "ops.diag",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.diag",
+      {
+        "input": "REQUIRED",
+        "diagonal": 0.0,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.diag_embed": {
+    "ms_api": [
+      "ops.diag_embed",
+      {
+        "input": "REQUIRED",
+        "offset": 0.0,
+        "dim1": "- 2",
+        "dim2": -1
+      }
+    ],
+    "pt_api": [
+      "torch.diag_embed",
+      {
+        "input": "REQUIRED",
+        "offset": 0.0,
+        "dim1": -2.0,
+        "dim2": -1.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "offset": "offset",
+      "dim1": "dim1",
+      "dim2": "dim2"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.diagflat": {
+    "ms_api": [
+      "ops.diagflat",
+      {
+        "input": "REQUIRED",
+        "offset": 0.0
+      }
+    ],
+    "pt_api": [
+      "torch.diagflat",
+      {
+        "input": "REQUIRED",
+        "offset": 0.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "offset": "offset"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.diagonal": {
+    "ms_api": [
+      "ops.diagonal",
+      {
+        "input": "REQUIRED",
+        "offset": 0.0,
+        "dim1": 0.0,
+        "dim2": 1.0
+      }
+    ],
+    "pt_api": [
+      "torch.diagonal",
+      {
+        "input": "REQUIRED",
+        "offset": 0.0,
+        "dim1": 0.0,
+        "dim2": 1.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "offset": "offset",
+      "dim1": "dim1",
+      "dim2": "dim2"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.diff": {
+    "ms_api": [
+      "ops.diff",
+      {
+        "x": "REQUIRED",
+        "n": 1.0,
+        "axis": -1,
+        "prepend": null,
+        "append": null
+      }
+    ],
+    "pt_api": [
+      "torch.diff",
+      {
+        "input": "REQUIRED",
+        "n": 1.0,
+        "dim": -1.0,
+        "prepend": null,
+        "append": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input",
+      "n": "n",
+      "axis": "dim",
+      "prepend": "prepend",
+      "append": "append"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.digamma": {
+    "ms_api": [
+      "ops.digamma",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.digamma",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.dist": {
+    "ms_api": [
+      "ops.dist",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "p": 2.0
+      }
+    ],
+    "pt_api": [
+      "torch.dist",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "p": 2.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other",
+      "p": "p"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.div": {
+    "ms_api": [
+      "ops.div",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "rounding_mode": null
+      }
+    ],
+    "pt_api": [
+      "torch.div",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "rounding_mode": null,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other",
+      "rounding_mode": "rounding_mode"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.divide": {
+    "ms_api": [
+      "ops.divide",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "rounding_mode": null
+      }
+    ],
+    "pt_api": [
+      "torch.divide",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "rounding_mode": null,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other",
+      "rounding_mode": "rounding_mode"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.dot": {
+    "ms_api": [
+      "ops.tensor_dot",
+      {
+        "x1": "REQUIRED",
+        "x2": "REQUIRED",
+        "axes": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.dot",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "x1": "input",
+      "x2": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.dstack": {
+    "ms_api": [
+      "ops.dstack",
+      {
+        "inputs": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.dstack",
+      {
+        "tensors": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "inputs": "tensors"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.einsum": {
+    "ms_api": [
+      "ops.einsum",
+      {
+        "equation": "REQUIRED",
+        "*operands": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.einsum",
+      {
+        "equation": "REQUIRED",
+        "*operands": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "equation": "equation",
+      "*operands": "*operands"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.eq": {
+    "ms_api": [
+      "ops.equal",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.eq",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.erf": {
+    "ms_api": [
+      "ops.erf",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.erf",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.erfc": {
+    "ms_api": [
+      "ops.erfc",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.erfc",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.erfinv": {
+    "ms_api": [
+      "ops.erfinv",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.erfinv",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.exp": {
+    "ms_api": [
+      "ops.exp",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.exp",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.exp2": {
+    "ms_api": [
+      "ops.exp2",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.exp2",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.expm1": {
+    "ms_api": [
+      "ops.expm1",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.expm1",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.eye": {
+    "ms_api": [
+      "ops.eye",
+      {
+        "n": "REQUIRED",
+        "m": null,
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      "torch.eye",
+      {
+        "n": "REQUIRED",
+        "m": null,
+        "out": null,
+        "dtype": null,
+        "layout": "torch.strided",
+        "device": null,
+        "requires_grad": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "n": "n",
+      "m": "m",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.flatten": {
+    "ms_api": [
+      "ops.flatten",
+      {
+        "input": "REQUIRED",
+        "order": "C",
+        "start_dim": 1.0,
+        "end_dim": -1
+      }
+    ],
+    "pt_api": [
+      "torch.flatten",
+      {
+        "input": "REQUIRED",
+        "start_dim": 0.0,
+        "end_dim": -1.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "start_dim": "start_dim",
+      "end_dim": "end_dim"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.float_power": {
+    "ms_api": [
+      "ops.float_power",
+      {
+        "input": "REQUIRED",
+        "exponent": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.float_power",
+      {
+        "input": "REQUIRED",
+        "exponent": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "exponent": "exponent"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.flip": {
+    "ms_api": [
+      "ops.flip",
+      {
+        "input": "REQUIRED",
+        "dims": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.flip",
+      {
+        "input": "REQUIRED",
+        "dims": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "dims": "dims"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.fliplr": {
+    "ms_api": [
+      "ops.fliplr",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.fliplr",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.flipud": {
+    "ms_api": [
+      "ops.flipud",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.flipud",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.floor": {
+    "ms_api": [
+      "ops.floor",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.floor",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.floor_divide": {
+    "ms_api": [
+      "ops.floor_divide",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.floor_divide",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.fmax": {
+    "ms_api": [
+      "ops.fmax",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.fmax",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.fmod": {
+    "ms_api": [
+      "ops.fmod",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.fmod",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.frac": {
+    "ms_api": [
+      "ops.frac",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.frac",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.full": {
+    "ms_api": [
+      "ops.full",
+      {
+        "size": "REQUIRED",
+        "fill_value": "REQUIRED",
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      "torch.full",
+      {
+        "size": "REQUIRED",
+        "fill_value": "REQUIRED",
+        "out": null,
+        "dtype": null,
+        "layout": "torch.strided",
+        "device": null,
+        "requires_grad": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "size": "size",
+      "fill_value": "fill_value",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.full_like": {
+    "ms_api": [
+      "ops.full_like",
+      {
+        "input": "REQUIRED",
+        "fill_value": "REQUIRED",
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      "torch.full_like",
+      {
+        "input": "REQUIRED",
+        "fill_value": "REQUIRED",
+        "\\*": "REQUIRED",
+        "dtype": null,
+        "layout": "torch.strided",
+        "device": null,
+        "requires_grad": false,
+        "memory_format": "torch.preserve_format"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "fill_value": "fill_value",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.gather": {
+    "ms_api": [
+      "ops.gather_elements",
+      {
+        "input": "REQUIRED",
+        "dim": "REQUIRED",
+        "index": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.gather",
+      {
+        "input": "REQUIRED",
+        "dim": "REQUIRED",
+        "index": "REQUIRED",
+        "sparse_grad": false,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "dim": "dim",
+      "index": "index"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.gcd": {
+    "ms_api": [
+      "ops.gcd",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.gcd",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.ge": {
+    "ms_api": [
+      "ops.ge",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.ge",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.geqrf": {
+    "ms_api": [
+      "ops.geqrf",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.geqrf",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.ger": {
+    "ms_api": [
+      "ops.ger",
+      {
+        "input": "REQUIRED",
+        "vec2": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.ger",
+      {
+        "input": "REQUIRED",
+        "vec2": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "vec2": "vec2"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.greater": {
+    "ms_api": [
+      "ops.greater",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.greater",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.greater_equal": {
+    "ms_api": [
+      "ops.greater_equal",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.greater_equal",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.gt": {
+    "ms_api": [
+      "ops.gt",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.gt",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.hann_window": {
+    "ms_api": [
+      "ops.hann_window",
+      {
+        "window_length": "REQUIRED",
+        "periodic": true,
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      "torch.hann_window",
+      {
+        "window_length": "REQUIRED",
+        "periodic": true,
+        "dtype": null,
+        "layout": "torch.strided",
+        "device": null,
+        "requires_grad": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "window_length": "window_length",
+      "periodic": "periodic",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.heaviside": {
+    "ms_api": [
+      "ops.heaviside",
+      {
+        "input": "REQUIRED",
+        "values": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.heaviside",
+      {
+        "input": "REQUIRED",
+        "values": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "values": "values"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.hstack": {
+    "ms_api": [
+      "ops.hstack",
+      {
+        "tensors": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.hstack",
+      {
+        "tensors": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "tensors": "tensors"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.histc": {
+    "ms_api": [
+      "ops.histc",
+      {
+        "input": "REQUIRED",
+        "bins": 100.0,
+        "min": 0.0,
+        "max": 0.0
+      }
+    ],
+    "pt_api": [
+      "torch.histc",
+      {
+        "input": "REQUIRED",
+        "bins": 100.0,
+        "min": 0.0,
+        "max": 0.0,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "bins": "bins",
+      "min": "min",
+      "max": "max"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.hypot": {
+    "ms_api": [
+      "ops.hypot",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.hypot",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.hamming_window": {
+    "ms_api": [
+      "ops.hamming_window",
+      {
+        "window_length": "REQUIRED",
+        "periodic": true,
+        "alpha": 0.54,
+        "beta": 0.46,
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      "torch.hamming_window",
+      {
+        "window_length": "REQUIRED",
+        "periodic": true,
+        "alpha": 0.54,
+        "beta": 0.46,
+        "dtype": null,
+        "layout": "torch.strided",
+        "device": null,
+        "requires_grad": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "window_length": "window_length",
+      "periodic": "periodic",
+      "alpha": "alpha",
+      "beta": "beta",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.i0": {
+    "ms_api": [
+      "ops.i0",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.i0",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.igamma": {
+    "ms_api": [
+      "ops.igamma",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.igamma",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.igammac": {
+    "ms_api": [
+      "ops.igammac",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.igammac",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.imag": {
+    "ms_api": [
+      "ops.imag",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.imag",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.index_select": {
+    "ms_api": [
+      "ops.index_select",
+      {
+        "input": "REQUIRED",
+        "axis": "REQUIRED",
+        "index": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.index_select",
+      {
+        "input": "REQUIRED",
+        "dim": "REQUIRED",
+        "index": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "axis": "dim",
+      "index": "index"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.inner": {
+    "ms_api": [
+      "ops.inner",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.inner",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.inverse": {
+    "ms_api": [
+      "ops.inverse",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.inverse",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.isclose": {
+    "ms_api": [
+      "ops.isclose",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "rtol": 1e-05,
+        "atol": 1e-08,
+        "equal_nan": false
+      }
+    ],
+    "pt_api": [
+      "torch.isclose",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "rtol": 1e-05,
+        "atol": 1e-08,
+        "equal_nan": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other",
+      "rtol": "rtol",
+      "atol": "atol",
+      "equal_nan": "equal_nan"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.isfinite": {
+    "ms_api": [
+      "ops.isfinite",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.isfinite",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.isinf": {
+    "ms_api": [
+      "ops.isinf",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.isinf",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.isnan": {
+    "ms_api": [
+      "ops.isnan",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.isnan",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.isneginf": {
+    "ms_api": [
+      "ops.isneginf",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.isneginf",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.isposinf": {
+    "ms_api": [
+      "ops.isposinf",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.isposinf",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.isreal": {
+    "ms_api": [
+      "ops.isreal",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.isreal",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.is_complex": {
+    "ms_api": [
+      "ops.is_complex",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.is_complex",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.is_floating_point": {
+    "ms_api": [
+      "ops.is_floating_point",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.is_floating_point",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.is_nonzero": {
+    "ms_api": [
+      "ops.is_nonzero",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.is_nonzero",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.is_tensor": {
+    "ms_api": [
+      "ops.is_tensor",
+      {
+        "obj": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.is_tensor",
+      {
+        "obj": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "obj": "obj"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.kaiser_window": {
+    "ms_api": [
+      "ops.kaiser_window",
+      {
+        "window_length": "REQUIRED",
+        "periodic": true,
+        "beta": 12.0,
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      "torch.kaiser_window",
+      {
+        "window_length": "REQUIRED",
+        "periodic": true,
+        "beta": 12.0,
+        "dtype": null,
+        "layout": "torch.strided",
+        "device": null,
+        "requires_grad": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "window_length": "window_length",
+      "periodic": "periodic",
+      "beta": "beta",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.kron": {
+    "ms_api": [
+      "ops.kron",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.kron",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.lcm": {
+    "ms_api": [
+      "ops.lcm",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.lcm",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.ldexp": {
+    "ms_api": [
+      "ops.ldexp",
+      {
+        "x": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.ldexp",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.le": {
+    "ms_api": [
+      "ops.le",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.le",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.lerp": {
+    "ms_api": [
+      "ops.lerp",
+      {
+        "input": "REQUIRED",
+        "end": "REQUIRED",
+        "weight": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.lerp",
+      {
+        "input": "REQUIRED",
+        "end": "REQUIRED",
+        "weight": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "end": "end",
+      "weight": "weight"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.less": {
+    "ms_api": [
+      "ops.less",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.less",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.less_equal": {
+    "ms_api": [
+      "ops.less_equal",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.less_equal",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.linalg.cond": {
+    "ms_api": [
+      "ops.cond",
+      {
+        "A": "REQUIRED",
+        "p": null
+      }
+    ],
+    "pt_api": [
+      "torch.linalg.cond",
+      {
+        "A": "REQUIRED",
+        "p": null,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "A": "A",
+      "p": "p"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.linalg.eigvals": {
+    "ms_api": [
+      "ops.eigvals",
+      {
+        "A": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.linalg.eigvals",
+      {
+        "A": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "A": "A"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.linalg.norm": {
+    "ms_api": [
+      "ops.norm",
+      {
+        "A": "REQUIRED",
+        "ord": null,
+        "dim": null,
+        "keepdim": false,
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      "torch.linalg.norm",
+      {
+        "A": "REQUIRED",
+        "ord": null,
+        "dim": null,
+        "keepdim": false,
+        "out": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "A": "A",
+      "ord": "ord",
+      "dim": "dim",
+      "keepdim": "keepdim",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.linspace": {
+    "ms_api": [
+      "ops.linspace",
+      {
+        "start": "REQUIRED",
+        "end": "REQUIRED",
+        "steps": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.linspace",
+      {
+        "start": "REQUIRED",
+        "end": "REQUIRED",
+        "steps": "REQUIRED",
+        "out": null,
+        "dtype": null,
+        "layout": "torch.strided",
+        "device": null,
+        "requires_grad": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "start": "start",
+      "end": "end",
+      "steps": "steps"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.log": {
+    "ms_api": [
+      "ops.log",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.log",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.log2": {
+    "ms_api": [
+      "ops.log2",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.log2",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.log10": {
+    "ms_api": [
+      "ops.log10",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.log10",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.logaddexp": {
+    "ms_api": [
+      "ops.logaddexp",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.logaddexp",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.logaddexp2": {
+    "ms_api": [
+      "ops.logaddexp2",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.logaddexp2",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.logcumsumexp": {
+    "ms_api": [
+      "ops.logcumsumexp",
+      {
+        "input": "REQUIRED",
+        "axis": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.logcumsumexp",
+      {
+        "input": "REQUIRED",
+        "dim": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "axis": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.log1p": {
+    "ms_api": [
+      "ops.log1p",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.log1p",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.logdet": {
+    "ms_api": [
+      "ops.logdet",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.logdet",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.logical_and": {
+    "ms_api": [
+      "ops.logical_and",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.logical_and",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.logical_not": {
+    "ms_api": [
+      "ops.logical_not",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.logical_not",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.logical_or": {
+    "ms_api": [
+      "ops.logical_or",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.logical_or",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.logical_xor": {
+    "ms_api": [
+      "ops.logical_xor",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.logical_xor",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.logit": {
+    "ms_api": [
+      "ops.logit",
+      {
+        "input": "REQUIRED",
+        "eps": null
+      }
+    ],
+    "pt_api": [
+      "torch.logit",
+      {
+        "input": "REQUIRED",
+        "eps": null,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "eps": "eps"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.logspace": {
+    "ms_api": [
+      "ops.logspace",
+      {
+        "start": "REQUIRED",
+        "end": "REQUIRED",
+        "steps": "REQUIRED",
+        "base": 10.0,
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "torch.logspace",
+      {
+        "start": "REQUIRED",
+        "end": "REQUIRED",
+        "steps": "REQUIRED",
+        "base": 10.0,
+        "out": null,
+        "dtype": null,
+        "layout": "torch.strided",
+        "device": null,
+        "requires_grad": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "start": "start",
+      "end": "end",
+      "steps": "steps",
+      "base": "base",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.logsumexp": {
+    "ms_api": [
+      "ops.logsumexp",
+      {
+        "input": "REQUIRED",
+        "axis": "REQUIRED",
+        "keep_dims": false
+      }
+    ],
+    "pt_api": [
+      "torch.logsumexp",
+      {
+        "input": "REQUIRED",
+        "dim": "REQUIRED",
+        "keepdim": false,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "axis": "dim",
+      "keep_dims": "keepdim"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.lt": {
+    "ms_api": [
+      "ops.lt",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.lt",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.lu_solve": {
+    "ms_api": [
+      "ops.lu_solve",
+      {
+        "b": "REQUIRED",
+        "LU_data": "REQUIRED",
+        "LU_pivots": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.lu_solve",
+      {
+        "b": "REQUIRED",
+        "LU_data": "REQUIRED",
+        "LU_pivots": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "b": "b",
+      "LU_data": "LU_data",
+      "LU_pivots": "LU_pivots"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.lu_unpack": {
+    "ms_api": [
+      "ops.lu_unpack",
+      {
+        "LU_data": "REQUIRED",
+        "LU_pivots": "REQUIRED",
+        "unpack_data": true,
+        "unpack_pivots": true
+      }
+    ],
+    "pt_api": [
+      "torch.lu_unpack",
+      {
+        "LU_data": "REQUIRED",
+        "LU_pivots": "REQUIRED",
+        "unpack_data": true,
+        "unpack_pivots": true,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "LU_data": "LU_data",
+      "LU_pivots": "LU_pivots",
+      "unpack_data": "unpack_data",
+      "unpack_pivots": "unpack_pivots"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.masked_select": {
+    "ms_api": [
+      "ops.masked_select",
+      {
+        "input": "REQUIRED",
+        "mask": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.masked_select",
+      {
+        "input": "REQUIRED",
+        "mask": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "mask": "mask"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.matmul": {
+    "ms_api": [
+      "ops.matmul",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.matmul",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.max": {
+    "ms_api": [
+      "ops.max",
+      {
+        "input": "REQUIRED",
+        "axis": null,
+        "keepdims": false,
+        "initial": null,
+        "where": null
+      }
+    ],
+    "pt_api": [
+      "torch.max",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.maximum": {
+    "ms_api": [
+      "ops.maximum",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.maximum",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.mean": {
+    "ms_api": [
+      "ops.mean",
+      {
+        "x": "REQUIRED",
+        "axis": null,
+        "keep_dims": false
+      }
+    ],
+    "pt_api": [
+      "torch.mean",
+      {
+        "input": "REQUIRED",
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input",
+      "axis": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.median": {
+    "ms_api": [
+      "ops.median",
+      {
+        "input": "REQUIRED",
+        "axis": -1,
+        "keepdims": false
+      }
+    ],
+    "pt_api": [
+      "torch.median",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.meshgrid": {
+    "ms_api": [
+      "ops.meshgrid",
+      {
+        "*inputs": "REQUIRED",
+        "indexing": "xy"
+      }
+    ],
+    "pt_api": [
+      "torch.meshgrid",
+      {
+        "*tensors": "REQUIRED",
+        "indexing": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "*inputs": "*tensors",
+      "indexing": "indexing"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.mm": {
+    "ms_api": [
+      "ops.mm",
+      {
+        "input": "REQUIRED",
+        "mat2": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.mm",
+      {
+        "input": "REQUIRED",
+        "mat2": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "mat2": "mat2"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.mul": {
+    "ms_api": [
+      "ops.mul",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.mul",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.min": {
+    "ms_api": [
+      "ops.min",
+      {
+        "input": "REQUIRED",
+        "axis": null,
+        "keepdims": false,
+        "initial": null,
+        "where": null
+      }
+    ],
+    "pt_api": [
+      "torch.min",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.minimum": {
+    "ms_api": [
+      "ops.minimum",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.minimum",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.msort": {
+    "ms_api": [
+      "ops.msort",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.msort",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.moveaxis": {
+    "ms_api": [
+      "ops.moveaxis",
+      {
+        "x": "REQUIRED",
+        "source": "REQUIRED",
+        "destination": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.moveaxis",
+      {
+        "input": "REQUIRED",
+        "source": "REQUIRED",
+        "destination": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input",
+      "source": "source",
+      "destination": "destination"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.movedim": {
+    "ms_api": [
+      "ops.movedim",
+      {
+        "x": "REQUIRED",
+        "source": "REQUIRED",
+        "destination": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.movedim",
+      {
+        "input": "REQUIRED",
+        "source": "REQUIRED",
+        "destination": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input",
+      "source": "source",
+      "destination": "destination"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.multinomial": {
+    "ms_api": [
+      "ops.multinomial",
+      {
+        "input": "REQUIRED",
+        "num_samples": "REQUIRED",
+        "replacement": true,
+        "seed": null
+      }
+    ],
+    "pt_api": [
+      "torch.multinomial",
+      {
+        "input": "REQUIRED",
+        "num_samples": "REQUIRED",
+        "replacement": false,
+        "generator": null,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "num_samples": "num_samples",
+      "replacement": "replacement",
+      "seed": "generator"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.multiply": {
+    "ms_api": [
+      "ops.multiply",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.multiply",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.mv": {
+    "ms_api": [
+      "ops.mv",
+      {
+        "mat": "REQUIRED",
+        "vec": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.mv",
+      {
+        "input": "REQUIRED",
+        "vec": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "vec": "vec"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.mvlgamma": {
+    "ms_api": [
+      "ops.mvlgamma",
+      {
+        "input": "REQUIRED",
+        "p": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.mvlgamma",
+      {
+        "input": "REQUIRED",
+        "p": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "p": "p"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.nan_to_num": {
+    "ms_api": [
+      "ops.nan_to_num",
+      {
+        "input": "REQUIRED",
+        "nan": 0.0,
+        "posinf": null,
+        "neginf": null
+      }
+    ],
+    "pt_api": [
+      "torch.nan_to_num",
+      {
+        "input": "REQUIRED",
+        "nan": 0.0,
+        "posinf": null,
+        "neginf": null,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "nan": "nan",
+      "posinf": "posinf",
+      "neginf": "neginf"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.nansum": {
+    "ms_api": [
+      "ops.nansum",
+      {
+        "input": "REQUIRED",
+        "axis": null,
+        "keepdims": false,
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      "torch.nansum",
+      {
+        "input": "REQUIRED",
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "axis": "dtype",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.narrow": {
+    "ms_api": [
+      "ops.narrow",
+      {
+        "input": "REQUIRED",
+        "axis": "REQUIRED",
+        "start": "REQUIRED",
+        "length": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.narrow",
+      {
+        "input": "REQUIRED",
+        "dim": "REQUIRED",
+        "start": "REQUIRED",
+        "length": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "axis": "dim",
+      "start": "start",
+      "length": "length"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.ne": {
+    "ms_api": [
+      "ops.ne",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.ne",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.neg": {
+    "ms_api": [
+      "ops.neg",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.neg",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.negative": {
+    "ms_api": [
+      "ops.negative",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.negative",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.nextafter": {
+    "ms_api": [
+      "ops.nextafter",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.nextafter",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.nonzero": {
+    "ms_api": [
+      "ops.nonzero",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.nonzero",
+      {
+        "input": "REQUIRED",
+        "out": null,
+        "as_tuple": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.normal": {
+    "ms_api": [
+      "ops.normal",
+      {
+        "shape": "REQUIRED",
+        "mean": "REQUIRED",
+        "stddev": "REQUIRED",
+        "seed": null
+      }
+    ],
+    "pt_api": [
+      "torch.normal",
+      {
+        "mean": "REQUIRED",
+        "std": "REQUIRED",
+        "generator": null,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "mean": "mean"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.not_equal": {
+    "ms_api": [
+      "ops.not_equal",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.not_equal",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.numel": {
+    "ms_api": [
+      "ops.numel",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.numel",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.ones": {
+    "ms_api": [
+      "ops.ones",
+      {
+        "shape": "REQUIRED",
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      "torch.ones",
+      {
+        "*size": "REQUIRED",
+        "out": null,
+        "dtype": null,
+        "layout": "torch.strided",
+        "device": null,
+        "requires_grad": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.ones_like": {
+    "ms_api": [
+      "ops.ones_like",
+      {
+        "input": "REQUIRED",
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      "torch.ones_like",
+      {
+        "input": "REQUIRED",
+        "dtype": null,
+        "layout": null,
+        "device": null,
+        "requires_grad": false,
+        "memory_format": "torch.preserve_format"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.orgqr": {
+    "ms_api": [
+      "ops.orgqr",
+      {
+        "input": "REQUIRED",
+        "input2": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.orgqr",
+      {
+        "input": "REQUIRED",
+        "tau": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "input2": "tau"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.ormqr": {
+    "ms_api": [
+      "ops.ormqr",
+      {
+        "input": "REQUIRED",
+        "tau": "REQUIRED",
+        "other": "REQUIRED",
+        "left": true,
+        "transpose": false
+      }
+    ],
+    "pt_api": [
+      "torch.ormqr",
+      {
+        "input": "REQUIRED",
+        "tau": "REQUIRED",
+        "other": "REQUIRED",
+        "left": true,
+        "transpose": false,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "tau": "tau",
+      "other": "other",
+      "left": "left",
+      "transpose": "transpose"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.outer": {
+    "ms_api": [
+      "ops.outer",
+      {
+        "input": "REQUIRED",
+        "vec2": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.outer",
+      {
+        "input": "REQUIRED",
+        "vec2": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "vec2": "vec2"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.poisson": {
+    "ms_api": [
+      "ops.random_poisson",
+      {
+        "shape": "REQUIRED",
+        "rate": "REQUIRED",
+        "seed": null,
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "torch.poisson",
+      {
+        "input": "REQUIRED",
+        "generator": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "rate": "generator"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.polar": {
+    "ms_api": [
+      "ops.polar",
+      {
+        "abs": "REQUIRED",
+        "angle": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.polar",
+      {
+        "abs": "REQUIRED",
+        "angle": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "abs": "abs",
+      "angle": "angle"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.polygamma": {
+    "ms_api": [
+      "ops.polygamma",
+      {
+        "n": "REQUIRED",
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.polygamma",
+      {
+        "n": "REQUIRED",
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "n": "n",
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.pow": {
+    "ms_api": [
+      "ops.pow",
+      {
+        "input": "REQUIRED",
+        "exponent": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.pow",
+      {
+        "input": "REQUIRED",
+        "exponent": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "exponent": "exponent"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.prod": {
+    "ms_api": [
+      "ops.prod",
+      {
+        "input": "REQUIRED",
+        "axis": null,
+        "keep_dims": false
+      }
+    ],
+    "pt_api": [
+      "torch.prod",
+      {
+        "input": "REQUIRED",
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "axis": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.rad2deg": {
+    "ms_api": [
+      "ops.rad2deg",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.rad2deg",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.rand": {
+    "ms_api": [
+      "ops.rand",
+      {
+        "*size": "REQUIRED",
+        "dtype": null,
+        "seed": null
+      }
+    ],
+    "pt_api": [
+      "torch.rand",
+      {
+        "*size": "REQUIRED",
+        "generator": null,
+        "out": null,
+        "dtype": null,
+        "layout": "torch.strided",
+        "device": null,
+        "requires_grad": false,
+        "pin_memory": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "*size": "*size",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.rand_like": {
+    "ms_api": [
+      "ops.rand_like",
+      {
+        "input": "REQUIRED",
+        "seed": null,
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      "torch.rand_like",
+      {
+        "input": "REQUIRED",
+        "dtype": null,
+        "layout": null,
+        "device": null,
+        "requires_grad": false,
+        "memory_format": "torch.preserve_format"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.randn": {
+    "ms_api": [
+      "ops.randn",
+      {
+        "*size": "REQUIRED",
+        "dtype": null,
+        "seed": null
+      }
+    ],
+    "pt_api": [
+      "torch.randn",
+      {
+        "*size": "REQUIRED",
+        "generator": null,
+        "out": null,
+        "dtype": null,
+        "layout": "torch.strided",
+        "device": null,
+        "requires_grad": false,
+        "pin_memory": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "*size": "*size",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.randn_like": {
+    "ms_api": [
+      "ops.randn_like",
+      {
+        "input": "REQUIRED",
+        "seed": null,
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      "torch.randn_like",
+      {
+        "input": "REQUIRED",
+        "dtype": null,
+        "layout": null,
+        "device": null,
+        "requires_grad": false,
+        "memory_format": "torch.preserve_format"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.randint": {
+    "ms_api": [
+      "ops.randint",
+      {
+        "low": "REQUIRED",
+        "high": "REQUIRED",
+        "size": "REQUIRED",
+        "seed": null,
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      "torch.randint",
+      {
+        "low": 0.0,
+        "high": "REQUIRED",
+        "size": "REQUIRED",
+        "\\*": "REQUIRED",
+        "generator": null,
+        "out": null,
+        "dtype": null,
+        "layout": "torch.strided",
+        "device": null,
+        "requires_grad": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "low": "low",
+      "high": "high",
+      "size": "size",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.randint_like": {
+    "ms_api": [
+      "ops.randint_like",
+      {
+        "input": "REQUIRED",
+        "low": "REQUIRED",
+        "high": "REQUIRED",
+        "dtype": null,
+        "seed": null
+      }
+    ],
+    "pt_api": [
+      "torch.randint_like",
+      {
+        "input": "REQUIRED",
+        "low": 0.0,
+        "high": "REQUIRED",
+        "\\*": "REQUIRED",
+        "dtype": null,
+        "layout": "torch.strided",
+        "device": null,
+        "requires_grad": false,
+        "memory_format": "torch.preserve_format"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "low": "low",
+      "high": "high",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.randperm": {
+    "ms_api": [
+      "ops.randperm",
+      {
+        "n": "REQUIRED",
+        "seed": 0.0,
+        "offset": 0.0,
+        "dtype": "mstype.int64"
+      }
+    ],
+    "pt_api": [
+      "torch.randperm",
+      {
+        "n": "REQUIRED",
+        "generator": null,
+        "out": null,
+        "dtype": "torch.int64",
+        "layout": "torch.strided",
+        "device": null,
+        "requires_grad": false,
+        "pin_memory": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "n": "n",
+      "seed": "generator",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.range": {
+    "ms_api": [
+      "ops.range",
+      {
+        "start": "REQUIRED",
+        "end": "REQUIRED",
+        "step": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.range",
+      {
+        "start": 0.0,
+        "end": "REQUIRED",
+        "step": 1.0,
+        "out": null,
+        "dtype": null,
+        "layout": "torch.strided",
+        "device": null,
+        "requires_grad": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "start": "start",
+      "end": "end",
+      "step": "step"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.ravel": {
+    "ms_api": [
+      "ops.ravel",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.ravel",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.real": {
+    "ms_api": [
+      "ops.real",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.real",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.reciprocal": {
+    "ms_api": [
+      "ops.reciprocal",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.reciprocal",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.remainder": {
+    "ms_api": [
+      "ops.remainder",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.remainder",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.renorm": {
+    "ms_api": [
+      "ops.renorm",
+      {
+        "input": "REQUIRED",
+        "p": "REQUIRED",
+        "axis": "REQUIRED",
+        "maxnorm": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.renorm",
+      {
+        "input": "REQUIRED",
+        "p": "REQUIRED",
+        "dim": "REQUIRED",
+        "maxnorm": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "p": "p",
+      "axis": "dim",
+      "maxnorm": "maxnorm"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.repeat_interleave": {
+    "ms_api": [
+      "ops.repeat_interleave",
+      {
+        "input": "REQUIRED",
+        "repeats": "REQUIRED",
+        "axis": null
+      }
+    ],
+    "pt_api": [
+      "torch.repeat_interleave",
+      {
+        "input": "REQUIRED",
+        "repeats": "REQUIRED",
+        "dim": null,
+        "output_size": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "repeats": "repeats",
+      "axis": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.reshape": {
+    "ms_api": [
+      "ops.reshape",
+      {
+        "input": "REQUIRED",
+        "shape": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.reshape",
+      {
+        "input": "REQUIRED",
+        "shape": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "shape": "shape"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.roll": {
+    "ms_api": [
+      "ops.roll",
+      {
+        "input": "REQUIRED",
+        "shifts": "REQUIRED",
+        "dims": null
+      }
+    ],
+    "pt_api": [
+      "torch.roll",
+      {
+        "input": "REQUIRED",
+        "shifts": "REQUIRED",
+        "dims": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "shifts": "shifts",
+      "dims": "dims"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.rot90": {
+    "ms_api": [
+      "ops.rot90",
+      {
+        "input": "REQUIRED",
+        "k": "REQUIRED",
+        "dims": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.rot90",
+      {
+        "input": "REQUIRED",
+        "k": 1.0,
+        "dims": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "k": "k",
+      "dims": "dims"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.round": {
+    "ms_api": [
+      "ops.round",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.round",
+      {
+        "input": "REQUIRED",
+        "decimals": 0.0,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.row_stack": {
+    "ms_api": [
+      "ops.row_stack",
+      {
+        "tensors": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.row_stack",
+      {
+        "tensors": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "tensors": "tensors"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.rsqrt": {
+    "ms_api": [
+      "ops.rsqrt",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.rsqrt",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.searchsorted": {
+    "ms_api": [
+      "ops.searchsorted",
+      {
+        "sorted_sequence": "REQUIRED",
+        "values": "REQUIRED",
+        "out_int32": false,
+        "right": false
+      }
+    ],
+    "pt_api": [
+      "torch.searchsorted",
+      {
+        "sorted_sequence": "REQUIRED",
+        "values": "REQUIRED",
+        "out_int32": false,
+        "right": false,
+        "side": "left",
+        "out": null,
+        "sorter": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "sorted_sequence": "sorted_sequence",
+      "values": "values",
+      "out_int32": "out_int32",
+      "right": "right"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.scatter": {
+    "ms_api": [
+      "ops.scatter",
+      {
+        "input": "REQUIRED",
+        "axis": "REQUIRED",
+        "index": "REQUIRED",
+        "src": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.scatter",
+      {
+        "input": "REQUIRED",
+        "dim": "REQUIRED",
+        "index": "REQUIRED",
+        "src": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "axis": "dim",
+      "index": "index",
+      "src": "src"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.scatter_add": {
+    "ms_api": [
+      "ops.tensor_scatter_elements",
+      {
+        "input_x": "REQUIRED",
+        "indices": "REQUIRED",
+        "updates": "REQUIRED",
+        "axis": 0.0,
+        "reduction": "none"
+      }
+    ],
+    "pt_api": [
+      "torch.scatter_add",
+      {
+        "input": "REQUIRED",
+        "dim": "REQUIRED",
+        "index": "REQUIRED",
+        "src": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input_x": "input",
+      "indices": "dim",
+      "axis": "src"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.sgn": {
+    "ms_api": [
+      "ops.sgn",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.sgn",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.sigmoid": {
+    "ms_api": [
+      "ops.sigmoid",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.sigmoid",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.sign": {
+    "ms_api": [
+      "ops.sign",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.sign",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.signbit": {
+    "ms_api": [
+      "ops.signbit",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.signbit",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.sin": {
+    "ms_api": [
+      "ops.sin",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.sin",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.sinc": {
+    "ms_api": [
+      "ops.sinc",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.sinc",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.sinh": {
+    "ms_api": [
+      "ops.sinh",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.sinh",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.slogdet": {
+    "ms_api": [
+      "ops.slogdet",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.slogdet",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.sort": {
+    "ms_api": [
+      "ops.sort",
+      {
+        "input_x": "REQUIRED",
+        "axis": -1,
+        "descending": false
+      }
+    ],
+    "pt_api": [
+      "torch.sort",
+      {
+        "input": "REQUIRED",
+        "dim": -1.0,
+        "descending": false,
+        "stable": false,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input_x": "input",
+      "axis": "dim",
+      "descending": "descending"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.split": {
+    "ms_api": [
+      "ops.split",
+      {
+        "tensor": "REQUIRED",
+        "split_size_or_sections": "REQUIRED",
+        "axis": 0.0
+      }
+    ],
+    "pt_api": [
+      "torch.split",
+      {
+        "tensor": "REQUIRED",
+        "split_size_or_sections": "REQUIRED",
+        "dim": 0.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "tensor": "tensor",
+      "split_size_or_sections": "split_size_or_sections",
+      "axis": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.stack": {
+    "ms_api": [
+      "ops.stack",
+      {
+        "tensors": "REQUIRED",
+        "axis": 0.0
+      }
+    ],
+    "pt_api": [
+      "torch.stack",
+      {
+        "tensors": "REQUIRED",
+        "dim": 0.0,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "tensors": "tensors",
+      "axis": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.squeeze": {
+    "ms_api": [
+      "ops.squeeze",
+      {
+        "input": "REQUIRED",
+        "axis": null
+      }
+    ],
+    "pt_api": [
+      "torch.squeeze",
+      {
+        "input": "REQUIRED",
+        "dim": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "axis": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.std": {
+    "ms_api": [
+      "ops.std",
+      {
+        "input": "REQUIRED",
+        "axis": null,
+        "ddof": 0.0,
+        "keepdims": false
+      }
+    ],
+    "pt_api": [
+      "torch.std",
+      {
+        "input": "REQUIRED",
+        "dim": null,
+        "correction": 1.0,
+        "keepdim": false,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "axis": "dim",
+      "keepdims": "keepdim"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.std_mean": {
+    "ms_api": [
+      "ops.std_mean",
+      {
+        "input": "REQUIRED",
+        "axis": null,
+        "ddof": 0.0,
+        "keepdims": false
+      }
+    ],
+    "pt_api": [
+      "torch.std_mean",
+      {
+        "input": "REQUIRED",
+        "dim": null,
+        "correction": 1.0,
+        "keepdim": false,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "axis": "dim",
+      "keepdims": "keepdim"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.sqrt": {
+    "ms_api": [
+      "ops.sqrt",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.sqrt",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.square": {
+    "ms_api": [
+      "ops.square",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.square",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.sub": {
+    "ms_api": [
+      "ops.subtract",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "alpha": 1.0
+      }
+    ],
+    "pt_api": [
+      "torch.sub",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "alpha": 1.0,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other",
+      "alpha": "alpha"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.subtract": {
+    "ms_api": [
+      "ops.subtract",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "alpha": 1.0
+      }
+    ],
+    "pt_api": [
+      "torch.subtract",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "alpha": 1.0,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other",
+      "alpha": "alpha"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.sum": {
+    "ms_api": [
+      "ops.sum",
+      {
+        "input": "REQUIRED",
+        "dim": null,
+        "keepdim": false,
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      "torch.sum",
+      {
+        "input": "REQUIRED",
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.svd": {
+    "ms_api": [
+      "ops.svd",
+      {
+        "input": "REQUIRED",
+        "full_matrices": false,
+        "compute_uv": true
+      }
+    ],
+    "pt_api": [
+      "torch.svd",
+      {
+        "input": "REQUIRED",
+        "some": true,
+        "compute_uv": true,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "compute_uv": "compute_uv"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.swapaxes": {
+    "ms_api": [
+      "ops.swapaxes",
+      {
+        "input": "REQUIRED",
+        "axis0": "REQUIRED",
+        "axis1": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.swapaxes",
+      {
+        "input": "REQUIRED",
+        "axis0": "REQUIRED",
+        "axis1": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "axis0": "axis0",
+      "axis1": "axis1"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.swapdims": {
+    "ms_api": [
+      "ops.swapdims",
+      {
+        "input": "REQUIRED",
+        "dim0": "REQUIRED",
+        "dim1": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.swapdims",
+      {
+        "input": "REQUIRED",
+        "dim0": "REQUIRED",
+        "dim1": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "dim0": "dim0",
+      "dim1": "dim1"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.t": {
+    "ms_api": [
+      "ops.t",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.t",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.tan": {
+    "ms_api": [
+      "ops.tan",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.tan",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.tanh": {
+    "ms_api": [
+      "ops.tanh",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.tanh",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.tensor_split": {
+    "ms_api": [
+      "ops.tensor_split",
+      {
+        "input": "REQUIRED",
+        "indices_or_sections": "REQUIRED",
+        "axis": 0.0
+      }
+    ],
+    "pt_api": [
+      "torch.tensor_split",
+      {
+        "input": "REQUIRED",
+        "indices_or_sections": "REQUIRED",
+        "dim": 0.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "indices_or_sections": "indices_or_sections",
+      "axis": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.tile": {
+    "ms_api": [
+      "ops.tile",
+      {
+        "input": "REQUIRED",
+        "multiples": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.tile",
+      {
+        "input": "REQUIRED",
+        "dims": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "multiples": "dims"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.topk": {
+    "ms_api": [
+      "ops.topk",
+      {
+        "input": "REQUIRED",
+        "k": "REQUIRED",
+        "dim": null,
+        "largest": true,
+        "sorted": true
+      }
+    ],
+    "pt_api": [
+      "torch.topk",
+      {
+        "input": "REQUIRED",
+        "k": "REQUIRED",
+        "dim": null,
+        "largest": true,
+        "sorted": true,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "k": "k",
+      "dim": "dim",
+      "largest": "largest",
+      "sorted": "sorted"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.trace": {
+    "ms_api": [
+      "ops.trace",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.trace",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.transpose": {
+    "ms_api": [
+      "ops.swapaxes",
+      {
+        "input": "REQUIRED",
+        "axis0": "REQUIRED",
+        "axis1": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.transpose",
+      {
+        "input": "REQUIRED",
+        "dim0": "REQUIRED",
+        "dim1": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "axis0": "dim0",
+      "axis1": "dim1"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.trapz": {
+    "ms_api": [
+      "ops.trapz",
+      {
+        "y": "REQUIRED",
+        "x": null,
+        "dx": 1.0,
+        "dim": -1
+      }
+    ],
+    "pt_api": [
+      "torch.trapz",
+      {
+        "y": "REQUIRED",
+        "x": "REQUIRED",
+        "dim": -1.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "y": "y",
+      "x": "x",
+      "dx": "dim",
+      "dim": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.tril": {
+    "ms_api": [
+      "ops.tril",
+      {
+        "input": "REQUIRED",
+        "diagonal": 0.0
+      }
+    ],
+    "pt_api": [
+      "torch.tril",
+      {
+        "input": "REQUIRED",
+        "diagonal": 0.0,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "diagonal": "diagonal"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.tril_indices": {
+    "ms_api": [
+      "ops.tril_indices",
+      {
+        "row": "REQUIRED",
+        "col": "REQUIRED",
+        "offset": 0.0,
+        "dtype": "mstype.int64"
+      }
+    ],
+    "pt_api": [
+      "torch.tril_indices",
+      {
+        "row": "REQUIRED",
+        "col": "REQUIRED",
+        "offset": 0.0,
+        "dtype": "torch.long",
+        "device": "cpu",
+        "layout": "torch.strided"
+      }
+    ],
+    "ms2pt_mapping": {
+      "row": "row",
+      "col": "col",
+      "offset": "offset",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.triu_indices": {
+    "ms_api": [
+      "ops.triu_indices",
+      {
+        "row": "REQUIRED",
+        "col": "REQUIRED",
+        "offset": 0.0,
+        "dtype": "mstype.int64"
+      }
+    ],
+    "pt_api": [
+      "torch.triu_indices",
+      {
+        "row": "REQUIRED",
+        "col": "REQUIRED",
+        "offset": 0.0,
+        "dtype": "torch.long",
+        "device": "cpu",
+        "layout": "torch.strided"
+      }
+    ],
+    "ms2pt_mapping": {
+      "row": "row",
+      "col": "col",
+      "offset": "offset",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.true_divide": {
+    "ms_api": [
+      "ops.true_divide",
+      {
+        "dividend": "REQUIRED",
+        "divisor": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.true_divide",
+      {
+        "dividend": "REQUIRED",
+        "divisor": "REQUIRED",
+        "out": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "dividend": "dividend",
+      "divisor": "divisor"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.trunc": {
+    "ms_api": [
+      "ops.trunc",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.trunc",
+      {
+        "input": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.unbind": {
+    "ms_api": [
+      "ops.unbind",
+      {
+        "input": "REQUIRED",
+        "dim": 0.0
+      }
+    ],
+    "pt_api": [
+      "torch.unbind",
+      {
+        "input": "REQUIRED",
+        "dim": 0.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "dim": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.unique": {
+    "ms_api": [
+      "ops.unique",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.unique",
+      {
+        "input": "REQUIRED",
+        "sorted": true,
+        "return_inverse": false,
+        "return_counts": false,
+        "dim": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.unique_consecutive": {
+    "ms_api": [
+      "ops.unique_consecutive",
+      {
+        "input": "REQUIRED",
+        "return_idx": false,
+        "return_counts": false,
+        "axis": null
+      }
+    ],
+    "pt_api": [
+      "torch.unique_consecutive",
+      {
+        "*args": "REQUIRED",
+        "**kwargs": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "*args"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.unsqueeze": {
+    "ms_api": [
+      "ops.unsqueeze",
+      {
+        "input": "REQUIRED",
+        "dim": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.unsqueeze",
+      {
+        "input": "REQUIRED",
+        "dim": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "dim": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.vander": {
+    "ms_api": [
+      "ops.vander",
+      {
+        "x": "REQUIRED",
+        "N": null
+      }
+    ],
+    "pt_api": [
+      "torch.vander",
+      {
+        "x": "REQUIRED",
+        "N": null,
+        "increasing": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "x",
+      "N": "N"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.var": {
+    "ms_api": [
+      "ops.var",
+      {
+        "input": "REQUIRED",
+        "axis": null,
+        "ddof": 0.0,
+        "keepdims": false
+      }
+    ],
+    "pt_api": [
+      "torch.var",
+      {
+        "input": "REQUIRED",
+        "dim": null,
+        "correction": 1.0,
+        "keepdim": false,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "axis": "dim",
+      "keepdims": "keepdim"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.var_mean": {
+    "ms_api": [
+      "ops.var_mean",
+      {
+        "input": "REQUIRED",
+        "axis": null,
+        "ddof": 0.0,
+        "keepdims": false
+      }
+    ],
+    "pt_api": [
+      "torch.var_mean",
+      {
+        "input": "REQUIRED",
+        "dim": null,
+        "correction": 1.0,
+        "keepdim": false,
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "axis": "dim",
+      "keepdims": "keepdim"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.view_as_real": {
+    "ms_api": [
+      "ops.view_as_real",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.view_as_real",
+      {
+        "input": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.vstack": {
+    "ms_api": [
+      "ops.vstack",
+      {
+        "inputs": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.vstack",
+      {
+        "tensors": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "inputs": "tensors"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.where": {
+    "ms_api": [
+      "ops.where",
+      {
+        "condition": "REQUIRED",
+        "x": "REQUIRED",
+        "y": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.where",
+      {
+        "condition": "REQUIRED",
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "condition": "condition",
+      "x": "input"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.xlogy": {
+    "ms_api": [
+      "ops.xlogy",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "torch.xlogy",
+      {
+        "input": "REQUIRED",
+        "other": "REQUIRED",
+        "out": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  "torch.zeros": {
+    "ms_api": [
+      "ops.zeros",
+      {
+        "size": "REQUIRED",
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      "torch.zeros",
+      {
+        "*size": "REQUIRED",
+        "out": null,
+        "dtype": null,
+        "layout": "torch.strided",
+        "device": null,
+        "requires_grad": false
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  "torch.zeros_like": {
+    "ms_api": [
+      "ops.zeros_like",
+      {
+        "input": "REQUIRED",
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      "torch.zeros_like",
+      {
+        "input": "REQUIRED",
+        "dtype": null,
+        "layout": null,
+        "device": null,
+        "requires_grad": false,
+        "memory_format": "torch.preserve_format"
+      }
+    ],
+    "ms2pt_mapping": {
+      "input": "input",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  }
+}

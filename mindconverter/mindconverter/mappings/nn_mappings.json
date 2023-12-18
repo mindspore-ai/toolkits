@@ -1,0 +1,2985 @@
+{
+  "nn.AdaptiveAvgPool1d": {
+    "ms_api": [
+      "nn.AdaptiveAvgPool1d",
+      {
+        "output_size": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.AdaptiveAvgPool1d",
+      {
+        "output_size": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "output_size": "output_size"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.AdaptiveAvgPool2d": {
+    "ms_api": [
+      "nn.AdaptiveAvgPool2d",
+      {
+        "output_size": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.AdaptiveAvgPool2d",
+      {
+        "output_size": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "output_size": "output_size"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.AdaptiveAvgPool3d": {
+    "ms_api": [
+      "nn.AdaptiveAvgPool3d",
+      {
+        "output_size": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.AdaptiveAvgPool3d",
+      {
+        "output_size": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "output_size": "output_size"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.AdaptiveMaxPool1d": {
+    "ms_api": [
+      "nn.AdaptiveMaxPool1d",
+      {
+        "output_size": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.AdaptiveMaxPool1d",
+      {
+        "output_size": "REQUIRED",
+        "return_indices": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "output_size": "output_size"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.AdaptiveMaxPool2d": {
+    "ms_api": [
+      "nn.AdaptiveMaxPool2d",
+      {
+        "output_size": "REQUIRED",
+        "return_indices": false
+      }
+    ],
+    "pt_api": [
+      "nn.AdaptiveMaxPool2d",
+      {
+        "output_size": "REQUIRED",
+        "return_indices": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "output_size": "output_size",
+      "return_indices": "return_indices"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.AdaptiveMaxPool3d": {
+    "ms_api": [
+      "nn.AdaptiveMaxPool3d",
+      {
+        "output_size": "REQUIRED",
+        "return_indices": false
+      }
+    ],
+    "pt_api": [
+      "nn.AdaptiveMaxPool3d",
+      {
+        "output_size": "REQUIRED",
+        "return_indices": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "output_size": "output_size",
+      "return_indices": "return_indices"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.AvgPool1d": {
+    "ms_api": [
+      "nn.AvgPool1d",
+      {
+        "kernel_size": 1.0,
+        "stride": 1.0,
+        "pad_mode": "valid",
+        "padding": 0.0,
+        "ceil_mode": false,
+        "count_include_pad": true
+      }
+    ],
+    "pt_api": [
+      "nn.AvgPool1d",
+      {
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "padding": 0.0,
+        "ceil_mode": false,
+        "count_include_pad": true
+      }
+    ],
+    "ms2pt_mapping": {
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "pad_mode": "padding",
+      "padding": "padding",
+      "ceil_mode": "ceil_mode",
+      "count_include_pad": "count_include_pad"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.AvgPool2d": {
+    "ms_api": [
+      "nn.AvgPool2d",
+      {
+        "kernel_size": 1.0,
+        "stride": 1.0,
+        "pad_mode": "valid",
+        "padding": 0.0,
+        "ceil_mode": false,
+        "count_include_pad": true,
+        "divisor_override": null,
+        "data_format": "NCHW"
+      }
+    ],
+    "pt_api": [
+      "nn.AvgPool2d",
+      {
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "padding": 0.0,
+        "ceil_mode": false,
+        "count_include_pad": true,
+        "divisor_override": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "pad_mode": "padding",
+      "padding": "padding",
+      "ceil_mode": "ceil_mode",
+      "count_include_pad": "count_include_pad",
+      "divisor_override": "divisor_override"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.AvgPool3d": {
+    "ms_api": [
+      "nn.AvgPool3d",
+      {
+        "kernel_size": 1.0,
+        "stride": 1.0,
+        "pad_mode": "valid",
+        "padding": 0.0,
+        "ceil_mode": false,
+        "count_include_pad": true,
+        "divisor_override": null
+      }
+    ],
+    "pt_api": [
+      "nn.AvgPool3d",
+      {
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "padding": 0.0,
+        "ceil_mode": false,
+        "count_include_pad": true,
+        "divisor_override": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "pad_mode": "padding",
+      "padding": "padding",
+      "ceil_mode": "ceil_mode",
+      "count_include_pad": "count_include_pad",
+      "divisor_override": "divisor_override"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.BCELoss": {
+    "ms_api": [
+      "nn.BCELoss",
+      {
+        "weight": null,
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "nn.BCELoss",
+      {
+        "weight": null,
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "weight": "weight",
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.BCEWithLogitsLoss": {
+    "ms_api": [
+      "nn.BCEWithLogitsLoss",
+      {
+        "reduction": "mean",
+        "weight": null,
+        "pos_weight": null
+      }
+    ],
+    "pt_api": [
+      "nn.BCEWithLogitsLoss",
+      {
+        "weight": null,
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean",
+        "pos_weight": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "reduction": "reduction",
+      "weight": "weight",
+      "pos_weight": "pos_weight"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.BatchNorm1d": {
+    "ms_api": [
+      "nn.BatchNorm1d",
+      {
+        "num_features": "REQUIRED",
+        "eps": 1e-05,
+        "momentum": 0.9,
+        "affine": true,
+        "gamma_init": "ones",
+        "beta_init": "zeros",
+        "moving_mean_init": "zeros",
+        "moving_var_init": "ones",
+        "use_batch_statistics": null,
+        "data_format": "NCHW",
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.BatchNorm1d",
+      {
+        "num_features": "REQUIRED",
+        "eps": 1e-05,
+        "momentum": 0.1,
+        "affine": true,
+        "track_running_stats": true,
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "num_features": "num_features",
+      "eps": "eps",
+      "momentum": "momentum",
+      "affine": "affine",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.BatchNorm2d": {
+    "ms_api": [
+      "nn.BatchNorm2d",
+      {
+        "num_features": "REQUIRED",
+        "eps": 1e-05,
+        "momentum": 0.9,
+        "affine": true,
+        "gamma_init": "ones",
+        "beta_init": "zeros",
+        "moving_mean_init": "zeros",
+        "moving_var_init": "ones",
+        "use_batch_statistics": null,
+        "data_format": "NCHW",
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.BatchNorm2d",
+      {
+        "num_features": "REQUIRED",
+        "eps": 1e-05,
+        "momentum": 0.1,
+        "affine": true,
+        "track_running_stats": true,
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "num_features": "num_features",
+      "eps": "eps",
+      "momentum": "momentum",
+      "affine": "affine",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.BatchNorm3d": {
+    "ms_api": [
+      "nn.BatchNorm3d",
+      {
+        "num_features": "REQUIRED",
+        "eps": 1e-05,
+        "momentum": 0.9,
+        "affine": true,
+        "gamma_init": "ones",
+        "beta_init": "zeros",
+        "moving_mean_init": "zeros",
+        "moving_var_init": "ones",
+        "use_batch_statistics": null,
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.BatchNorm3d",
+      {
+        "num_features": "REQUIRED",
+        "eps": 1e-05,
+        "momentum": 0.1,
+        "affine": true,
+        "track_running_stats": true,
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "num_features": "num_features",
+      "eps": "eps",
+      "momentum": "momentum",
+      "affine": "affine",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.Bilinear": {
+    "ms_api": [
+      "nn.BiDense",
+      {
+        "in1_channels": "REQUIRED",
+        "in2_channels": "REQUIRED",
+        "out_channels": "REQUIRED",
+        "weight_init": null,
+        "bias_init": null,
+        "has_bias": true,
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.Bilinear",
+      {
+        "in1_features": "REQUIRED",
+        "in2_features": "REQUIRED",
+        "out_features": "REQUIRED",
+        "bias": true,
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "in1_channels": "in1_features",
+      "in2_channels": "in2_features",
+      "out_channels": "out_features",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.CeLU": {
+    "ms_api": [
+      "nn.CELU",
+      {
+        "alpha": 1.0
+      }
+    ],
+    "pt_api": [
+      "nn.CeLU",
+      {
+        "alpha": 1.0,
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "alpha": "alpha"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.ChannelShuffle": {
+    "ms_api": [
+      "nn.ChannelShuffle",
+      {
+        "groups": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.ChannelShuffle",
+      {
+        "groups": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "groups": "groups"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.CTCLoss": {
+    "ms_api": [
+      "nn.CTCLoss",
+      {
+        "blank": 0.0,
+        "reduction": "mean",
+        "zero_infinity": false
+      }
+    ],
+    "pt_api": [
+      "nn.CTCLoss",
+      {
+        "blank": 0.0,
+        "reduction": "mean",
+        "zero_infinity": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "blank": "blank",
+      "reduction": "reduction",
+      "zero_infinity": "zero_infinity"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.ConstantPad1d": {
+    "ms_api": [
+      "nn.ConstantPad1d",
+      {
+        "padding": "REQUIRED",
+        "value": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.ConstantPad1d",
+      {
+        "padding": "REQUIRED",
+        "value": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "padding": "padding",
+      "value": "value"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.ConstantPad2d": {
+    "ms_api": [
+      "nn.ConstantPad2d",
+      {
+        "padding": "REQUIRED",
+        "value": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.ConstantPad2d",
+      {
+        "padding": "REQUIRED",
+        "value": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "padding": "padding",
+      "value": "value"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.ConstantPad3d": {
+    "ms_api": [
+      "nn.ConstantPad3d",
+      {
+        "padding": "REQUIRED",
+        "value": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.ConstantPad3d",
+      {
+        "padding": "REQUIRED",
+        "value": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "padding": "padding",
+      "value": "value"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.Conv1d": {
+    "ms_api": [
+      "nn.Conv1d",
+      {
+        "in_channels": "REQUIRED",
+        "out_channels": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": 1.0,
+        "pad_mode": "same",
+        "padding": 0.0,
+        "dilation": 1.0,
+        "group": 1.0,
+        "has_bias": false,
+        "weight_init": null,
+        "bias_init": null,
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.Conv1d",
+      {
+        "in_channels": "REQUIRED",
+        "out_channels": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": 1.0,
+        "padding": 0.0,
+        "dilation": 1.0,
+        "groups": 1.0,
+        "bias": true,
+        "padding_mode": "zeros",
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "in_channels": "in_channels",
+      "out_channels": "out_channels",
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "padding": "padding",
+      "dilation": "dilation"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.Conv2d": {
+    "ms_api": [
+      "nn.Conv2d",
+      {
+        "in_channels": "REQUIRED",
+        "out_channels": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": 1.0,
+        "pad_mode": "same",
+        "padding": 0.0,
+        "dilation": 1.0,
+        "group": 1.0,
+        "has_bias": false,
+        "weight_init": null,
+        "bias_init": null,
+        "data_format": "NCHW",
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.Conv2d",
+      {
+        "in_channels": "REQUIRED",
+        "out_channels": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": 1.0,
+        "padding": 0.0,
+        "dilation": 1.0,
+        "groups": 1.0,
+        "bias": true,
+        "padding_mode": "zeros",
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "in_channels": "in_channels",
+      "out_channels": "out_channels",
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "padding": "padding",
+      "dilation": "dilation"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.Conv3d": {
+    "ms_api": [
+      "nn.Conv3d",
+      {
+        "in_channels": "REQUIRED",
+        "out_channels": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": 1.0,
+        "pad_mode": "same",
+        "padding": 0.0,
+        "dilation": 1.0,
+        "group": 1.0,
+        "has_bias": false,
+        "weight_init": null,
+        "bias_init": null,
+        "data_format": "NCDHW",
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.Conv3d",
+      {
+        "in_channels": "REQUIRED",
+        "out_channels": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": 1.0,
+        "padding": 0.0,
+        "dilation": 1.0,
+        "groups": 1.0,
+        "bias": true,
+        "padding_mode": "zeros",
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "in_channels": "in_channels",
+      "out_channels": "out_channels",
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "padding": "padding",
+      "dilation": "dilation"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.ConvTranspose1d": {
+    "ms_api": [
+      "nn.Conv1dTranspose",
+      {
+        "in_channels": "REQUIRED",
+        "out_channels": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": 1.0,
+        "pad_mode": "same",
+        "padding": 0.0,
+        "dilation": 1.0,
+        "group": 1.0,
+        "has_bias": false,
+        "weight_init": null,
+        "bias_init": null,
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.ConvTranspose1d",
+      {
+        "in_channels": "REQUIRED",
+        "out_channels": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": 1.0,
+        "padding": 0.0,
+        "output_padding": 0.0,
+        "groups": 1.0,
+        "bias": true,
+        "dilation": 1.0,
+        "padding_mode": "zeros",
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "in_channels": "in_channels",
+      "out_channels": "out_channels",
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "padding": "padding",
+      "dilation": "dilation"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.ConvTranspose2d": {
+    "ms_api": [
+      "nn.Conv2dTranspose",
+      {
+        "in_channels": "REQUIRED",
+        "out_channels": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": 1.0,
+        "pad_mode": "same",
+        "padding": 0.0,
+        "output_padding": 0.0,
+        "dilation": 1.0,
+        "group": 1.0,
+        "has_bias": false,
+        "weight_init": null,
+        "bias_init": null,
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.ConvTranspose2d",
+      {
+        "in_channels": "REQUIRED",
+        "out_channels": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": 1.0,
+        "padding": 0.0,
+        "output_padding": 0.0,
+        "groups": 1.0,
+        "bias": true,
+        "dilation": 1.0,
+        "padding_mode": "zeros",
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "in_channels": "in_channels",
+      "out_channels": "out_channels",
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "padding": "padding",
+      "output_padding": "output_padding",
+      "dilation": "dilation"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.ConvTranspose3d": {
+    "ms_api": [
+      "nn.Conv3dTranspose",
+      {
+        "in_channels": "REQUIRED",
+        "out_channels": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": 1.0,
+        "pad_mode": "same",
+        "padding": 0.0,
+        "dilation": 1.0,
+        "group": 1.0,
+        "output_padding": 0.0,
+        "has_bias": false,
+        "weight_init": null,
+        "bias_init": null,
+        "data_format": "NCDHW",
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.ConvTranspose3d",
+      {
+        "in_channels": "REQUIRED",
+        "out_channels": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": 1.0,
+        "padding": 0.0,
+        "output_padding": 0.0,
+        "groups": 1.0,
+        "bias": true,
+        "dilation": 1.0,
+        "padding_mode": "zeros",
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "in_channels": "in_channels",
+      "out_channels": "out_channels",
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "padding": "padding",
+      "dilation": "dilation",
+      "output_padding": "output_padding"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.CosineEmbeddingLoss": {
+    "ms_api": [
+      "nn.CosineEmbeddingLoss",
+      {
+        "margin": 0.0,
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "nn.CosineEmbeddingLoss",
+      {
+        "margin": 0.0,
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "margin": "margin",
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.CrossEntropyLoss": {
+    "ms_api": [
+      "nn.CrossEntropyLoss",
+      {
+        "weight": null,
+        "ignore_index": "- 100",
+        "reduction": "mean",
+        "label_smoothing": 0.0
+      }
+    ],
+    "pt_api": [
+      "nn.CrossEntropyLoss",
+      {
+        "weight": null,
+        "size_average": null,
+        "ignore_index": -100.0,
+        "reduce": null,
+        "reduction": "mean",
+        "label_smoothing": 0.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "weight": "weight",
+      "ignore_index": "ignore_index",
+      "reduction": "reduction",
+      "label_smoothing": "label_smoothing"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.Dropout": {
+    "ms_api": [
+      "nn.Dropout",
+      {
+        "keep_prob": 0.5,
+        "p": null,
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.Dropout",
+      {
+        "p": 0.5,
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "keep_prob": "p",
+      "p": "p"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.Dropout2d": {
+    "ms_api": [
+      "nn.Dropout2d",
+      {
+        "p": 0.5
+      }
+    ],
+    "pt_api": [
+      "nn.Dropout2d",
+      {
+        "p": 0.5,
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "p": "p"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.Dropout3d": {
+    "ms_api": [
+      "nn.Dropout3d",
+      {
+        "p": 0.5
+      }
+    ],
+    "pt_api": [
+      "nn.Dropout3d",
+      {
+        "p": 0.5,
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "p": "p"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.ELU": {
+    "ms_api": [
+      "nn.ELU",
+      {
+        "alpha": 1.0
+      }
+    ],
+    "pt_api": [
+      "nn.ELU",
+      {
+        "alpha": 1.0,
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "alpha": "alpha"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.Flatten": {
+    "ms_api": [
+      "nn.Flatten",
+      {
+        "start_dim": 1.0,
+        "end_dim": "- 1"
+      }
+    ],
+    "pt_api": [
+      "nn.Flatten",
+      {
+        "start_dim": 1.0,
+        "end_dim": -1.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "start_dim": "start_dim",
+      "end_dim": "end_dim"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.GaussianNLLLoss": {
+    "ms_api": [
+      "nn.GaussianNLLLoss",
+      {
+        "full": false,
+        "eps": 1e-06,
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "nn.GaussianNLLLoss",
+      {
+        "full": false,
+        "eps": 1e-06,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "full": "full",
+      "eps": "eps",
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.GELU": {
+    "ms_api": [
+      "nn.GELU",
+      {
+        "approximate": true
+      }
+    ],
+    "pt_api": [
+      "nn.GELU",
+      {
+        "approximate": "none"
+      }
+    ],
+    "ms2pt_mapping": {
+      "approximate": "approximate"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.GRU": {
+    "ms_api": [
+      "nn.GRU",
+      {
+        "*args": "REQUIRED",
+        "**kwargs": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.GRU",
+      {
+        "self": "REQUIRED",
+        "input_size": "REQUIRED",
+        "hidden_size": "REQUIRED",
+        "num_layers": 1.0,
+        "bias": true,
+        "batch_first": false,
+        "dropout": 0.0,
+        "bidirectional": false,
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  "nn.GRUCell": {
+    "ms_api": [
+      "nn.GRUCell",
+      {
+        "input_size": "REQUIRED",
+        "hidden_size": "REQUIRED",
+        "has_bias": true,
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.GRUCell",
+      {
+        "input_size": "REQUIRED",
+        "hidden_size": "REQUIRED",
+        "bias": true,
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input_size": "input_size",
+      "hidden_size": "hidden_size",
+      "has_bias": "bias"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.GroupNorm": {
+    "ms_api": [
+      "nn.GroupNorm",
+      {
+        "num_groups": "REQUIRED",
+        "num_channels": "REQUIRED",
+        "eps": 1e-05,
+        "affine": true,
+        "gamma_init": "ones",
+        "beta_init": "zeros",
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.GroupNorm",
+      {
+        "num_groups": "REQUIRED",
+        "num_channels": "REQUIRED",
+        "eps": 1e-05,
+        "affine": true,
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "num_groups": "num_groups",
+      "num_channels": "num_channels",
+      "eps": "eps",
+      "affine": "affine"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.Hardshrink": {
+    "ms_api": [
+      "nn.HShrink",
+      {
+        "lambd": 0.5
+      }
+    ],
+    "pt_api": [
+      "nn.Hardshrink",
+      {
+        "lambd": 0.5
+      }
+    ],
+    "ms2pt_mapping": {
+      "lambd": "lambd"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.Hardsigmoid": {
+    "ms_api": [
+      "nn.Hsigmoid",
+      {
+        "input_x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.Hardsigmoid",
+      {
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  "nn.Hardswish": {
+    "ms_api": [
+      "nn.Hswish",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.Hardswish",
+      {
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  "nn.Hardtanh": {
+    "ms_api": [
+      "nn.Hardtanh",
+      {
+        "min_val": "- 1.0",
+        "max_val": 1.0
+      }
+    ],
+    "pt_api": [
+      "nn.Hardtanh",
+      {
+        "min_val": -1.0,
+        "max_val": 1.0,
+        "inplace": false,
+        "min_value": null,
+        "max_value": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "min_val": "min_val",
+      "max_val": "max_val"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.HingeEmbeddingLoss": {
+    "ms_api": [
+      "nn.HingeEmbeddingLoss",
+      {
+        "margin": 1.0,
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "nn.HingeEmbeddingLoss",
+      {
+        "margin": 1.0,
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "margin": "margin",
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.HuberLoss": {
+    "ms_api": [
+      "nn.HuberLoss",
+      {
+        "reduction": "mean",
+        "delta": 1.0
+      }
+    ],
+    "pt_api": [
+      "nn.HuberLoss",
+      {
+        "reduction": "mean",
+        "delta": 1.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "reduction": "reduction",
+      "delta": "delta"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.Identity": {
+    "ms_api": [
+      "nn.Identity",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.Identity",
+      {
+        "*args": "REQUIRED",
+        "**kwargs": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  "nn.init.uniform_": {
+    "ms_api": [
+      "ops.uniform",
+      {
+        "shape": "REQUIRED",
+        "minval": "REQUIRED",
+        "maxval": "REQUIRED",
+        "seed": null,
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.init.uniform_",
+      {
+        "tensor": "REQUIRED",
+        "a": 0.0,
+        "b": 1.0
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  "nn.InstanceNorm1d": {
+    "ms_api": [
+      "nn.InstanceNorm1d",
+      {
+        "num_features": "REQUIRED",
+        "eps": 1e-05,
+        "momentum": 0.1,
+        "affine": true,
+        "gamma_init": "ones",
+        "beta_init": "zeros",
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.InstanceNorm1d",
+      {
+        "num_features": "REQUIRED",
+        "eps": 1e-05,
+        "momentum": 0.1,
+        "affine": false,
+        "track_running_stats": false,
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "num_features": "num_features",
+      "eps": "eps",
+      "momentum": "momentum",
+      "affine": "affine"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.InstanceNorm2d": {
+    "ms_api": [
+      "nn.InstanceNorm2d",
+      {
+        "num_features": "REQUIRED",
+        "eps": 1e-05,
+        "momentum": 0.1,
+        "affine": true,
+        "gamma_init": "ones",
+        "beta_init": "zeros",
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.InstanceNorm2d",
+      {
+        "num_features": "REQUIRED",
+        "eps": 1e-05,
+        "momentum": 0.1,
+        "affine": false,
+        "track_running_stats": false,
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "num_features": "num_features",
+      "eps": "eps",
+      "momentum": "momentum",
+      "affine": "affine"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.InstanceNorm3d": {
+    "ms_api": [
+      "nn.InstanceNorm3d",
+      {
+        "num_features": "REQUIRED",
+        "eps": 1e-05,
+        "momentum": 0.1,
+        "affine": true,
+        "gamma_init": "ones",
+        "beta_init": "zeros",
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.InstanceNorm3d",
+      {
+        "num_features": "REQUIRED",
+        "eps": 1e-05,
+        "momentum": 0.1,
+        "affine": false,
+        "track_running_stats": false,
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "num_features": "num_features",
+      "eps": "eps",
+      "momentum": "momentum",
+      "affine": "affine",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.KLDivLoss": {
+    "ms_api": [
+      "nn.KLDivLoss",
+      {
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "nn.KLDivLoss",
+      {
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean",
+        "log_target": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.L1Loss": {
+    "ms_api": [
+      "nn.L1Loss",
+      {
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "nn.L1Loss",
+      {
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.LayerNorm": {
+    "ms_api": [
+      "nn.LayerNorm",
+      {
+        "normalized_shape": "REQUIRED",
+        "begin_norm_axis": "- 1",
+        "begin_params_axis": "- 1",
+        "gamma_init": "ones",
+        "beta_init": "zeros",
+        "epsilon": 1e-07,
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.LayerNorm",
+      {
+        "normalized_shape": "REQUIRED",
+        "eps": 1e-05,
+        "elementwise_affine": true,
+        "bias": true,
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "normalized_shape": "normalized_shape",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.LeakyReLU": {
+    "ms_api": [
+      "nn.LeakyReLU",
+      {
+        "alpha": 0.2
+      }
+    ],
+    "pt_api": [
+      "nn.LeakyReLU",
+      {
+        "negative_slope": 0.01,
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  "nn.LPPool1d": {
+    "ms_api": [
+      "nn.LPPool1d",
+      {
+        "norm_type": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "ceil_mode": false
+      }
+    ],
+    "pt_api": [
+      "nn.LPPool1d",
+      {
+        "norm_type": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "ceil_mode": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "norm_type": "norm_type",
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "ceil_mode": "ceil_mode"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.LPPool2d": {
+    "ms_api": [
+      "nn.LPPool2d",
+      {
+        "norm_type": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "ceil_mode": false
+      }
+    ],
+    "pt_api": [
+      "nn.LPPool2d",
+      {
+        "norm_type": "REQUIRED",
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "ceil_mode": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "norm_type": "norm_type",
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "ceil_mode": "ceil_mode"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.LSTM": {
+    "ms_api": [
+      "nn.LSTM",
+      {
+        "*args": "REQUIRED",
+        "**kwargs": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.LSTM",
+      {
+        "self": "REQUIRED",
+        "input_size": "REQUIRED",
+        "hidden_size": "REQUIRED",
+        "num_layers": 1.0,
+        "bias": true,
+        "batch_first": false,
+        "dropout": 0.0,
+        "bidirectional": false,
+        "proj_size": 0.0,
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  "nn.LSTMCell": {
+    "ms_api": [
+      "nn.LSTMCell",
+      {
+        "input_size": "REQUIRED",
+        "hidden_size": "REQUIRED",
+        "has_bias": true,
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.LSTMCell",
+      {
+        "input_size": "REQUIRED",
+        "hidden_size": "REQUIRED",
+        "bias": true,
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input_size": "input_size",
+      "hidden_size": "hidden_size",
+      "has_bias": "bias",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.Linear": {
+    "ms_api": [
+      "nn.Dense",
+      {
+        "in_channels": "REQUIRED",
+        "out_channels": "REQUIRED",
+        "weight_init": null,
+        "bias_init": null,
+        "has_bias": true,
+        "activation": null,
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.Linear",
+      {
+        "in_features": "REQUIRED",
+        "out_features": "REQUIRED",
+        "bias": true,
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "in_channels": "in_features",
+      "out_channels": "out_features"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.LocalResponseNorm": {
+    "ms_api": [
+      "nn.LRN",
+      {
+        "depth_radius": 5.0,
+        "bias": 1.0,
+        "alpha": 1.0,
+        "beta": 0.5,
+        "norm_region": "ACROSS_CHANNELS"
+      }
+    ],
+    "pt_api": [
+      "nn.LocalResponseNorm",
+      {
+        "size": "REQUIRED",
+        "alpha": 0.0001,
+        "beta": 0.75,
+        "k": 1.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "alpha": "alpha",
+      "beta": "beta"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.LogSigmoid": {
+    "ms_api": [
+      "nn.LogSigmoid",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.LogSigmoid",
+      {
+        "*args": "REQUIRED",
+        "**kwargs": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  "nn.LogSoftMax": {
+    "ms_api": [
+      "nn.LogSoftMax",
+      {
+        "axis": -1
+      }
+    ],
+    "pt_api": [
+      "nn.LogSoftMax",
+      {
+        "dim": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.MSELoss": {
+    "ms_api": [
+      "nn.MSELoss",
+      {
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "nn.MSELoss",
+      {
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.MarginRankingLoss": {
+    "ms_api": [
+      "nn.MarginRankingLoss",
+      {
+        "margin": 0.0,
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "nn.MarginRankingLoss",
+      {
+        "margin": 0.0,
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "margin": "margin",
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.MaxPool1d": {
+    "ms_api": [
+      "nn.MaxPool1d",
+      {
+        "kernel_size": 1.0,
+        "stride": 1.0,
+        "pad_mode": "valid",
+        "padding": 0.0,
+        "dilation": 1.0,
+        "return_indices": false,
+        "ceil_mode": false
+      }
+    ],
+    "pt_api": [
+      "nn.MaxPool1d",
+      {
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "padding": 0.0,
+        "dilation": 1.0,
+        "return_indices": false,
+        "ceil_mode": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "pad_mode": "padding",
+      "padding": "padding",
+      "dilation": "dilation",
+      "return_indices": "return_indices",
+      "ceil_mode": "ceil_mode"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.MaxPool2d": {
+    "ms_api": [
+      "nn.MaxPool2d",
+      {
+        "kernel_size": 1.0,
+        "stride": 1.0,
+        "pad_mode": "valid",
+        "padding": 0.0,
+        "dilation": 1.0,
+        "return_indices": false,
+        "ceil_mode": false,
+        "data_format": "NCHW"
+      }
+    ],
+    "pt_api": [
+      "nn.MaxPool2d",
+      {
+        "kernel_size": "REQUIRED",
+        "stride": 1,
+        "padding": 0.0,
+        "dilation": 1.0,
+        "return_indices": false,
+        "ceil_mode": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "padding": "padding",
+      "dilation": "dilation",
+      "return_indices": "return_indices",
+      "ceil_mode": "ceil_mode"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.MaxPool3d": {
+    "ms_api": [
+      "nn.MaxPool3d",
+      {
+        "kernel_size": 1.0,
+        "stride": 1.0,
+        "pad_mode": "valid",
+        "padding": 0.0,
+        "dilation": 1.0,
+        "return_indices": false,
+        "ceil_mode": false
+      }
+    ],
+    "pt_api": [
+      "nn.MaxPool3d",
+      {
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "padding": 0.0,
+        "dilation": 1.0,
+        "return_indices": false,
+        "ceil_mode": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "pad_mode": "padding",
+      "padding": "padding",
+      "dilation": "dilation",
+      "return_indices": "return_indices",
+      "ceil_mode": "ceil_mode"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.MaxUnpool1d": {
+    "ms_api": [
+      "nn.MaxUnpool1d",
+      {
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "padding": 0.0
+      }
+    ],
+    "pt_api": [
+      "nn.MaxUnpool1d",
+      {
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "padding": 0.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "padding": "padding"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.MaxUnpool2d": {
+    "ms_api": [
+      "nn.MaxUnpool2d",
+      {
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "padding": 0.0
+      }
+    ],
+    "pt_api": [
+      "nn.MaxUnpool2d",
+      {
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "padding": 0.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "padding": "padding"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.MaxUnpool3d": {
+    "ms_api": [
+      "nn.MaxUnpool3d",
+      {
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "padding": 0.0
+      }
+    ],
+    "pt_api": [
+      "nn.MaxUnpool3d",
+      {
+        "kernel_size": "REQUIRED",
+        "stride": null,
+        "padding": 0.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "kernel_size": "kernel_size",
+      "stride": "stride",
+      "padding": "padding"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.ModuleDict": {
+    "ms_api": [
+      "nn.CellDict",
+      {
+        "*args": "REQUIRED",
+        "**kwargs": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.ModuleDict",
+      {
+        "modules": null
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  "nn.ModuleList": {
+    "ms_api": [
+      "nn.CellList",
+      {
+        "*args": "REQUIRED",
+        "**kwargs": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.ModuleList",
+      {
+        "modules": null
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  "nn.MultiheadAttention": {
+    "ms_api": [
+      "nn.MultiheadAttention",
+      {
+        "embed_dim": "REQUIRED",
+        "num_heads": "REQUIRED",
+        "dropout": 0.0,
+        "has_bias": true,
+        "add_bias_kv": false,
+        "add_zero_attn": false,
+        "kdim": null,
+        "vdim": null,
+        "batch_first": false,
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.MultiheadAttention",
+      {
+        "embed_dim": "REQUIRED",
+        "num_heads": "REQUIRED",
+        "dropout": 0.0,
+        "bias": true,
+        "add_bias_kv": false,
+        "add_zero_attn": false,
+        "kdim": null,
+        "vdim": null,
+        "batch_first": false,
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "embed_dim": "embed_dim",
+      "num_heads": "num_heads",
+      "dropout": "dropout",
+      "has_bias": "bias",
+      "add_bias_kv": "add_bias_kv",
+      "add_zero_attn": "add_zero_attn",
+      "kdim": "kdim",
+      "vdim": "vdim",
+      "batch_first": "batch_first",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.MultiLabelMarginLoss": {
+    "ms_api": [
+      "nn.MultiLabelMarginLoss",
+      {
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "nn.MultiLabelMarginLoss",
+      {
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.MultiLabelSoftMarginLoss": {
+    "ms_api": [
+      "nn.MultiLabelSoftMarginLoss",
+      {
+        "weight": null,
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "nn.MultiLabelSoftMarginLoss",
+      {
+        "weight": null,
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "weight": "weight",
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.MultiMarginLoss": {
+    "ms_api": [
+      "nn.MultiMarginLoss",
+      {
+        "p": 1.0,
+        "margin": 1.0,
+        "reduction": "mean",
+        "weight": null
+      }
+    ],
+    "pt_api": [
+      "nn.MultiMarginLoss",
+      {
+        "p": 1.0,
+        "margin": 1.0,
+        "weight": null,
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "p": "p",
+      "margin": "margin",
+      "reduction": "reduction",
+      "weight": "weight"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.NLLLoss": {
+    "ms_api": [
+      "nn.NLLLoss",
+      {
+        "weight": null,
+        "ignore_index": "- 100",
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "nn.NLLLoss",
+      {
+        "weight": null,
+        "size_average": null,
+        "ignore_index": -100.0,
+        "reduce": null,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "weight": "weight",
+      "ignore_index": "ignore_index",
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.PReLU": {
+    "ms_api": [
+      "nn.PReLU",
+      {
+        "channel": 1.0,
+        "w": 0.25
+      }
+    ],
+    "pt_api": [
+      "nn.PReLU",
+      {
+        "num_parameters": 1.0,
+        "init": 0.25,
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  "nn.PixelShuffle": {
+    "ms_api": [
+      "nn.PixelShuffle",
+      {
+        "upscale_factor": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.PixelShuffle",
+      {
+        "upscale_factor": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "upscale_factor": "upscale_factor"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.PixelUnshuffle": {
+    "ms_api": [
+      "nn.PixelUnshuffle",
+      {
+        "downscale_factor": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.PixelUnshuffle",
+      {
+        "downscale_factor": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "downscale_factor": "downscale_factor"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.PoissonNLLLoss": {
+    "ms_api": [
+      "nn.PoissonNLLLoss",
+      {
+        "log_input": true,
+        "full": false,
+        "eps": 1e-08,
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "nn.PoissonNLLLoss",
+      {
+        "log_input": true,
+        "full": false,
+        "size_average": null,
+        "eps": 1e-08,
+        "reduce": null,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "log_input": "log_input",
+      "full": "full",
+      "eps": "eps",
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.ReflectionPad1d": {
+    "ms_api": [
+      "nn.ReflectionPad1d",
+      {
+        "padding": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.ReflectionPad1d",
+      {
+        "padding": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "padding": "padding"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.ReflectionPad2d": {
+    "ms_api": [
+      "nn.ReflectionPad2d",
+      {
+        "padding": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.ReflectionPad2d",
+      {
+        "padding": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "padding": "padding"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.ReLU": {
+    "ms_api": [
+      "nn.ReLU",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.ReLU",
+      {
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  "nn.ReLU6": {
+    "ms_api": [
+      "nn.ReLU6",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.ReLU6",
+      {
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  "nn.ReplicationPad1d": {
+    "ms_api": [
+      "nn.ReplicationPad1d",
+      {
+        "padding": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.ReplicationPad1d",
+      {
+        "padding": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "padding": "padding"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.ReplicationPad2d": {
+    "ms_api": [
+      "nn.ReplicationPad2d",
+      {
+        "padding": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.ReplicationPad2d",
+      {
+        "padding": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "padding": "padding"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.ReplicationPad3d": {
+    "ms_api": [
+      "nn.ReplicationPad3d",
+      {
+        "padding": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.ReplicationPad3d",
+      {
+        "padding": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "padding": "padding"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.RNN": {
+    "ms_api": [
+      "nn.RNN",
+      {
+        "*args": "REQUIRED",
+        "**kwargs": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.RNN",
+      {
+        "self": "REQUIRED",
+        "input_size": "REQUIRED",
+        "hidden_size": "REQUIRED",
+        "num_layers": 1.0,
+        "nonlinearity": "tanh",
+        "bias": true,
+        "batch_first": false,
+        "dropout": 0.0,
+        "bidirectional": false,
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  "nn.RNNCell": {
+    "ms_api": [
+      "nn.RNNCell",
+      {
+        "input_size": "REQUIRED",
+        "hidden_size": "REQUIRED",
+        "has_bias": true,
+        "nonlinearity": "tanh",
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.RNNCell",
+      {
+        "input_size": "REQUIRED",
+        "hidden_size": "REQUIRED",
+        "bias": true,
+        "nonlinearity": "tanh",
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "input_size": "input_size",
+      "hidden_size": "hidden_size",
+      "has_bias": "bias",
+      "nonlinearity: str ": "nonlinearity",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.RReLU": {
+    "ms_api": [
+      "nn.RReLU",
+      {
+        "lower": "1 / 8",
+        "upper": "1 / 3"
+      }
+    ],
+    "pt_api": [
+      "nn.RReLU",
+      {
+        "lower": 0.125,
+        "upper": 0.3333333333333333,
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "lower": "lower",
+      "upper": "upper"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.SeLU": {
+    "ms_api": [
+      "nn.SeLU",
+      {}
+    ],
+    "pt_api": [
+      "nn.SeLU",
+      {
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  "nn.Sequential": {
+    "ms_api": [
+      "nn.SequentialCell",
+      {
+        "*args": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.Sequential",
+      {
+        "*args": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  "nn.Sigmoid": {
+    "ms_api": [
+      "nn.Sigmoid",
+      {
+        "input_x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.Sigmoid",
+      {
+        "*args": "REQUIRED",
+        "**kwargs": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  "nn.SiLU": {
+    "ms_api": [
+      "nn.SiLU",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.SiLU",
+      {
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  "nn.SmoothL1Loss": {
+    "ms_api": [
+      "nn.SmoothL1Loss",
+      {
+        "beta": 1.0,
+        "reduction": "none"
+      }
+    ],
+    "pt_api": [
+      "nn.SmoothL1Loss",
+      {
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean",
+        "beta": 1.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "beta": "beta",
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.SoftMarginLoss": {
+    "ms_api": [
+      "nn.SoftMarginLoss",
+      {
+        "reduction": "mean"
+      }
+    ],
+    "pt_api": [
+      "nn.SoftMarginLoss",
+      {
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "reduction": "reduction"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.Softmax": {
+    "ms_api": [
+      "nn.Softmax",
+      {
+        "axis": "- 1"
+      }
+    ],
+    "pt_api": [
+      "nn.Softmax",
+      {
+        "dim": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.Softmin": {
+    "ms_api": [
+      "nn.Softmin",
+      {
+        "axis": "- 1"
+      }
+    ],
+    "pt_api": [
+      "nn.Softmin",
+      {
+        "dim": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.Softmax2d": {
+    "ms_api": [
+      "nn.Softmax2d",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.Softmax2d",
+      {
+        "*args": "REQUIRED",
+        "**kwargs": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  "nn.Softshrink": {
+    "ms_api": [
+      "nn.SoftShrink",
+      {
+        "lambd": 0.5
+      }
+    ],
+    "pt_api": [
+      "nn.Softshrink",
+      {
+        "lambd": 0.5
+      }
+    ],
+    "ms2pt_mapping": {
+      "lambd": "lambd"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.Softsign": {
+    "ms_api": [
+      "nn.Softsign",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.Softsign",
+      {
+        "*args": "REQUIRED",
+        "**kwargs": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  "nn.SyncBatchNorm": {
+    "ms_api": [
+      "nn.SyncBatchNorm",
+      {
+        "num_features": "REQUIRED",
+        "eps": 1e-05,
+        "momentum": 0.9,
+        "affine": true,
+        "gamma_init": "ones",
+        "beta_init": "zeros",
+        "moving_mean_init": "zeros",
+        "moving_var_init": "ones",
+        "use_batch_statistics": null,
+        "process_groups": null,
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.SyncBatchNorm",
+      {
+        "num_features": "REQUIRED",
+        "eps": 1e-05,
+        "momentum": 0.1,
+        "affine": true,
+        "track_running_stats": true,
+        "process_group": null,
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "num_features": "num_features",
+      "eps": "eps",
+      "momentum": "momentum",
+      "affine": "affine",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.Tanh": {
+    "ms_api": [
+      "nn.Tanh",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.Tanh",
+      {
+        "*args": "REQUIRED",
+        "**kwargs": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  "nn.Tanhshrink": {
+    "ms_api": [
+      "nn.Tanhshrink",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.Tanhshrink",
+      {
+        "*args": "REQUIRED",
+        "**kwargs": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  "nn.Threshold": {
+    "ms_api": [
+      "nn.Threshold",
+      {
+        "threshold": "REQUIRED",
+        "value": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.Threshold",
+      {
+        "threshold": "REQUIRED",
+        "value": "REQUIRED",
+        "inplace": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "threshold": "threshold",
+      "value": "value"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.Transformer": {
+    "ms_api": [
+      "nn.Transformer",
+      {
+        "d_model": 512.0,
+        "nhead": 8.0,
+        "num_encoder_layers": 6.0,
+        "num_decoder_layers": 6.0,
+        "dim_feedforward": 2048.0,
+        "dropout": 0.1,
+        "activation": "relu",
+        "custom_encoder": null,
+        "custom_decoder": null,
+        "layer_norm_eps": 1e-05,
+        "batch_first": false,
+        "norm_first": false,
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.Transformer",
+      {
+        "d_model": 512.0,
+        "nhead": 8.0,
+        "num_encoder_layers": 6.0,
+        "num_decoder_layers": 6.0,
+        "dim_feedforward": 2048.0,
+        "dropout": 0.1,
+        "activation": "relu",
+        "custom_encoder": null,
+        "custom_decoder": null,
+        "layer_norm_eps": 1e-05,
+        "batch_first": false,
+        "norm_first": false,
+        "bias": true,
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "d_model": "d_model",
+      "nhead": "nhead",
+      "num_encoder_layers": "num_encoder_layers",
+      "num_decoder_layers": "num_decoder_layers",
+      "dim_feedforward": "dim_feedforward",
+      "dropout": "dropout",
+      "activation": "activation",
+      "layer_norm_eps": "norm_first",
+      "batch_first": "batch_first",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.TransformerDecoder": {
+    "ms_api": [
+      "nn.TransformerDecoder",
+      {
+        "decoder_layer": "REQUIRED",
+        "num_layers": "REQUIRED",
+        "norm": null
+      }
+    ],
+    "pt_api": [
+      "nn.TransformerDecoder",
+      {
+        "decoder_layer": "REQUIRED",
+        "num_layers": "REQUIRED",
+        "norm": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "decoder_layer": "decoder_layer",
+      "num_layers": "num_layers",
+      "norm": "norm"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.TransformerEncoder": {
+    "ms_api": [
+      "nn.TransformerEncoder",
+      {
+        "encoder_layer": "REQUIRED",
+        "num_layers": "REQUIRED",
+        "norm": null
+      }
+    ],
+    "pt_api": [
+      "nn.TransformerEncoder",
+      {
+        "encoder_layer": "REQUIRED",
+        "num_layers": "REQUIRED",
+        "norm": null,
+        "enable_nested_tensor": true,
+        "mask_check": true
+      }
+    ],
+    "ms2pt_mapping": {
+      "encoder_layer": "encoder_layer",
+      "num_layers": "num_layers",
+      "norm": "norm"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.TransformerDecoderLayer": {
+    "ms_api": [
+      "nn.TransformerDecoderLayer",
+      {
+        "d_model": "REQUIRED",
+        "nhead": "REQUIRED",
+        "dim_feedforward": 2048.0,
+        "dropout": 0.1,
+        "activation": "relu",
+        "layer_norm_eps": 1e-05,
+        "batch_first": false,
+        "norm_first": false,
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.TransformerDecoderLayer",
+      {
+        "d_model": "REQUIRED",
+        "nhead": "REQUIRED",
+        "dim_feedforward": 2048.0,
+        "dropout": 0.1,
+        "activation": "relu",
+        "layer_norm_eps": 1e-05,
+        "batch_first": false,
+        "norm_first": false,
+        "bias": true,
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "d_model": "d_model",
+      "nhead": "nhead",
+      "dim_feedforward": "dim_feedforward",
+      "dropout": "dropout",
+      "activation": "activation",
+      "layer_norm_eps": "norm_first",
+      "batch_first": "batch_first",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.TransformerEncoderLayer": {
+    "ms_api": [
+      "nn.TransformerEncoderLayer",
+      {
+        "d_model": "REQUIRED",
+        "nhead": "REQUIRED",
+        "dim_feedforward": 2048.0,
+        "dropout": 0.1,
+        "activation": "relu",
+        "layer_norm_eps": 1e-05,
+        "batch_first": false,
+        "norm_first": false,
+        "dtype": "mstype.float32"
+      }
+    ],
+    "pt_api": [
+      "nn.TransformerEncoderLayer",
+      {
+        "d_model": "REQUIRED",
+        "nhead": "REQUIRED",
+        "dim_feedforward": 2048.0,
+        "dropout": 0.1,
+        "activation": "relu",
+        "layer_norm_eps": 1e-05,
+        "batch_first": false,
+        "norm_first": false,
+        "bias": true,
+        "device": null,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "d_model": "d_model",
+      "nhead": "nhead",
+      "dim_feedforward": "dim_feedforward",
+      "dropout": "dropout",
+      "activation": "activation",
+      "layer_norm_eps": "layer_norm_eps",
+      "batch_first": "batch_first",
+      "norm_first": "norm_first"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.TripletMarginLoss": {
+    "ms_api": [
+      "nn.TripletMarginLoss",
+      {
+        "p": 2.0,
+        "swap": false,
+        "eps": 1e-06,
+        "reduction": "mean",
+        "margin": 1.0
+      }
+    ],
+    "pt_api": [
+      "nn.TripletMarginLoss",
+      {
+        "margin": 1.0,
+        "p": 2.0,
+        "eps": 1e-06,
+        "swap": false,
+        "size_average": null,
+        "reduce": null,
+        "reduction": "mean"
+      }
+    ],
+    "ms2pt_mapping": {
+      "p": "p",
+      "swap": "swap",
+      "eps": "eps",
+      "reduction": "reduction",
+      "margin": "margin"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.Unflatten": {
+    "ms_api": [
+      "nn.Unflatten",
+      {
+        "axis": "REQUIRED",
+        "unflattened_size": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.Unflatten",
+      {
+        "dim": "REQUIRED",
+        "unflattened_size": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim",
+      "unflattened_size": "unflattened_size"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.Unfold": {
+    "ms_api": [
+      "nn.Unfold",
+      {
+        "ksizes": "REQUIRED",
+        "strides": "REQUIRED",
+        "rates": "REQUIRED",
+        "padding": "valid"
+      }
+    ],
+    "pt_api": [
+      "nn.Unfold",
+      {
+        "kernel_size": "REQUIRED",
+        "dilation": 1.0,
+        "padding": 0.0,
+        "stride": 1.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "ksizes": "kernel_size",
+      "padding": "padding"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.Upsample": {
+    "ms_api": [
+      "nn.Upsample",
+      {
+        "size": null,
+        "scale_factor": null,
+        "mode": "nearest",
+        "align_corners": null,
+        "recompute_scale_factor": null
+      }
+    ],
+    "pt_api": [
+      "nn.Upsample",
+      {
+        "size": null,
+        "scale_factor": null,
+        "mode": "nearest",
+        "align_corners": null,
+        "recompute_scale_factor": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "size": "size",
+      "scale_factor": "scale_factor",
+      "mode": "mode",
+      "align_corners": "align_corners",
+      "recompute_scale_factor": "recompute_scale_factor"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.ZeroPad2d": {
+    "ms_api": [
+      "nn.ZeroPad2d",
+      {
+        "padding": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      "nn.ZeroPad2d",
+      {
+        "padding": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "padding": "padding"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.Module.apply": {
+    "ms_api": [
+      "nn.Cell.apply",
+      {}
+    ],
+    "pt_api": [
+      "nn.Module.apply",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  "nn.utils.clip_grad_value_": {
+    "ms_api": [
+      "ops.clip_by_value",
+      {
+        "x": "REQUIRED",
+        "clip_value_min": null,
+        "clip_value_max": null
+      }
+    ],
+    "pt_api": [
+      "nn.utils.clip_grad_value_",
+      {
+        "parameters": "REQUIRED",
+        "clip_value": "REQUIRED",
+        "foreach": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "parameters"
+    },
+    "gen_explicit_map": null
+  },
+  "nn.utils.clip_grad_norm_": {
+    "ms_api": [
+      "ops.clip_by_norm",
+      {
+        "x": "REQUIRED",
+        "max_norm": "REQUIRED",
+        "norm_type": 2.0,
+        "error_if_nonfinite": false
+      }
+    ],
+    "pt_api": [
+      "nn.utils.clip_grad_norm_",
+      {
+        "parameters": "REQUIRED",
+        "max_norm": "REQUIRED",
+        "error_if_nonfinite": false,
+        "foreach": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "x": "parameters",
+      "max_norm": "max_norm",
+      "error_if_nonfinite": "error_if_nonfinite"
+    },
+    "gen_explicit_map": null
+  }
+}

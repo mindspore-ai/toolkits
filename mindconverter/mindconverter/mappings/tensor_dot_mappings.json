@@ -1,0 +1,3601 @@
+{
+  ".abs": {
+    "ms_api": [
+      ".abs",
+      {}
+    ],
+    "pt_api": [
+      ".abs",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".absolute": {
+    "ms_api": [
+      ".absolute",
+      {}
+    ],
+    "pt_api": [
+      ".absolute",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".acos": {
+    "ms_api": [
+      ".acos",
+      {}
+    ],
+    "pt_api": [
+      ".acos",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".acosh": {
+    "ms_api": [
+      ".acosh",
+      {}
+    ],
+    "pt_api": [
+      ".acosh",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".add": {
+    "ms_api": [
+      ".add",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".add",
+      {
+        "other": "REQUIRED",
+        "alpha": 1.0
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".addbmm": {
+    "ms_api": [
+      ".addbmm",
+      {
+        "batch1": "REQUIRED",
+        "batch2": "REQUIRED",
+        "beta": 1.0,
+        "alpha": 1.0
+      }
+    ],
+    "pt_api": [
+      ".addbmm",
+      {
+        "batch1": "REQUIRED",
+        "batch2": "REQUIRED",
+        "beta": 1.0,
+        "alpha": 1.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "batch1": "batch1",
+      "batch2": "batch2",
+      "beta": "beta",
+      "alpha": "alpha"
+    },
+    "gen_explicit_map": null
+  },
+  ".addcdiv": {
+    "ms_api": [
+      ".addcdiv",
+      {
+        "tensor1": "REQUIRED",
+        "tensor2": "REQUIRED",
+        "value": 1.0
+      }
+    ],
+    "pt_api": [
+      ".addcdiv",
+      {
+        "tensor1": "REQUIRED",
+        "tensor2": "REQUIRED",
+        "value": 1.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "tensor1": "tensor1",
+      "tensor2": "tensor2",
+      "value": "value"
+    },
+    "gen_explicit_map": null
+  },
+  ".addcmul": {
+    "ms_api": [
+      ".addcmul",
+      {
+        "tensor1": "REQUIRED",
+        "tensor2": "REQUIRED",
+        "value": 1.0
+      }
+    ],
+    "pt_api": [
+      ".addcmul",
+      {
+        "tensor1": "REQUIRED",
+        "tensor2": "REQUIRED",
+        "value": 1.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "tensor1": "tensor1",
+      "tensor2": "tensor2",
+      "value": "value"
+    },
+    "gen_explicit_map": null
+  },
+  ".addmm": {
+    "ms_api": [
+      ".addmm",
+      {
+        "mat1": "REQUIRED",
+        "mat2": "REQUIRED",
+        "beta": 1.0,
+        "alpha": 1.0
+      }
+    ],
+    "pt_api": [
+      ".addmm",
+      {
+        "mat1": "REQUIRED",
+        "mat2": "REQUIRED",
+        "beta": 1.0,
+        "alpha": 1.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "mat1": "mat1",
+      "mat2": "mat2",
+      "beta": "beta",
+      "alpha": "alpha"
+    },
+    "gen_explicit_map": null
+  },
+  ".addmv": {
+    "ms_api": [
+      ".addmv",
+      {
+        "mat": "REQUIRED",
+        "vec": "REQUIRED",
+        "beta": 1.0,
+        "alpha": 1.0
+      }
+    ],
+    "pt_api": [
+      ".addmv",
+      {
+        "mat": "REQUIRED",
+        "vec": "REQUIRED",
+        "beta": 1.0,
+        "alpha": 1.0
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".addr": {
+    "ms_api": [
+      ".addr",
+      {
+        "vec1": "REQUIRED",
+        "vec2": "REQUIRED",
+        "beta": 1.0,
+        "alpha": 1.0
+      }
+    ],
+    "pt_api": [
+      ".addr",
+      {
+        "vec1": "REQUIRED",
+        "vec2": "REQUIRED",
+        "beta": 1.0,
+        "alpha": 1.0
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".all": {
+    "ms_api": [
+      ".all",
+      {
+        "axis": null,
+        "keep_dims": false
+      }
+    ],
+    "pt_api": [
+      ".all",
+      {
+        "dim": null,
+        "keepdim": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim",
+      "keep_dims": "keepdim"
+    },
+    "gen_explicit_map": null
+  },
+  ".amax": {
+    "ms_api": [
+      ".amax",
+      {
+        "axis": null,
+        "keepdims": false,
+        "initial": null,
+        "where": null
+      }
+    ],
+    "pt_api": [
+      ".amax",
+      {
+        "dim": null,
+        "keepdim": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim",
+      "keepdims": "keepdim"
+    },
+    "gen_explicit_map": null
+  },
+  ".amin": {
+    "ms_api": [
+      ".amin",
+      {
+        "axis": null,
+        "keepdims": false,
+        "initial": null,
+        "where": null
+      }
+    ],
+    "pt_api": [
+      ".amin",
+      {
+        "dim": null,
+        "keepdim": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim",
+      "keepdims": "keepdim"
+    },
+    "gen_explicit_map": null
+  },
+  ".any": {
+    "ms_api": [
+      ".any",
+      {
+        "axis": null,
+        "keep_dims": false
+      }
+    ],
+    "pt_api": [
+      ".any",
+      {
+        "dim": null,
+        "keepdim": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim",
+      "keep_dims": "keepdim"
+    },
+    "gen_explicit_map": null
+  },
+  ".arccos": {
+    "ms_api": [
+      ".arccos",
+      {}
+    ],
+    "pt_api": [
+      ".arccos",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".arccosh": {
+    "ms_api": [
+      ".arccosh",
+      {}
+    ],
+    "pt_api": [
+      ".arccosh",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".argmax": {
+    "ms_api": [
+      ".argmax",
+      {
+        "axis": null,
+        "keepdims": false
+      }
+    ],
+    "pt_api": [
+      ".argmax",
+      {
+        "dim": null,
+        "keepdim": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim",
+      "keepdims": "keepdim"
+    },
+    "gen_explicit_map": null
+  },
+  ".angle": {
+    "ms_api": [
+      ".angle",
+      {}
+    ],
+    "pt_api": [
+      ".angle",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".arcsin": {
+    "ms_api": [
+      ".arcsin",
+      {}
+    ],
+    "pt_api": [
+      ".arcsin",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".arcsinh": {
+    "ms_api": [
+      ".arcsinh",
+      {}
+    ],
+    "pt_api": [
+      ".arcsinh",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".arctan": {
+    "ms_api": [
+      ".arctan",
+      {}
+    ],
+    "pt_api": [
+      ".arctan",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".arctanh": {
+    "ms_api": [
+      ".arctanh",
+      {}
+    ],
+    "pt_api": [
+      ".arctanh",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".argmin": {
+    "ms_api": [
+      ".argmin",
+      {
+        "axis": null,
+        "keepdims": false
+      }
+    ],
+    "pt_api": [
+      ".argmin",
+      {
+        "dim": null,
+        "keepdim": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim",
+      "keepdims": "keepdim"
+    },
+    "gen_explicit_map": null
+  },
+  ".argsort": {
+    "ms_api": [
+      ".argsort",
+      {
+        "axis": -1,
+        "descending": false
+      }
+    ],
+    "pt_api": [
+      ".argsort",
+      {
+        "dim": -1.0,
+        "descending": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim",
+      "descending": "descending"
+    },
+    "gen_explicit_map": null
+  },
+  ".asin": {
+    "ms_api": [
+      ".asin",
+      {}
+    ],
+    "pt_api": [
+      ".asin",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".asinh": {
+    "ms_api": [
+      ".asinh",
+      {}
+    ],
+    "pt_api": [
+      ".asinh",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".atan": {
+    "ms_api": [
+      ".atan",
+      {}
+    ],
+    "pt_api": [
+      ".atan",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".atan2": {
+    "ms_api": [
+      ".atan2",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".atan2",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  ".atanh": {
+    "ms_api": [
+      ".atanh",
+      {}
+    ],
+    "pt_api": [
+      ".atanh",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".baddbmm": {
+    "ms_api": [
+      ".baddbmm",
+      {
+        "batch1": "REQUIRED",
+        "batch2": "REQUIRED",
+        "beta": 1.0,
+        "alpha": 1.0
+      }
+    ],
+    "pt_api": [
+      ".baddbmm",
+      {
+        "batch1": "REQUIRED",
+        "batch2": "REQUIRED",
+        "beta": 1.0,
+        "alpha": 1.0
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".bernoulli": {
+    "ms_api": [
+      ".bernoulli",
+      {
+        "p": 0.5,
+        "seed": null
+      }
+    ],
+    "pt_api": [
+      ".bernoulli",
+      {
+        "generator": null
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".bincount": {
+    "ms_api": [
+      ".bincount",
+      {
+        "weights": null,
+        "minlength": 0.0
+      }
+    ],
+    "pt_api": [
+      ".bincount",
+      {
+        "weights": null,
+        "minlength": 0.0
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".bitwise_and": {
+    "ms_api": [
+      ".bitwise_and",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".bitwise_and",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".bitwise_or": {
+    "ms_api": [
+      ".bitwise_or",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".bitwise_or",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".bitwise_xor": {
+    "ms_api": [
+      ".bitwise_xor",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".bitwise_xor",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".bmm": {
+    "ms_api": [
+      ".bmm",
+      {
+        "mat2": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".bmm",
+      {
+        "batch2": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "mat2": "batch2"
+    },
+    "gen_explicit_map": null
+  },
+  ".bool": {
+    "ms_api": [
+      ".bool",
+      {}
+    ],
+    "pt_api": [
+      ".bool",
+      {
+        "memory_format": "torch.preserve_format"
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".broadcast_to": {
+    "ms_api": [
+      ".broadcast_to",
+      {
+        "shape": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".broadcast_to",
+      {
+        "shape": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "shape": "shape"
+    },
+    "gen_explicit_map": null
+  },
+  ".cauchy_": {
+    "ms_api": [
+      ".cauchy",
+      {
+        "median": 0.0,
+        "sigma": 1.0
+      }
+    ],
+    "pt_api": [
+      ".cauchy_",
+      {
+        "median": 0.0,
+        "sigma": 1.0,
+        "generator": null
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".ceil": {
+    "ms_api": [
+      ".ceil",
+      {}
+    ],
+    "pt_api": [
+      ".ceil",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".chunk": {
+    "ms_api": [
+      ".chunk",
+      {
+        "chunks": "REQUIRED",
+        "axis": 0.0
+      }
+    ],
+    "pt_api": [
+      ".chunk",
+      {
+        "chunks": "REQUIRED",
+        "dim": 0.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "chunks": "chunks",
+      "axis": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  ".cholesky": {
+    "ms_api": [
+      ".cholesky",
+      {
+        "upper": false
+      }
+    ],
+    "pt_api": [
+      ".cholesky",
+      {
+        "upper": false
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".cholesky_solve": {
+    "ms_api": [
+      ".cholesky_solve",
+      {
+        "input2": "REQUIRED",
+        "upper": false
+      }
+    ],
+    "pt_api": [
+      ".cholesky_solve",
+      {
+        "input2": "REQUIRED",
+        "upper": false
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".clamp": {
+    "ms_api": [
+      ".clamp",
+      {
+        "min": null,
+        "max": null
+      }
+    ],
+    "pt_api": [
+      ".clamp",
+      {
+        "min": null,
+        "max": null
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".clip": {
+    "ms_api": [
+      ".clip",
+      {
+        "min": null,
+        "max": null
+      }
+    ],
+    "pt_api": [
+      ".clip",
+      {
+        "min": null,
+        "max": null
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".conj": {
+    "ms_api": [
+      ".conj",
+      {}
+    ],
+    "pt_api": [
+      ".conj",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".copysign": {
+    "ms_api": [
+      ".copysign",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".copysign",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  ".cos": {
+    "ms_api": [
+      ".cos",
+      {}
+    ],
+    "pt_api": [
+      ".cos",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".cosh": {
+    "ms_api": [
+      ".cosh",
+      {}
+    ],
+    "pt_api": [
+      ".cosh",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".cross": {
+    "ms_api": [
+      ".cross",
+      {
+        "other": "REQUIRED",
+        "dim": null
+      }
+    ],
+    "pt_api": [
+      ".cross",
+      {
+        "other": "REQUIRED",
+        "dim": null
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".cummax": {
+    "ms_api": [
+      ".cummax",
+      {
+        "axis": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".cummax",
+      {
+        "dim": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  ".cummin": {
+    "ms_api": [
+      ".cummin",
+      {
+        "axis": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".cummin",
+      {
+        "dim": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  ".cumprod": {
+    "ms_api": [
+      ".cumprod",
+      {
+        "dim": "REQUIRED",
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      ".cumprod",
+      {
+        "dim": "REQUIRED",
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".cumsum": {
+    "ms_api": [
+      ".cumsum",
+      {
+        "axis": null,
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      ".cumsum",
+      {
+        "dim": "REQUIRED",
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  ".deg2rad": {
+    "ms_api": [
+      ".deg2rad",
+      {}
+    ],
+    "pt_api": [
+      ".deg2rad",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".diag": {
+    "ms_api": [
+      ".diag",
+      {}
+    ],
+    "pt_api": [
+      ".diag",
+      {
+        "diagonal": 0.0
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".diagflat": {
+    "ms_api": [
+      ".diagflat",
+      {
+        "offset": 0.0
+      }
+    ],
+    "pt_api": [
+      ".diagflat",
+      {
+        "offset": 0.0
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".diff": {
+    "ms_api": [
+      ".diff",
+      {
+        "n": 1.0,
+        "axis": "- 1",
+        "prepend": null,
+        "append": null
+      }
+    ],
+    "pt_api": [
+      ".diff",
+      {
+        "n": 1.0,
+        "dim": -1.0,
+        "prepend": null,
+        "append": null
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".digamma": {
+    "ms_api": [
+      ".digamma",
+      {}
+    ],
+    "pt_api": [
+      ".digamma",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".dim": {
+    "ms_api": [
+      ".ndimension",
+      {}
+    ],
+    "pt_api": [
+      ".dim",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".div": {
+    "ms_api": [
+      ".div",
+      {
+        "value": "REQUIRED",
+        "rounding_mode": null
+      }
+    ],
+    "pt_api": [
+      ".div",
+      {
+        "value": "REQUIRED",
+        "rounding_mode": null
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".divide": {
+    "ms_api": [
+      ".divide",
+      {
+        "value": "REQUIRED",
+        "rounding_mode": null
+      }
+    ],
+    "pt_api": [
+      ".divide",
+      {
+        "value": "REQUIRED",
+        "rounding_mode": null
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".eq": {
+    "ms_api": [
+      ".equal",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".eq",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".erf": {
+    "ms_api": [
+      ".erf",
+      {}
+    ],
+    "pt_api": [
+      ".erf",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".erfc": {
+    "ms_api": [
+      ".erfc",
+      {}
+    ],
+    "pt_api": [
+      ".erfc",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".erfinv": {
+    "ms_api": [
+      ".erfinv",
+      {}
+    ],
+    "pt_api": [
+      ".erfinv",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".exp": {
+    "ms_api": [
+      ".exp",
+      {}
+    ],
+    "pt_api": [
+      ".exp",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".expand": {
+    "ms_api": [
+      ".broadcast_to",
+      {
+        "shape": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".expand",
+      {
+        "*sizes": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".expand_as": {
+    "ms_api": [
+      ".expand_as",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".expand_as",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".expm1": {
+    "ms_api": [
+      ".expm1",
+      {}
+    ],
+    "pt_api": [
+      ".expm1",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".fill_diagonal_": {
+    "ms_api": [
+      ".fill_diagonal",
+      {
+        "fill_value": "REQUIRED",
+        "wrap": false
+      }
+    ],
+    "pt_api": [
+      ".fill_diagonal_",
+      {
+        "fill_value": "REQUIRED",
+        "wrap": false
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".flip": {
+    "ms_api": [
+      ".flip",
+      {
+        "dims": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".flip",
+      {
+        "dims": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".fliplr": {
+    "ms_api": [
+      ".fliplr",
+      {}
+    ],
+    "pt_api": [
+      ".fliplr",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".flipud": {
+    "ms_api": [
+      ".flipud",
+      {}
+    ],
+    "pt_api": [
+      ".flipud",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".float": {
+    "ms_api": [
+      ".float",
+      {}
+    ],
+    "pt_api": [
+      ".float",
+      {
+        "memory_format": "torch.preserve_format"
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".float_power": {
+    "ms_api": [
+      ".float_power",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".float_power",
+      {
+        "exponent": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".floor": {
+    "ms_api": [
+      ".floor",
+      {}
+    ],
+    "pt_api": [
+      ".floor",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".floor_divide": {
+    "ms_api": [
+      ".floor_divide",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".floor_divide",
+      {
+        "value": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".fmax": {
+    "ms_api": [
+      ".fmax",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".fmax",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".fmod": {
+    "ms_api": [
+      ".fmod",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".fmod",
+      {
+        "divisor": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".frac": {
+    "ms_api": [
+      ".frac",
+      {}
+    ],
+    "pt_api": [
+      ".frac",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".gather": {
+    "ms_api": [
+      ".gather_elements",
+      {
+        "dim": "REQUIRED",
+        "index": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".gather",
+      {
+        "dim": "REQUIRED",
+        "index": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".ge": {
+    "ms_api": [
+      ".ge",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".ge",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".geqrf": {
+    "ms_api": [
+      ".geqrf",
+      {}
+    ],
+    "pt_api": [
+      ".geqrf",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".ger": {
+    "ms_api": [
+      ".ger",
+      {
+        "vec2": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".ger",
+      {
+        "vec2": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".greater": {
+    "ms_api": [
+      ".greater",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".greater",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".greater_equal": {
+    "ms_api": [
+      ".greater_equal",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".greater_equal",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".gt": {
+    "ms_api": [
+      ".gt",
+      {
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".gt",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".H": {
+    "ms_api": [
+      ".H",
+      {}
+    ],
+    "pt_api": [
+      ".H",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".half": {
+    "ms_api": [
+      ".half",
+      {}
+    ],
+    "pt_api": [
+      ".half",
+      {
+        "memory_format": "torch.preserve_format"
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".hardshrink": {
+    "ms_api": [
+      ".hardshrink",
+      {
+        "lambd": 0.5
+      }
+    ],
+    "pt_api": [
+      ".hardshrink",
+      {
+        "lambd": 0.5
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".heaviside": {
+    "ms_api": [
+      ".heaviside",
+      {
+        "values": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".heaviside",
+      {
+        "values": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".histc": {
+    "ms_api": [
+      ".histc",
+      {
+        "bins": 100.0,
+        "min": 0.0,
+        "max": 0.0
+      }
+    ],
+    "pt_api": [
+      ".histc",
+      {
+        "bins": 100.0,
+        "min": 0.0,
+        "max": 0.0
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".hypot": {
+    "ms_api": [
+      ".hypot",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".hypot",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".i0": {
+    "ms_api": [
+      ".i0",
+      {}
+    ],
+    "pt_api": [
+      ".i0",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".igamma": {
+    "ms_api": [
+      ".igamma",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".igamma",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".igammac": {
+    "ms_api": [
+      ".igammac",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".igammac",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".imag": {
+    "ms_api": [
+      ".imag",
+      {}
+    ],
+    "pt_api": [
+      ".imag",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".index_add": {
+    "ms_api": [
+      ".index_add",
+      {
+        "dim": "REQUIRED",
+        "index": "REQUIRED",
+        "source": "REQUIRED",
+        "alpha": 1.0
+      }
+    ],
+    "pt_api": [
+      ".index_add",
+      {
+        "dim": "REQUIRED",
+        "index": "REQUIRED",
+        "source": "REQUIRED",
+        "alpha": 1.0
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".index_fill": {
+    "ms_api": [
+      ".index_fill",
+      {
+        "axis": "REQUIRED",
+        "index": "REQUIRED",
+        "value": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".index_fill",
+      {
+        "dim": "REQUIRED",
+        "index": "REQUIRED",
+        "value": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim",
+      "index": "index",
+      "value": "value"
+    },
+    "gen_explicit_map": null
+  },
+  ".index_put": {
+    "ms_api": [
+      ".index_put",
+      {
+        "indices": "REQUIRED",
+        "values": "REQUIRED",
+        "accumulate": false
+      }
+    ],
+    "pt_api": [
+      ".index_put",
+      {
+        "indices": "REQUIRED",
+        "values": "REQUIRED",
+        "accumulate": false
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".index_select": {
+    "ms_api": [
+      ".index_select",
+      {
+        "axis": "REQUIRED",
+        "index": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".index_select",
+      {
+        "dim": "REQUIRED",
+        "index": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim",
+      "index": "index"
+    },
+    "gen_explicit_map": null
+  },
+  ".inner": {
+    "ms_api": [
+      ".inner",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".inner",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".int": {
+    "ms_api": [
+      ".int",
+      {}
+    ],
+    "pt_api": [
+      ".int",
+      {
+        "memory_format": "torch.preserve_format"
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".inverse": {
+    "ms_api": [
+      ".inverse",
+      {}
+    ],
+    "pt_api": [
+      ".inverse",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".isclose": {
+    "ms_api": [
+      ".isclose",
+      {
+        "x2": "REQUIRED",
+        "rtol": 1e-05,
+        "atol": 1e-08,
+        "equal_nan": false
+      }
+    ],
+    "pt_api": [
+      ".isclose",
+      {
+        "other": "REQUIRED",
+        "rtol": 1e-05,
+        "atol": 1e-08,
+        "equal_nan": false
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".isfinite": {
+    "ms_api": [
+      ".isfinite",
+      {}
+    ],
+    "pt_api": [
+      ".isfinite",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".isinf": {
+    "ms_api": [
+      ".isinf",
+      {}
+    ],
+    "pt_api": [
+      ".isinf",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".isnan": {
+    "ms_api": [
+      ".isnan",
+      {}
+    ],
+    "pt_api": [
+      ".isnan",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".is_complex": {
+    "ms_api": [
+      ".is_complex",
+      {}
+    ],
+    "pt_api": [
+      ".is_complex",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".is_floating_point": {
+    "ms_api": [
+      ".is_floating_point",
+      {}
+    ],
+    "pt_api": [
+      ".is_floating_point",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".is_signed": {
+    "ms_api": [
+      ".is_signed",
+      {}
+    ],
+    "pt_api": [
+      ".is_signed",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".isneginf": {
+    "ms_api": [
+      ".isneginf",
+      {}
+    ],
+    "pt_api": [
+      ".isneginf",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".isposinf": {
+    "ms_api": [
+      ".isposinf",
+      {}
+    ],
+    "pt_api": [
+      ".isposinf",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".isreal": {
+    "ms_api": [
+      ".isreal",
+      {}
+    ],
+    "pt_api": [
+      ".isreal",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".item": {
+    "ms_api": [
+      ".item",
+      {
+        "index": null
+      }
+    ],
+    "pt_api": [
+      ".item",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".lcm": {
+    "ms_api": [
+      ".lcm",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".lcm",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".ldexp": {
+    "ms_api": [
+      ".ldexp",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".ldexp",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".le": {
+    "ms_api": [
+      ".le",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".le",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".lerp": {
+    "ms_api": [
+      ".lerp",
+      {
+        "end": "REQUIRED",
+        "weight": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".lerp",
+      {
+        "end": "REQUIRED",
+        "weight": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".less": {
+    "ms_api": [
+      ".less",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".less",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".less_equal": {
+    "ms_api": [
+      ".less_equal",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".less_equal",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".log": {
+    "ms_api": [
+      ".log",
+      {}
+    ],
+    "pt_api": [
+      ".log",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".log_normal": {
+    "ms_api": [
+      ".log_normal",
+      {
+        "mean": 1.0,
+        "std": 2.0
+      }
+    ],
+    "pt_api": [
+      ".log_normal",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".log10": {
+    "ms_api": [
+      ".log10",
+      {}
+    ],
+    "pt_api": [
+      ".log10",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".log1p": {
+    "ms_api": [
+      ".log1p",
+      {}
+    ],
+    "pt_api": [
+      ".log1p",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".log2": {
+    "ms_api": [
+      ".log2",
+      {}
+    ],
+    "pt_api": [
+      ".log2",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".logaddexp": {
+    "ms_api": [
+      ".logaddexp",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".logaddexp",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".logaddexp2": {
+    "ms_api": [
+      ".logaddexp2",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".logaddexp2",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".logcumsumexp": {
+    "ms_api": [
+      ".logcumsumexp",
+      {
+        "axis": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".logcumsumexp",
+      {
+        "dim": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".logdet": {
+    "ms_api": [
+      ".logdet",
+      {}
+    ],
+    "pt_api": [
+      ".logdet",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".logical_and": {
+    "ms_api": [
+      ".logical_and",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".logical_and",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".logical_not": {
+    "ms_api": [
+      ".logical_not",
+      {}
+    ],
+    "pt_api": [
+      ".logical_not",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".logical_or": {
+    "ms_api": [
+      ".logical_or",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".logical_or",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".logical_xor": {
+    "ms_api": [
+      ".logical_xor",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".logical_xor",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".logit": {
+    "ms_api": [
+      ".logit",
+      {
+        "eps": null
+      }
+    ],
+    "pt_api": [
+      ".logit",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".logsumexp": {
+    "ms_api": [
+      ".logsumexp",
+      {
+        "axis": "REQUIRED",
+        "keepdims": false
+      }
+    ],
+    "pt_api": [
+      ".logsumexp",
+      {
+        "dim": "REQUIRED",
+        "keepdim": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim",
+      "keepdims": "keepdim"
+    },
+    "gen_explicit_map": null
+  },
+  ".long": {
+    "ms_api": [
+      ".long",
+      {}
+    ],
+    "pt_api": [
+      ".long",
+      {
+        "memory_format": "torch.preserve_format"
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".lt": {
+    "ms_api": [
+      ".lt",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".lt",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".lu_solve": {
+    "ms_api": [
+      ".lu_solve",
+      {
+        "LU_data": "REQUIRED",
+        "LU_pivots": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".lu_solve",
+      {
+        "LU_data": "REQUIRED",
+        "LU_pivots": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".masked_fill": {
+    "ms_api": [
+      ".masked_fill",
+      {
+        "mask": "REQUIRED",
+        "value": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".masked_fill",
+      {
+        "mask": "REQUIRED",
+        "value": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".masked_scatter": {
+    "ms_api": [
+      ".masked_scatter",
+      {
+        "mask": "REQUIRED",
+        "x": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".masked_scatter",
+      {
+        "mask": "REQUIRED",
+        "tensor": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".masked_select": {
+    "ms_api": [
+      ".masked_select",
+      {
+        "mask": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".masked_select",
+      {
+        "mask": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".matmul": {
+    "ms_api": [
+      ".matmul",
+      {
+        "tensor2": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".matmul",
+      {
+        "tensor2": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".max": {
+    "ms_api": [
+      ".max",
+      {
+        "axis": null,
+        "keepdims": false,
+        "initial": null,
+        "where": true,
+        "return_indices": false
+      }
+    ],
+    "pt_api": [
+      ".max",
+      {
+        "dim": null,
+        "keepdim": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim",
+      "keepdims": "keepdim"
+    },
+    "gen_explicit_map": null
+  },
+  ".maximum": {
+    "ms_api": [
+      ".maximum",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".maximum",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".mean": {
+    "ms_api": [
+      ".mean",
+      {
+        "axis": null,
+        "keep_dims": false
+      }
+    ],
+    "pt_api": [
+      ".mean",
+      {
+        "dim": null,
+        "keepdim": false,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim",
+      "keep_dims": "keepdim"
+    },
+    "gen_explicit_map": null
+  },
+  ".median": {
+    "ms_api": [
+      ".median",
+      {
+        "axis": "- 1",
+        "keepdims": false
+      }
+    ],
+    "pt_api": [
+      ".median",
+      {
+        "dim": null,
+        "keepdim": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim",
+      "keepdims": "keepdim"
+    },
+    "gen_explicit_map": null
+  },
+  ".mH": {
+    "ms_api": [
+      ".mH",
+      {}
+    ],
+    "pt_api": [
+      ".mH",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".min": {
+    "ms_api": [
+      ".min",
+      {
+        "axis": null,
+        "keepdims": false,
+        "initial": null,
+        "where": true,
+        "return_indices": false
+      }
+    ],
+    "pt_api": [
+      ".min",
+      {
+        "dim": null,
+        "keepdim": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim",
+      "keepdims": "keepdim"
+    },
+    "gen_explicit_map": null
+  },
+  ".minimum": {
+    "ms_api": [
+      ".minimum",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".minimum",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".mm": {
+    "ms_api": [
+      ".mm",
+      {
+        "mat2": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".mm",
+      {
+        "mat2": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".moveaxis": {
+    "ms_api": [
+      ".moveaxis",
+      {
+        "source": "REQUIRED",
+        "destination": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".moveaxis",
+      {
+        "source": "REQUIRED",
+        "destination": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".movedim": {
+    "ms_api": [
+      ".movedim",
+      {
+        "source": "REQUIRED",
+        "destination": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".movedim",
+      {
+        "source": "REQUIRED",
+        "destination": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".msort": {
+    "ms_api": [
+      ".msort",
+      {}
+    ],
+    "pt_api": [
+      ".msort",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".mT": {
+    "ms_api": [
+      ".mT",
+      {}
+    ],
+    "pt_api": [
+      ".mT",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".mul": {
+    "ms_api": [
+      ".mul",
+      {
+        "value": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".mul",
+      {
+        "value": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".multinomial": {
+    "ms_api": [
+      ".multinomial",
+      {
+        "num_samples": "REQUIRED",
+        "replacement": true,
+        "seed": null
+      }
+    ],
+    "pt_api": [
+      ".multinomial",
+      {
+        "num_samples": "REQUIRED",
+        "replacement": false,
+        "generator": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "num_samples": "num_samples",
+      "replacement": "replacement",
+      "seed": "generator"
+    },
+    "gen_explicit_map": null
+  },
+  ".multiply": {
+    "ms_api": [
+      ".multiply",
+      {
+        "value": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".multiply",
+      {
+        "value": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".mvlgamma": {
+    "ms_api": [
+      ".mvlgamma",
+      {
+        "p": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".mvlgamma",
+      {
+        "p": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".nan_to_num": {
+    "ms_api": [
+      ".nan_to_num",
+      {
+        "nan": 0.0,
+        "posinf": null,
+        "neginf": null
+      }
+    ],
+    "pt_api": [
+      ".nan_to_num",
+      {
+        "nan": 0.0,
+        "posinf": null,
+        "neginf": null
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".nanmedian": {
+    "ms_api": [
+      ".nanmedian",
+      {
+        "axis": "- 1",
+        "keepdims": false
+      }
+    ],
+    "pt_api": [
+      ".nanmedian",
+      {
+        "dim": null,
+        "keepdim": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim",
+      "keepdims": "keepdim"
+    },
+    "gen_explicit_map": null
+  },
+  ".nansum": {
+    "ms_api": [
+      ".nansum",
+      {
+        "axis": null,
+        "keepdims": false,
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      ".nansum",
+      {
+        "dim": null,
+        "keepdim": false,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim",
+      "keepdims": "keepdim",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  },
+  ".narrow": {
+    "ms_api": [
+      ".narrow",
+      {
+        "axis": "REQUIRED",
+        "start": "REQUIRED",
+        "length": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".narrow",
+      {
+        "dimension": "REQUIRED",
+        "start": "REQUIRED",
+        "length": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dimension",
+      "start": "start",
+      "length": "length"
+    },
+    "gen_explicit_map": null
+  },
+  ".ndim": {
+    "ms_api": [
+      ".ndim",
+      {}
+    ],
+    "pt_api": [
+      ".ndim",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".ndimension": {
+    "ms_api": [
+      ".ndimension",
+      {}
+    ],
+    "pt_api": [
+      ".ndimension",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".ne": {
+    "ms_api": [
+      ".ne",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".ne",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "other": "other"
+    },
+    "gen_explicit_map": null
+  },
+  ".neg": {
+    "ms_api": [
+      ".neg",
+      {}
+    ],
+    "pt_api": [
+      ".neg",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".negative": {
+    "ms_api": [
+      ".negative",
+      {}
+    ],
+    "pt_api": [
+      ".negative",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".nelement": {
+    "ms_api": [
+      ".nelement",
+      {}
+    ],
+    "pt_api": [
+      ".nelement",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".new_ones": {
+    "ms_api": [
+      ".new_ones",
+      {
+        "size": "REQUIRED",
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      ".new_ones",
+      {
+        "size": "REQUIRED",
+        "dtype": null,
+        "device": null,
+        "requires_grad": false,
+        "layout": "torch.strided",
+        "pin_memory": false
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".new_zeros": {
+    "ms_api": [
+      ".new_zeros",
+      {
+        "size": "REQUIRED",
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      ".new_zeros",
+      {
+        "size": "REQUIRED",
+        "dtype": null,
+        "device": null,
+        "requires_grad": false,
+        "layout": "torch.strided",
+        "pin_memory": false
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".nextafter": {
+    "ms_api": [
+      ".nextafter",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".nextafter",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".norm": {
+    "ms_api": [
+      ".norm",
+      {
+        "ord": null,
+        "dim": null,
+        "keepdim": false,
+        "dtype": null
+      }
+    ],
+    "pt_api": [
+      ".norm",
+      {
+        "p": "'fro'",
+        "dim": null,
+        "keepdim": false,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".nonzero": {
+    "ms_api": [
+      ".nonzero",
+      {}
+    ],
+    "pt_api": [
+      ".nonzero",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".not_equal": {
+    "ms_api": [
+      ".not_equal",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".not_equal",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".numel": {
+    "ms_api": [
+      ".numel",
+      {}
+    ],
+    "pt_api": [
+      ".numel",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".numpy": {
+    "ms_api": [
+      ".asnumpy",
+      {}
+    ],
+    "pt_api": [
+      ".numpy",
+      {
+        "force": false
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".orgqr": {
+    "ms_api": [
+      ".orgqr",
+      {
+        "input2": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".orgqr",
+      {
+        "input2": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".ormqr": {
+    "ms_api": [
+      ".ormqr",
+      {
+        "input2": "REQUIRED",
+        "input3": "REQUIRED",
+        "left": true,
+        "transpose": false
+      }
+    ],
+    "pt_api": [
+      ".ormqr",
+      {
+        "input2": "REQUIRED",
+        "input3": "REQUIRED",
+        "left": true,
+        "transpose": false
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".outer": {
+    "ms_api": [
+      ".outer",
+      {
+        "vec2": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".outer",
+      {
+        "vec2": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".permute": {
+    "ms_api": [
+      ".permute",
+      {
+        "*axis": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".permute",
+      {
+        "*dims": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".pow": {
+    "ms_api": [
+      ".pow",
+      {
+        "exponent": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".pow",
+      {
+        "exponent": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".prod": {
+    "ms_api": [
+      ".prod",
+      {
+        "axis": null,
+        "keep_dims": false
+      }
+    ],
+    "pt_api": [
+      ".prod",
+      {
+        "dim": null,
+        "keepdim": false,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim",
+      "keep_dims": "keepdim"
+    },
+    "gen_explicit_map": null
+  },
+  ".ravel": {
+    "ms_api": [
+      ".ravel",
+      {}
+    ],
+    "pt_api": [
+      ".ravel",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".real": {
+    "ms_api": [
+      ".real",
+      {}
+    ],
+    "pt_api": [
+      ".real",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".reciprocal": {
+    "ms_api": [
+      ".reciprocal",
+      {}
+    ],
+    "pt_api": [
+      ".reciprocal",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".remainder": {
+    "ms_api": [
+      ".remainder",
+      {
+        "divisor": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".remainder",
+      {
+        "divisor": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".renorm": {
+    "ms_api": [
+      ".renorm",
+      {
+        "p": "REQUIRED",
+        "axis": "REQUIRED",
+        "maxnorm": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".renorm",
+      {
+        "p": "REQUIRED",
+        "dim": "REQUIRED",
+        "maxnorm": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".rad2deg": {
+    "ms_api": [
+      ".rad2deg",
+      {}
+    ],
+    "pt_api": [
+      ".rad2deg",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".repeat": {
+    "ms_api": [
+      ".tile",
+      {
+        "reps": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".repeat",
+      {
+        "*sizes": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".repeat_interleave": {
+    "ms_api": [
+      ".repeat_interleave",
+      {
+        "repeats": "REQUIRED",
+        "dim": null
+      }
+    ],
+    "pt_api": [
+      ".repeat_interleave",
+      {
+        "repeats": "REQUIRED",
+        "dim": null,
+        "output_size": null
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".reshape": {
+    "ms_api": [
+      ".reshape",
+      {
+        "*shape": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".reshape",
+      {
+        "*shape": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".reshape_as": {
+    "ms_api": [
+      ".reshape_as",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".reshape_as",
+      {
+        "other": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".round": {
+    "ms_api": [
+      ".round",
+      {}
+    ],
+    "pt_api": [
+      ".round",
+      {
+        "decimals": 0.0
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".roll": {
+    "ms_api": [
+      ".roll",
+      {
+        "shifts": "REQUIRED",
+        "dims": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".roll",
+      {
+        "shifts": "REQUIRED",
+        "dims": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".rot90": {
+    "ms_api": [
+      ".rot90",
+      {
+        "k": "REQUIRED",
+        "dims": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".rot90",
+      {
+        "k": "REQUIRED",
+        "dims": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".rsqrt": {
+    "ms_api": [
+      ".rsqrt",
+      {}
+    ],
+    "pt_api": [
+      ".rsqrt",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".sum_to_size": {
+    "ms_api": [
+      ".sum_to_size",
+      {
+        "*size": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".sum_to_size",
+      {
+        "*size": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".scatter": {
+    "ms_api": [
+      ".scatter",
+      {
+        "axis": "REQUIRED",
+        "index": "REQUIRED",
+        "src": "REQUIRED"
+      }
+    ],
+    "pt_api": [
+      ".scatter",
+      {
+        "dim": "REQUIRED",
+        "index": "REQUIRED",
+        "src": "REQUIRED"
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim",
+      "index": "index",
+      "src": "src"
+    },
+    "gen_explicit_map": null
+  },
+  ".sgn": {
+    "ms_api": [
+      ".sgn",
+      {}
+    ],
+    "pt_api": [
+      ".sgn",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".short": {
+    "ms_api": [
+      ".short",
+      {}
+    ],
+    "pt_api": [
+      ".short",
+      {
+        "memory_format": "torch.preserve_format"
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".sigmoid": {
+    "ms_api": [
+      ".sigmoid",
+      {}
+    ],
+    "pt_api": [
+      ".sigmoid",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".sign": {
+    "ms_api": [
+      ".sign",
+      {}
+    ],
+    "pt_api": [
+      ".sign",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".signbit": {
+    "ms_api": [
+      ".signbit",
+      {}
+    ],
+    "pt_api": [
+      ".signbit",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".sin": {
+    "ms_api": [
+      ".sin",
+      {}
+    ],
+    "pt_api": [
+      ".sin",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".sinc": {
+    "ms_api": [
+      ".sinc",
+      {}
+    ],
+    "pt_api": [
+      ".sinc",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".sinh": {
+    "ms_api": [
+      ".sinh",
+      {}
+    ],
+    "pt_api": [
+      ".sinh",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".size": {
+    "ms_api": [
+      ".shape",
+      {}
+    ],
+    "pt_api": [
+      ".size",
+      {
+        "dim": null
+      }
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".slogdet": {
+    "ms_api": [
+      ".slogdet",
+      {}
+    ],
+    "pt_api": [
+      ".slogdet",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".sort": {
+    "ms_api": [
+      ".sort",
+      {
+        "axis": "- 1",
+        "descending": false
+      }
+    ],
+    "pt_api": [
+      ".sort",
+      {
+        "dim": -1.0,
+        "descending": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim",
+      "descending": "descending"
+    },
+    "gen_explicit_map": null
+  },
+  ".split": {
+    "ms_api": [
+      ".split",
+      {
+        "split_size_or_sections": "REQUIRED",
+        "axis": 0.0
+      }
+    ],
+    "pt_api": [
+      ".split",
+      {
+        "split_size": "REQUIRED",
+        "dim": 0.0
+      }
+    ],
+    "ms2pt_mapping": {
+      "split_size_or_sections": "split_size",
+      "axis": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  ".sqrt": {
+    "ms_api": [
+      ".sqrt",
+      {}
+    ],
+    "pt_api": [
+      ".sqrt",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".square": {
+    "ms_api": [
+      ".square",
+      {}
+    ],
+    "pt_api": [
+      ".square",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  ".squeeze": {
+    "ms_api": [
+      ".squeeze",
+      {
+        "axis": null
+      }
+    ],
+    "pt_api": [
+      ".squeeze",
+      {
+        "dim": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim"
+    },
+    "gen_explicit_map": null
+  },
+  ".std": {
+    "ms_api": [
+      ".std",
+      {
+        "axis": null,
+        "ddof": 0.0,
+        "keepdims": false
+      }
+    ],
+    "pt_api": [
+      ".std",
+      {
+        "dim": null,
+        "correction": 1.0,
+        "keepdim": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim",
+      "keepdims": "keepdim"
+    },
+    "gen_explicit_map": null
+  },
+  ".sub": {
+    "ms_api": [
+      ".subtract",
+      {
+        "other": "REQUIRED",
+        "alpha": 1.0
+      }
+    ],
+    "pt_api": [
+      ".sub",
+      {
+        "other": "REQUIRED",
+        "alpha": 1.0
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".subtract": {
+    "ms_api": [
+      ".subtract",
+      {
+        "other": "REQUIRED",
+        "alpha": 1.0
+      }
+    ],
+    "pt_api": [
+      ".subtract",
+      {
+        "other": "REQUIRED",
+        "alpha": 1.0
+      }
+    ],
+    "ms2pt_mapping": {
+    },
+    "gen_explicit_map": null
+  },
+  ".sum": {
+    "ms_api": [
+      ".sum",
+      {
+        "axis": null,
+        "dtype": null,
+        "keepdims": false,
+        "initial": null
+      }
+    ],
+    "pt_api": [
+      ".sum",
+      {
+        "dim": null,
+        "keepdim": false,
+        "dtype": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "axis": "dim",
+      "dtype": "dtype"
+    },
+    "gen_explicit_map": null
+  }
+}
