@@ -10,13 +10,8 @@ import pytest
 
 
 @pytest.mark.level0
-@pytest.mark.platform_x86_cpu
-@pytest.mark.platform_arm_cpu
 @pytest.mark.platform_x86_gpu_training
-@pytest.mark.platform_arm_ascend_training
-@pytest.mark.platform_x86_ascend_training
 @pytest.mark.env_onecard
-@pytest.mark.skip()
 def test_compare_list_dir(capsys):
     dir1 = tempfile.TemporaryDirectory()
     dir2 = tempfile.TemporaryDirectory()
@@ -31,6 +26,4 @@ def test_compare_list_dir(capsys):
 
     ts.migrator.compare_list_dir(path1, path2)
     result = capsys.readouterr().out
-
     assert result.count('True') == 2
-
