@@ -155,6 +155,8 @@ if {"torch", "mindspore"}.issubset(FRAMEWORK_TYPE):
 
     def _npy_save_ops(file, data):
         if isinstance(data, ms.Tensor):
+            if data.dtype == ms.bfloat16:
+                data = data.float()
             ms.ops.TensorDump()(file, data)
         elif isinstance(data, torch.Tensor):
             torch_TensorDump(file, data)
@@ -168,7 +170,10 @@ if {"torch", "mindspore"}.issubset(FRAMEWORK_TYPE):
                 format_name = f"{SAVE_NAME_MARK}{file}"
                 print(format_name, grad)
             else:
-                ms.ops.TensorDump()(file, grad)
+                data = grad
+                if data.dtype == ms.bfloat16:
+                    data = data.float()
+                ms.ops.TensorDump()(file, data)
             return grad
         return _save_grad_func
 
@@ -218,6 +223,8 @@ elif "mindspore" in FRAMEWORK_TYPE:
 
     def _npy_save_ops(file, data):
         if isinstance(data, ms.Tensor):
+            if data.dtype == ms.bfloat16:
+                data = data.float()
             ms.ops.TensorDump()(file, data)
         else:
             raise TypeError(f"For 'ts.save', the type of argument 'data' must be mindspore.Tensor or torch.tensor, "
@@ -229,7 +236,10 @@ elif "mindspore" in FRAMEWORK_TYPE:
                 format_name = f"{SAVE_NAME_MARK}{file}"
                 print(format_name, grad)
             else:
-                ms.ops.TensorDump()(file, grad)
+                data = grad
+                if data.dtype == ms.bfloat16:
+                    data = data.float()
+                ms.ops.TensorDump()(file, data)
             return grad
         return _save_grad_func
 
