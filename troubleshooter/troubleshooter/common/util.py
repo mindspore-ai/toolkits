@@ -112,7 +112,7 @@ def extract_end_number(string):
     return []
 
 
-def find_file(dir, suffix=".npy", sort_key=extract_front_end_number):
+def find_file(dir, *, suffix=".npy", sort_key=extract_front_end_number):
     file_list = []
     normal_dir = validate_and_normalize_path(dir)
     walk_generator = os.walk(normal_dir)

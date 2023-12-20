@@ -69,8 +69,8 @@ def get_name_map_list_by_name(orig_dir, target_dir):
 
 
 def get_name_map_list_by_number(orig_dir, target_dir, sort_key=extract_front_end_number):
-    orig_name_list = find_file(orig_dir, sort_key)
-    target_name_list = find_file(target_dir, sort_key)
+    orig_name_list = find_file(orig_dir, sort_key=sort_key)
+    target_name_list = find_file(target_dir, sort_key=sort_key)
     if not (orig_name_list and target_name_list):
         raise ValueError("The comparison file is not found in the directory. Please \
             check whether the directory is correct")
