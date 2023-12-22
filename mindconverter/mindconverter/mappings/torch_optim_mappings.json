@@ -1,0 +1,765 @@
+{
+  "optim.Adadelta": {
+    "ms_api": [
+      "nn.Adadelta",
+      {
+        "params": "REQUIRED",
+        "learning_rate": 1.0,
+        "rho": 0.9,
+        "epsilon": 1e-06,
+        "loss_scale": 1.0,
+        "weight_decay": 0.0
+      }
+    ],
+    "pt_api": [
+      "optim.Adadelta",
+      {
+        "params": "REQUIRED",
+        "lr": 1.0,
+        "rho": 0.9,
+        "eps": 1e-06,
+        "weight_decay": 0.0,
+        "foreach": null,
+        "maximize": false,
+        "differentiable": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "params": "params",
+      "learning_rate": "lr",
+      "rho": "rho",
+      "epsilon": "eps",
+      "weight_decay": "weight_decay"
+    },
+    "gen_explicit_map": null
+  },
+  "optim.Adagrad": {
+    "ms_api": [
+      "nn.Adagrad",
+      {
+        "params": "REQUIRED",
+        "accum": 0.1,
+        "learning_rate": 0.001,
+        "update_slots": true,
+        "loss_scale": 1.0,
+        "weight_decay": 0.0
+      }
+    ],
+    "pt_api": [
+      "optim.Adagrad",
+      {
+        "params": "REQUIRED",
+        "lr": 0.01,
+        "lr_decay": 0.0,
+        "weight_decay": 0.0,
+        "initial_accumulator_value": 0.0,
+        "eps": 1e-10,
+        "foreach": null,
+        "maximize": false,
+        "differentiable": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "params": "params",
+      "learning_rate": "lr",
+      "loss_scale": "initial_accumulator_value",
+      "weight_decay": "weight_decay"
+    },
+    "gen_explicit_map": null
+  },
+  "optim.Adam": {
+    "ms_api": [
+      "optim.Adam",
+      {
+        "params": "REQUIRED",
+        "lr": 0.001,
+        "betas": 0.9,
+        "eps": 1e-08,
+        "weight_decay": 0.0,
+        "amsgrad": false,
+        "maximize": false
+      }
+    ],
+    "pt_api": [
+      "optim.Adam",
+      {
+        "params": "REQUIRED",
+        "lr": 0.001,
+        "betas": 0.9,
+        "eps": 1e-08,
+        "weight_decay": 0.0,
+        "amsgrad": false,
+        "foreach": null,
+        "maximize": false,
+        "capturable": false,
+        "differentiable": false,
+        "fused": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "params": "params",
+      "lr": "lr",
+      "betas": "betas",
+      "eps": "eps",
+      "weight_decay": "weight_decay",
+      "amsgrad": "amsgrad",
+      "maximize": "maximize"
+    },
+    "gen_explicit_map": null
+  },
+  "optim.AdaMax": {
+    "ms_api": [
+      "nn.AdaMax",
+      {
+        "params": "REQUIRED",
+        "learning_rate": 0.001,
+        "beta1": 0.9,
+        "beta2": 0.999,
+        "eps": 1e-08,
+        "weight_decay": 0.0,
+        "loss_scale": 1.0
+      }
+    ],
+    "pt_api": [
+      "optim.AdaMax",
+      {}
+    ],
+    "ms2pt_mapping": {
+      "learning_rate": "lr"
+    },
+    "gen_explicit_map": null
+  },
+  "optim.AdamW": {
+    "ms_api": [
+      "optim.AdamW",
+      {
+        "params": "REQUIRED",
+        "lr": 0.001,
+        "betas": 0.9,
+        "eps": 1e-08,
+        "weight_decay": 0.01,
+        "amsgrad": false,
+        "maximize": false
+      }
+    ],
+    "pt_api": [
+      "optim.AdamW",
+      {
+        "params": "REQUIRED",
+        "lr": 0.001,
+        "betas": 0.9,
+        "eps": 1e-08,
+        "weight_decay": 0.01,
+        "amsgrad": false,
+        "maximize": false,
+        "foreach": null,
+        "capturable": false,
+        "differentiable": false,
+        "fused": null
+      }
+    ],
+    "ms2pt_mapping": {
+      "params": "params",
+      "lr": "lr",
+      "betas": "betas",
+      "eps": "eps",
+      "weight_decay": "weight_decay",
+      "amsgrad": "amsgrad",
+      "maximize": "maximize"
+    },
+    "gen_explicit_map": null
+  },
+  "optim.ASGD": {
+    "ms_api": [
+      "nn.ASGD",
+      {
+        "params": "REQUIRED",
+        "learning_rate": 0.1,
+        "lambd": 0.0001,
+        "alpha": 0.75,
+        "t0": 1000000.0,
+        "weight_decay": 0.0
+      }
+    ],
+    "pt_api": [
+      "optim.ASGD",
+      {
+        "params": "REQUIRED",
+        "lr": 0.01,
+        "lambd": 0.0001,
+        "alpha": 0.75,
+        "t0": 1000000.0,
+        "weight_decay": 0.0,
+        "foreach": null,
+        "maximize": false,
+        "differentiable": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "params": "params",
+      "learning_rate": "lr",
+      "lambd": "lambd",
+      "alpha": "alpha",
+      "t0": "t0",
+      "weight_decay": "weight_decay"
+    },
+    "gen_explicit_map": null
+  },
+  "optim.Optimizer": {
+    "ms_api": [
+      "nn.Optimizer",
+      {
+        "learning_rate": "REQUIRED",
+        "parameters": "REQUIRED",
+        "weight_decay": 0.0,
+        "loss_scale": 1.0
+      }
+    ],
+    "pt_api": [
+      "optim.Optimizer",
+      {}
+    ],
+    "ms2pt_mapping": {
+      "learning_rate": "lr"
+    },
+    "gen_explicit_map": null
+  },
+  "optim.SparseAdam": {
+    "ms_api": [
+      "nn.LazyAdam",
+      {
+        "params": "REQUIRED",
+        "learning_rate": 0.001,
+        "beta1": 0.9,
+        "beta2": 0.999,
+        "eps": 1e-08,
+        "use_locking": false,
+        "use_nesterov": false,
+        "weight_decay": 0.0,
+        "loss_scale": 1.0
+      }
+    ],
+    "pt_api": [
+      "optim.SparseAdam",
+      {
+        "params": "REQUIRED",
+        "lr": 0.001,
+        "betas": 0.9,
+        "eps": 1e-08,
+        "maximize": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "params": "params",
+      "learning_rate": "lr",
+      "beta1": "betas",
+      "eps": "eps"
+    },
+    "gen_explicit_map": null
+  },
+  "optim.RMSProp": {
+    "ms_api": [
+      "nn.RMSProp",
+      {
+        "params": "REQUIRED",
+        "learning_rate": 0.1,
+        "decay": 0.9,
+        "momentum": 0.0,
+        "epsilon": 1e-10,
+        "use_locking": false,
+        "centered": false,
+        "loss_scale": 1.0,
+        "weight_decay": 0.0
+      }
+    ],
+    "pt_api": [
+      "optim.RMSProp",
+      {}
+    ],
+    "ms2pt_mapping": {
+      "learning_rate": "lr"
+    },
+    "gen_explicit_map": null
+  },
+  "optim.Rprop": {
+    "ms_api": [
+      "nn.Rprop",
+      {
+        "params": "REQUIRED",
+        "learning_rate": 0.1,
+        "etas": 0.5,
+        "step_sizes": 1e-06,
+        "weight_decay": 0.0
+      }
+    ],
+    "pt_api": [
+      "optim.Rprop",
+      {
+        "params": "REQUIRED",
+        "lr": 0.01,
+        "etas": 0.5,
+        "step_sizes": 1e-06,
+        "foreach": null,
+        "maximize": false,
+        "differentiable": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "params": "params",
+      "learning_rate": "lr",
+      "etas": "etas",
+      "step_sizes": "step_sizes"
+    },
+    "gen_explicit_map": null
+  },
+  "optim.SGD": {
+    "ms_api": [
+      "optim.SGD",
+      {
+        "params": "REQUIRED",
+        "lr": "REQUIRED",
+        "momentum": 0.0,
+        "dampening": 0.0,
+        "weight_decay": 0.0,
+        "nesterov": false,
+        "maximize": false
+      }
+    ],
+    "pt_api": [
+      "optim.SGD",
+      {
+        "params": "REQUIRED",
+        "lr": "REQUIRED",
+        "momentum": 0.0,
+        "dampening": 0.0,
+        "weight_decay": 0.0,
+        "nesterov": false,
+        "maximize": false,
+        "foreach": null,
+        "differentiable": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "params": "params",
+      "lr": "lr",
+      "momentum": "momentum",
+      "dampening": "dampening",
+      "weight_decay": "weight_decay",
+      "nesterov": "nesterov",
+      "maximize": "maximize"
+    },
+    "gen_explicit_map": null
+  },
+  "optim.lr_scheduler.CosineAnnealingLR": {
+    "ms_api": [
+      "optim.lr_scheduler.CosineAnnealingLR",
+      {
+        "optimizer": "REQUIRED",
+        "T_max": "REQUIRED",
+        "eta_min": 0.0,
+        "last_epoch": "- 1"
+      }
+    ],
+    "pt_api": [
+      "optim.lr_scheduler.CosineAnnealingLR",
+      {
+        "optimizer": "REQUIRED",
+        "T_max": "REQUIRED",
+        "eta_min": 0.0,
+        "last_epoch": -1.0,
+        "verbose": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "optimizer": "optimizer",
+      "T_max": "T_max",
+      "eta_min": "eta_min",
+      "last_epoch": "last_epoch"
+    },
+    "gen_explicit_map": null
+  },
+  "optim.lr_scheduler.ExponentialLR": {
+    "ms_api": [
+      "optim.lr_scheduler.ExponentialLR",
+      {
+        "optimizer": "REQUIRED",
+        "gamma": "REQUIRED",
+        "last_epoch": "- 1"
+      }
+    ],
+    "pt_api": [
+      "optim.lr_scheduler.ExponentialLR",
+      {
+        "optimizer": "REQUIRED",
+        "gamma": "REQUIRED",
+        "last_epoch": -1.0,
+        "verbose": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "optimizer": "optimizer",
+      "gamma": "gamma",
+      "last_epoch": "last_epoch"
+    },
+    "gen_explicit_map": null
+  },
+  "optim.lr_scheduler.MultiStepLR": {
+    "ms_api": [
+      "optim.lr_scheduler.MultiStepLR",
+      {
+        "optimizer": "REQUIRED",
+        "milestones": "REQUIRED",
+        "gamma": 0.1,
+        "last_epoch": "- 1"
+      }
+    ],
+    "pt_api": [
+      "optim.lr_scheduler.MultiStepLR",
+      {
+        "optimizer": "REQUIRED",
+        "milestones": "REQUIRED",
+        "gamma": 0.1,
+        "last_epoch": -1.0,
+        "verbose": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "optimizer": "optimizer",
+      "milestones": "milestones",
+      "gamma": "gamma",
+      "last_epoch": "last_epoch"
+    },
+    "gen_explicit_map": null
+  },
+  "optim.lr_scheduler.StepLR": {
+    "ms_api": [
+      "optim.lr_scheduler.StepLR",
+      {
+        "optimizer": "REQUIRED",
+        "step_size": "REQUIRED",
+        "gamma": 0.1,
+        "last_epoch": "- 1"
+      }
+    ],
+    "pt_api": [
+      "optim.lr_scheduler.StepLR",
+      {
+        "optimizer": "REQUIRED",
+        "step_size": "REQUIRED",
+        "gamma": 0.1,
+        "last_epoch": -1.0,
+        "verbose": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "optimizer": "optimizer",
+      "step_size": "step_size",
+      "gamma": "gamma",
+      "last_epoch": "last_epoch"
+    },
+    "gen_explicit_map": null
+  },
+  "optim.lr_scheduler.LRScheduler": {
+    "ms_api": [
+      "optim.lr_scheduler.LRScheduler",
+      {
+        "optimizer": "REQUIRED",
+        "last_epoch": "- 1"
+      }
+    ],
+    "pt_api": [
+      "optim.lr_scheduler.LRScheduler",
+      {}
+    ],
+    "ms2pt_mapping": {},
+    "gen_explicit_map": null
+  },
+  "optim.lr_scheduler.ConstantLR": {
+    "ms_api": [
+      "optim.lr_scheduler.ConstantLR",
+      {
+        "optimizer": "REQUIRED",
+        "factor": "1.0 / 3",
+        "total_iters": 5.0,
+        "last_epoch": -1
+      }
+    ],
+    "pt_api": [
+      "optim.lr_scheduler.ConstantLR",
+      {
+        "optimizer": "REQUIRED",
+        "factor": 0.3333333333333333,
+        "total_iters": 5.0,
+        "last_epoch": -1.0,
+        "verbose": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "optimizer": "optimizer",
+      "factor": "factor",
+      "total_iters": "total_iters",
+      "last_epoch": "last_epoch"
+    },
+    "gen_explicit_map": null
+  },
+  "optim.lr_scheduler.CosineAnnealingWarmRestarts": {
+    "ms_api": [
+      "optim.lr_scheduler.CosineAnnealingWarmRestarts",
+      {
+        "optimizer": "REQUIRED",
+        "T_0": "REQUIRED",
+        "T_mult": 1.0,
+        "eta_min": 0.0,
+        "last_epoch": -1
+      }
+    ],
+    "pt_api": [
+      "optim.lr_scheduler.CosineAnnealingWarmRestarts",
+      {
+        "optimizer": "REQUIRED",
+        "T_0": "REQUIRED",
+        "T_mult": 1.0,
+        "eta_min": 0.0,
+        "last_epoch": -1.0,
+        "verbose": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "optimizer": "optimizer",
+      "T_0": "T_0",
+      "T_mult": "T_mult",
+      "eta_min": "eta_min",
+      "last_epoch": "last_epoch"
+    },
+    "gen_explicit_map": null
+  },
+  "optim.lr_scheduler.CyclicLR": {
+    "ms_api": [
+      "optim.lr_scheduler.CyclicLR",
+      {
+        "optimizer": "REQUIRED",
+        "base_lr": "REQUIRED",
+        "max_lr": "REQUIRED",
+        "step_size_up": 2000.0,
+        "step_size_down": null,
+        "mode": "triangular",
+        "gamma": 1.0,
+        "scale_fn": null,
+        "scale_mode": "cycle",
+        "last_epoch": -1
+      }
+    ],
+    "pt_api": [
+      "optim.lr_scheduler.CyclicLR",
+      {
+        "optimizer": "REQUIRED",
+        "base_lr": "REQUIRED",
+        "max_lr": "REQUIRED",
+        "step_size_up": 2000.0,
+        "step_size_down": null,
+        "mode": "triangular",
+        "gamma": 1.0,
+        "scale_fn": null,
+        "scale_mode": "cycle",
+        "cycle_momentum": true,
+        "base_momentum": 0.8,
+        "max_momentum": 0.9,
+        "last_epoch": -1.0,
+        "verbose": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "optimizer": "optimizer",
+      "base_lr": "base_lr",
+      "max_lr": "max_lr",
+      "step_size_up": "step_size_up",
+      "step_size_down": "step_size_down",
+      "mode": "mode",
+      "gamma": "gamma",
+      "scale_fn": "scale_fn",
+      "scale_mode": "scale_mode",
+      "last_epoch": "last_epoch"
+    },
+    "gen_explicit_map": null
+  },
+  "optim.lr_scheduler.LambdaLR": {
+    "ms_api": [
+      "optim.lr_scheduler.LambdaLR",
+      {
+        "optimizer": "REQUIRED",
+        "lr_lambda": "REQUIRED",
+        "last_epoch": "- 1"
+      }
+    ],
+    "pt_api": [
+      "optim.lr_scheduler.LambdaLR",
+      {
+        "optimizer": "REQUIRED",
+        "lr_lambda": "REQUIRED",
+        "last_epoch": -1.0,
+        "verbose": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "optimizer": "optimizer",
+      "lr_lambda": "lr_lambda",
+      "last_epoch": "last_epoch"
+    },
+    "gen_explicit_map": null
+  },
+  "optim.lr_scheduler.LinearLR": {
+    "ms_api": [
+      "optim.lr_scheduler.LinearLR",
+      {
+        "optimizer": "REQUIRED",
+        "start_factor": "1.0 / 3",
+        "end_factor": 1.0,
+        "total_iters": 5.0,
+        "last_epoch": -1
+      }
+    ],
+    "pt_api": [
+      "optim.lr_scheduler.LinearLR",
+      {
+        "optimizer": "REQUIRED",
+        "start_factor": 0.3333333333333333,
+        "end_factor": 1.0,
+        "total_iters": 5.0,
+        "last_epoch": -1.0,
+        "verbose": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "optimizer": "optimizer",
+      "start_factor": "start_factor",
+      "end_factor": "end_factor",
+      "total_iters": "total_iters",
+      "last_epoch": "last_epoch"
+    },
+    "gen_explicit_map": null
+  },
+  "optim.lr_scheduler.MultiplicativeLR": {
+    "ms_api": [
+      "optim.lr_scheduler.MultiplicativeLR",
+      {
+        "optimizer": "REQUIRED",
+        "lr_lambda": "REQUIRED",
+        "last_epoch": -1
+      }
+    ],
+    "pt_api": [
+      "optim.lr_scheduler.MultiplicativeLR",
+      {
+        "optimizer": "REQUIRED",
+        "lr_lambda": "REQUIRED",
+        "last_epoch": -1.0,
+        "verbose": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "optimizer": "optimizer",
+      "lr_lambda": "lr_lambda",
+      "last_epoch": "last_epoch"
+    },
+    "gen_explicit_map": null
+  },
+  "optim.lr_scheduler.PolynomialLR": {
+    "ms_api": [
+      "optim.lr_scheduler.PolynomialLR",
+      {
+        "optimizer": "REQUIRED",
+        "total_iters": 5.0,
+        "power": 1.0,
+        "last_epoch": -1
+      }
+    ],
+    "pt_api": [
+      "optim.lr_scheduler.PolynomialLR",
+      {
+        "optimizer": "REQUIRED",
+        "total_iters": 5.0,
+        "power": 1.0,
+        "last_epoch": -1.0,
+        "verbose": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "optimizer": "optimizer",
+      "total_iters": "total_iters",
+      "power": "power",
+      "last_epoch": "last_epoch"
+    },
+    "gen_explicit_map": null
+  },
+  "optim.lr_scheduler.ReduceLROnPlateau": {
+    "ms_api": [
+      "optim.lr_scheduler.ReduceLROnPlateau",
+      {
+        "optimizer": "REQUIRED",
+        "mode": "min",
+        "factor": 0.1,
+        "patience": 10.0,
+        "threshold": 0.0001,
+        "threshold_mode": "rel",
+        "cooldown": 0.0,
+        "min_lr": 0.0,
+        "eps": 1e-08
+      }
+    ],
+    "pt_api": [
+      "optim.lr_scheduler.ReduceLROnPlateau",
+      {
+        "optimizer": "REQUIRED",
+        "mode": "min",
+        "factor": 0.1,
+        "patience": 10.0,
+        "threshold": 0.0001,
+        "threshold_mode": "rel",
+        "cooldown": 0.0,
+        "min_lr": 0.0,
+        "eps": 1e-08,
+        "verbose": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "optimizer": "optimizer",
+      "mode": "mode",
+      "factor": "factor",
+      "patience": "patience",
+      "threshold": "threshold",
+      "threshold_mode": "threshold_mode",
+      "cooldown": "cooldown",
+      "min_lr": "min_lr",
+      "eps": "eps"
+    },
+    "gen_explicit_map": null
+  },
+  "optim.lr_scheduler.SequentialLR": {
+    "ms_api": [
+      "optim.lr_scheduler.SequentialLR",
+      {
+        "optimizer": "REQUIRED",
+        "schedulers": "REQUIRED",
+        "milestones": "REQUIRED",
+        "last_epoch": -1
+      }
+    ],
+    "pt_api": [
+      "optim.lr_scheduler.SequentialLR",
+      {
+        "optimizer": "REQUIRED",
+        "schedulers": "REQUIRED",
+        "milestones": "REQUIRED",
+        "last_epoch": -1.0,
+        "verbose": false
+      }
+    ],
+    "ms2pt_mapping": {
+      "optimizer": "optimizer",
+      "schedulers": "schedulers",
+      "milestones": "milestones",
+      "last_epoch": "last_epoch"
+    },
+    "gen_explicit_map": null
+  }
+}
