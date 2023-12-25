@@ -36,7 +36,12 @@ else:
     is_gpu = False
 
 if not is_gpu:
-    from torch_npu.utils.device_guard import torch_device_guard as torch_npu_device_guard
+    try:
+        from torch_npu.utils.device_guard import torch_device_guard as torch_npu_device_guard
+    except ImportError:
+        torch_without_guard_version = True
+    else:
+        torch_without_guard_version = False
 
 device = collections.namedtuple('device', ['type', 'index'])
 
@@ -441,7 +446,7 @@ def format_value(value):
 
 
 def torch_device_guard(func):
-    if is_gpu:
+    if is_gpu or torch_without_guard_version:
         return func
     # Parse args/kwargs matched torch.device objects
 
