@@ -177,14 +177,15 @@ if {"torch", "mindspore"}.issubset(FRAMEWORK_TYPE):
             return grad
         return _save_grad_func
 
-    class _SaveGradCell(_SaveGradBase, ms.nn.Cell):
+    @ms.jit_class
+    class _SaveGradCell(_SaveGradBase):
         def __init__(self, file, suffix, output_mode):
             super(_SaveGradCell, self).__init__(file, suffix, output_mode)
             self.ms_save_grad = ms.ops.InsertGradientOf(
                 _wrapper_save_grad_func(self.file, output_mode))
             self.pt_save_func = _wrapper_torch_save_grad(self.file, output_mode)
 
-        def construct(self, x):
+        def __call__(self, x):
             if isinstance(x, ms.Tensor):
                 return self.ms_save_grad(x)
             elif isinstance(x, torch.Tensor):
@@ -243,13 +244,14 @@ elif "mindspore" in FRAMEWORK_TYPE:
             return grad
         return _save_grad_func
 
-    class _SaveGradCell(_SaveGradBase, ms.nn.Cell):
+    @ms.jit_class
+    class _SaveGradCell(_SaveGradBase):
         def __init__(self, file, suffix, output_mode):
             super(_SaveGradCell, self).__init__(file, suffix, output_mode)
             self.ms_save_grad = ms.ops.InsertGradientOf(
                 _wrapper_save_grad_func(self.file, output_mode))
 
-        def construct(self, x):
+        def __call__(self, x):
             if isinstance(x, ms.Tensor):
                 return self.ms_save_grad(x)
             else:
@@ -262,8 +264,9 @@ else:
 if "mindspore" in FRAMEWORK_TYPE:
     import mindspore as ms
 
-    class _SaveCell(_SaveBase, ms.nn.Cell):
-        def construct(self, data, suffix, output_mode):
+    @ms.jit_class
+    class _SaveCell(_SaveBase):
+        def __call__(self, data, suffix, output_mode):
             self.get_save_func(output_mode)(self.name, data, suffix, self.path)
 
 else:
