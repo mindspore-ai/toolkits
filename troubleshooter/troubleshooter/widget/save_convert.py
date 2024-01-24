@@ -42,7 +42,7 @@ if "mindspore" in FRAMEWORK_TYPE:
             self.path = Path()
             self.output_path = Path(output_path)
             if not self.output_path.exists():
-                self.output_path.mkdir(mode=0o700)
+                self.output_path.mkdir(mode=stat.S_IRWXU, parents=True, exist_ok=True)
             self.name = ""
             self.auto_id = -1
 

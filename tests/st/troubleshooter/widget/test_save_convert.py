@@ -18,7 +18,7 @@ def test_save_convert(file):
     Expectation: success
     """
     tmp_dir = TemporaryDirectory()
-    path = Path(tmp_dir.name)
+    path = Path(tmp_dir.name) / "multi" / "dir"
     ts.widget.save_convert(file, path)
     time.sleep(0.1)
     except_a = np.array([2, 3, 4, 5], dtype=np.float32)
