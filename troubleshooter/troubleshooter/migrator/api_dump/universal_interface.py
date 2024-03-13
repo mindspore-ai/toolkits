@@ -107,14 +107,17 @@ def api_dump_init(net, output_path=os.path.join(os.getcwd(), "ts_api_dump"), *, 
     logger.user_attention("Please disable the shuffle function of the dataset "
                           "before running the program.")
 
-    if "torch" in FRAMEWORK_TYPE and isinstance(net, torch.nn.Module):
-        API_DUMP_FRAMEWORK_TYPE = "torch"
-        pt_set_dump_path(output_path)
-        pt_register_hook(net, pt_acc_cmp_dump, compare_statedict=compare_statedict)
-    elif "mindtorch" in FRAMEWORK_TYPE and isinstance(net, mindtorch.torch.nn.Module):
+    # mindtorch must be before torch, because mindtorch Module will be recognized as torch Module when mstorch_enable().
+    if "mindtorch" in FRAMEWORK_TYPE and isinstance(net, mindtorch.torch.nn.Module):
+        mindtorch.module_hooker.torch_enable()
         API_DUMP_FRAMEWORK_TYPE = "mindtorch"
         ad_set_dump_path(output_path)
         ad_register_hook(net, ad_acc_cmp_dump, compare_statedict=compare_statedict)
+        mindtorch.module_hooker.torch_pop()
+    elif "torch" in FRAMEWORK_TYPE and isinstance(net, torch.nn.Module):
+        API_DUMP_FRAMEWORK_TYPE = "torch"
+        pt_set_dump_path(output_path)
+        pt_register_hook(net, pt_acc_cmp_dump, compare_statedict=compare_statedict)
     elif "mindspore" in FRAMEWORK_TYPE and isinstance(net, mindspore.nn.Cell):
         API_DUMP_FRAMEWORK_TYPE = "mindspore"
         ms_set_dump_path(output_path)
@@ -139,8 +142,10 @@ def api_dump_start(mode='all', scope=None, dump_type="all", filter_data=True, fi
         ms_set_dump_switch("ON", mode, scope=scope, api_list=scope, filter_switch=filter_switch,
                            dump_type=dump_type, filter_stack=filter_stack)
     elif API_DUMP_FRAMEWORK_TYPE == "mindtorch":
+        mindtorch.module_hooker.torch_enable()
         ad_set_dump_switch("ON", mode, scope=scope, api_list=scope, filter_switch=filter_switch,
                            dump_type=dump_type, filter_stack=filter_stack)
+        mindtorch.module_hooker.torch_pop()
     else:
         raise RuntimeError("You must call 'troubleshooter.api_dump.init' before calling"
                            "'troubleshooter.api_dump.start' function.")
@@ -152,7 +157,9 @@ def api_dump_stop():
     elif API_DUMP_FRAMEWORK_TYPE == "mindspore":
         ms_set_dump_switch("OFF")
     elif API_DUMP_FRAMEWORK_TYPE == "mindtorch":
+        mindtorch.module_hooker.torch_enable()
         ad_set_dump_switch("OFF")
+        mindtorch.module_hooker.torch_pop()
     else:
         raise RuntimeError("You must call 'troubleshooter.api_dump.init' before calling"
                            "'troubleshooter.api_dump.stop' function.")
