@@ -16,4 +16,4 @@
 def trans_conv1d_weight_value(ms_tensor):
     import mindspore as ms
     result = ms.ops.expand_dims(ms_tensor, 2)
-    return result
+    return ms.Tensor(result)
