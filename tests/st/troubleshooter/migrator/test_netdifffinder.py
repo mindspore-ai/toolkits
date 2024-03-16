@@ -75,6 +75,27 @@ def test_model(capsys):
 @pytest.mark.level0
 @pytest.mark.platform_x86_gpu_training
 @pytest.mark.env_onecard
+def test_loss_cmp_when_mode_in_gpu_data_in_cpu(capsys):
+    ts.fix_random()
+    input1 = (np.random.randn(1, 12).astype(np.float32),
+              np.random.randn(1, 13).astype(np.float32))
+    input2 = (np.random.randn(1, 12).astype(np.float32),
+              np.random.randn(1, 13).astype(np.float32))
+    ms_net = MSNet()
+    pt_net = TorchNet().cuda()
+    diff_finder = ts.migrator.NetDifferenceFinder(
+        pt_net=pt_net,
+        ms_net=ms_net
+    )
+    diff_finder.compare(inputs=[input1, input2])
+    out, err = capsys.readouterr()
+    key_result = ['step_0_a', 'step_0_out_0']
+    assert check_delimited_list(out, key_result)
+
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.env_onecard
 def test_th_tensor(capsys):
     input1 = (torch.rand([1, 12], dtype=torch.float32),
               torch.rand([1, 13], dtype=torch.float32))
