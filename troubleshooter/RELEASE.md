@@ -1,5 +1,16 @@
 # TroubleShooter Release Notes
 
+## 1.0.17 Release Notes
+
+### 主要特性和增强
+
+- `save/save_grad`支持bf16类型，数据保存为fp32；
+- API级别数据dump与比对，适配mindtorch 0.3版本。
+
+### 问题修复
+
+- 修复若干bug
+
 ## 1.0.16 Release Notes
 
 ### 主要特性和增强
