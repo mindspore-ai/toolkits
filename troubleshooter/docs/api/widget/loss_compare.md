@@ -51,4 +51,4 @@ ts.widget.loss_compare(left_file, right_file)
 
 ### 使用说明
 1. 跟据loss_tag进行日志解析，生成的loss曲线比对图中横坐标为解析的loss值个数，并非日志中的迭代数。
-2. 使用时两份日志的loss打印间隔请保持一直。
+2. 使用时两份日志的loss打印间隔请保持一致。

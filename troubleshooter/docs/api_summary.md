@@ -58,3 +58,4 @@
 | ------------------------------------------------------------ | ----------------------- |
 | [troubleshooter.widget.fix_random](api/widget/fix_random.md) | 固定随机性 |
 | [troubleshooter.widget.precision_tracker](api/widget/precision_tracker.md) | 算子升/降精度标识工具 |
+| [troubleshooter.widget.loss_compare](api/widget/loss_compare.md) | loss比对工具 |
