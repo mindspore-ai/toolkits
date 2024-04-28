@@ -11,9 +11,13 @@
 - retain_backward(`bool`): 是否保存反向梯度数据，默认值为 `False`，不保存反向数据。
 - compare_statedict(`bool`): 是否比较 PyTorch 和 MindTorch 网络 state_dict 中的内容，默认值为 `False`, 不比较。设置为 `True` 时，会在 `output_path` 路径下生成相应的储存网络state_dict的pth 文件。目前只支持mindtorch与pytorch比较场景。
 
-> 注意：
+> **注意：**
 >
 > 初始化时，工具会将`dropout`/`Dropout`相关API的`p`设置为0，即输出数据与输入数据相同，以固定不同框架的随机性。
+
+> **限制：**
+>
+> 当前api_dump暂不支持并行场景。
 
 ### 数据格式
 
