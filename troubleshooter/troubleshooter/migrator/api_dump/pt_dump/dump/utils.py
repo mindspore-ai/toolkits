@@ -48,7 +48,7 @@ class DumpUtil(object):
 
     @staticmethod
     def set_dump_switch(switch, mode, scope, api_list,
-                        filter_switch, dump_mode, dump_type, filter_stack):
+                        filter_switch, dump_mode, dump_type, filter_stack, overflow):
         DumpUtil.dump_switch = switch
         DumpUtil.dump_switch_mode = mode
         DumpUtil.dump_switch_scope = scope
@@ -57,6 +57,7 @@ class DumpUtil(object):
         DumpUtil.dump_mode = dump_mode
         DumpUtil.dump_type = dump_type
         DumpUtil.dump_filter_stack = filter_stack
+        DumpUtil.dump_overflow = overflow
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
 
@@ -156,7 +157,7 @@ def generate_dump_path_str():
 
 def set_dump_switch(switch, mode=Const.ALL, scope=None, api_list=None,
                     filter_switch=Const.ON, dump_mode=Const.ALL, dump_type=Const.ALL,
-                    filter_stack=True):
+                    filter_stack=True, overflow=False):
     if scope is None:
         scope = []
     if api_list is None:
@@ -164,7 +165,7 @@ def set_dump_switch(switch, mode=Const.ALL, scope=None, api_list=None,
 
     DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list,
                              filter_switch=filter_switch, dump_mode=dump_mode, dump_type=dump_type,
-                             filter_stack=filter_stack)
+                             filter_stack=filter_stack, overflow=overflow)
 
     if switch == "ON":
         dump_path_str = generate_dump_path_str()
