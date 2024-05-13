@@ -12,6 +12,8 @@ from pathlib import Path
 
 import mindspore as ms
 import numpy as np
+from mindspore import ops
+import mindspore.common.dtype as mstype
 
 from troubleshooter import log as logger
 
@@ -181,6 +183,10 @@ def get_scalar_data_info(data, compute_summary):
 
 
 def get_float_tensor_info(data, compute_summary):
+    dtype = str(data.dtype)
+    if data.dtype == mstype.bfloat16:
+        data = ops.Cast()(data, dtype=mstype.float32)
+
     saved_tensor = data.asnumpy()
     if compute_summary:
         tensor_max = saved_tensor.max().astype(np.float32).tolist()
@@ -191,7 +197,7 @@ def get_float_tensor_info(data, compute_summary):
         tensor_min = math.nan
         tensor_mean = math.nan
     summary_data = [tensor_max, tensor_min, tensor_mean]
-    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape))
+    return DataInfo(data, saved_tensor, summary_data, dtype, tuple(data.shape))
 
 
 def set_dump_path(fpath=None):
