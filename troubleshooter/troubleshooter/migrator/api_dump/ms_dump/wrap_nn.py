@@ -21,19 +21,30 @@ from mindspore.nn import optim
 
 from . import hook_cell as _cell
 
+nn_label = "nn."
+mint_nn_label = "mint.nn."
 cur_path = os.path.dirname(os.path.realpath(__file__))
 yaml_path = os.path.join(cur_path, "support_wrap_ops.yaml")
+WrapNNCell = []
 with open(yaml_path, 'r') as f:
-    WrapNNCell = yaml.safe_load(f).get('nn')
+    WrapNNCell.extend([nn_label + f for f in yaml.safe_load(f).get('nn')])
+with open(yaml_path, 'r') as f:
+    WrapNNCell.extend([mint_nn_label + f for f in yaml.safe_load(f).get('mint.nn')])
 
 NNCell = {}
 for f in dir(ms.nn):
-    NNCell[f] = getattr(ms.nn, f)
+    NNCell[nn_label + f] = getattr(ms.nn, f)
+if "mint" in dir(ms):
+    for f in dir(ms.mint.nn):
+        NNCell[mint_nn_label + f] = getattr(ms.mint.nn, f)
 
 
 def get_nn_cell():
     global WrapNNCell
-    _all_nn_cell = dir(ms.nn)
+    _all_nn_cell = []
+    _all_nn_cell.extend([nn_label + f for f in dir(ms.nn)])
+    if "mint" in dir(ms):
+        _all_nn_cell.extend([mint_nn_label + f for f in dir(ms.mint.nn)])
     return set(WrapNNCell) & set(_all_nn_cell)
 
 
@@ -53,7 +64,7 @@ def stop_dump_hook(func):
 
 
 def call_decorator(cls, name):
-    cls.hook_name = 'wrap_' + name
+    cls.hook_name = 'wrap_' + name.split(".")[-1]
     cls.__call__ = stop_dump_hook(cls.__call__)
     return cls
 
