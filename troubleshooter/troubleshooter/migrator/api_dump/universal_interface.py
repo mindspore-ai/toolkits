@@ -117,7 +117,7 @@ def api_dump_init(net, output_path=os.path.join(os.getcwd(), "ts_api_dump"), *, 
     elif "torch" in FRAMEWORK_TYPE and isinstance(net, torch.nn.Module):
         API_DUMP_FRAMEWORK_TYPE = "torch"
         pt_set_dump_path(output_path)
-        pt_register_hook(net, pt_acc_cmp_dump, compare_statedict=compare_statedict, rank=os.getenv("RANK_ID"))
+        pt_register_hook(net, pt_acc_cmp_dump, compare_statedict=compare_statedict, rank=os.getenv("RANK"))
     elif "mindspore" in FRAMEWORK_TYPE and isinstance(net, mindspore.nn.Cell):
         API_DUMP_FRAMEWORK_TYPE = "mindspore"
         ms_set_dump_path(output_path)
