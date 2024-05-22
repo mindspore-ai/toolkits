@@ -22,7 +22,14 @@ def initialize_hook(hook):
     wrap_functional.wrap_functional_ops_and_bind(hook)
     for attr_name in dir(wrap_functional.HOOKFunctionalOP):
         if attr_name.startswith("wrap_"):
-            setattr(ms.ops, attr_name[5:], getattr(wrap_functional.HOOKFunctionalOP, attr_name))
+            if attr_name.startswith("wrap_ops."):
+                setattr(ms.ops, attr_name[len("wrap_ops."):], getattr(wrap_functional.HOOKFunctionalOP, attr_name))
+            if attr_name.startswith("wrap_mint.ops."):
+                setattr(ms.mint, attr_name[len("wrap_mint.ops."):], getattr(wrap_functional.HOOKFunctionalOP,
+                                                                            attr_name))
+            if attr_name.startswith("wrap_mint.nn.functional."):
+                setattr(ms.mint.nn.functional, attr_name[len("wrap_mint.nn.functional."):],
+                        getattr(wrap_functional.HOOKFunctionalOP, attr_name))
 
     wrap_nn.wrap_nn_cell_and_bind()
     wrap_nn.wrap_optimizer()

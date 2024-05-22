@@ -20,19 +20,36 @@ import yaml
 from .hook_cell import HOOKCell
 
 
+ops_label = "ops."
+mint_ops_label = "mint.ops."
+mint_nn_func_label = "mint.nn.functional."
 cur_path = os.path.dirname(os.path.realpath(__file__))
 yaml_path = os.path.join(cur_path, "support_wrap_ops.yaml")
+WrapFunctionalOps = []
 with open(yaml_path, 'r') as f:
-    WrapFunctionalOps = yaml.safe_load(f).get('ops')
+    WrapFunctionalOps.extend([ops_label + f for f in yaml.safe_load(f).get('ops')])
+with open(yaml_path, 'r') as f:
+    WrapFunctionalOps.extend([mint_ops_label + f for f in yaml.safe_load(f).get('mint.ops')])
+with open(yaml_path, 'r') as f:
+    WrapFunctionalOps.extend([mint_nn_func_label + f for f in yaml.safe_load(f).get('mint.nn.functional')])
 
 OpsFunc = {}
 for f in dir(ms.ops):
-    OpsFunc[f] = getattr(ms.ops, f)
+    OpsFunc[ops_label + f] = getattr(ms.ops, f)
+if "mint" in dir(ms):
+    for f in dir(ms.mint):
+        OpsFunc[mint_ops_label + f] = getattr(ms.mint, f)
+    for f in dir(ms.mint.nn.functional):
+        OpsFunc[mint_nn_func_label + f] = getattr(ms.mint.nn.functional, f)
 
 
 def get_functional_ops():
     global WrapFunctionalOps
-    _all_functional_ops = dir(ms.ops)
+    _all_functional_ops = []
+    _all_functional_ops.extend([ops_label + f for f in dir(ms.ops)])
+    if "mint" in dir(ms):
+        _all_functional_ops.extend([mint_ops_label + f for f in dir(ms.mint)])
+        _all_functional_ops.extend([mint_nn_func_label + f for f in dir(ms.mint.nn.functional)])
     return set(WrapFunctionalOps) & set(_all_functional_ops)
 
 
@@ -43,7 +60,7 @@ class HOOKFunctionalOP(object):
 class FunctionalOPTemplate(HOOKCell):
     def __init__(self, op_name, hook):
         self.op_name_ = op_name
-        self.prefix_op_name_ = "Functional_" + str(op_name) + "_"
+        self.prefix_op_name_ = "Functional_" + str(op_name.split(".")[-1]) + "_"
         super().__init__(hook)
 
     def construct(self, *args, **kwargs):
