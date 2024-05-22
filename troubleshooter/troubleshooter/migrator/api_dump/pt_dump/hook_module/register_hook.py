@@ -80,8 +80,8 @@ def register_hook(model, hook, **kwargs):
     dump_mode, dump_config_file = init_dump_config(kwargs)
 
     pid = os.getpid()
-    rank = 0
     need_clear = True
+    rank = kwargs.get('rank')
     if rank is None:
         rank, need_clear = get_process_rank(model)
     make_dump_dirs(rank)
