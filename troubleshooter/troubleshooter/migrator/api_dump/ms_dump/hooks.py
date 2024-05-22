@@ -9,6 +9,7 @@ import re
 from collections import defaultdict
 from functools import lru_cache
 from pathlib import Path
+from xml.etree.ElementPath import ops
 
 import mindspore as ms
 import numpy as np
@@ -42,6 +43,7 @@ class DumpUtil(object):
     dump_filter_switch = None
     dump_filter_stack = True
     dump_count = 0
+    dump_overflow = False
 
     @staticmethod
     def set_ori_dir(path):
@@ -54,7 +56,7 @@ class DumpUtil(object):
         DumpUtil.dump_stack_file = dump_stack_file
         DumpUtil.dump_init_enable = True
     @staticmethod
-    def set_dump_switch(switch, mode, scope, api_list, filter_switch, dump_mode, dump_type, filter_stack):
+    def set_dump_switch(switch, mode, scope, api_list, filter_switch, dump_mode, dump_type, filter_stack, overflow):
         DumpUtil.dump_switch = switch
         DumpUtil.dump_switch_mode = mode
         DumpUtil.dump_switch_scope = scope
@@ -63,6 +65,7 @@ class DumpUtil(object):
         DumpUtil.dump_mode = dump_mode
         DumpUtil.dump_type = dump_type
         DumpUtil.dump_filter_stack = filter_stack
+        DumpUtil.dump_overflow = overflow
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
 
@@ -206,7 +209,7 @@ def set_dump_path(fpath=None):
 
 def set_dump_switch(switch, mode=Const.ALL, scope=None, api_list=None,
                     filter_switch=Const.ON, dump_mode=Const.ALL, dump_type=Const.ALL,
-                    filter_stack=True):
+                    filter_stack=True, overflow=False):
     if scope is None:
         scope = []
     if api_list is None:
@@ -214,7 +217,7 @@ def set_dump_switch(switch, mode=Const.ALL, scope=None, api_list=None,
 
     DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list,
                              filter_switch=filter_switch, dump_mode=dump_mode, dump_type=dump_type,
-                             filter_stack=filter_stack)
+                             filter_stack=filter_stack, overflow=overflow)
 
     if switch == "ON":
         logger.user_attention(f"API dump has started. Dump data will be saved to {DumpUtil.dump_ori_dir}. ")
@@ -462,11 +465,19 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step):
         name_template = f"{name}" + "_{}"
         if DumpUtil.dump_switch_mode in [Const.ALL, Const.RANGE, Const.LIST, Const.API_LIST]:
             if DumpUtil.check_switch_scope(name.rstrip('_forward')):
-                dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
-                return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
+                if DumpUtil.dump_overflow:
+                    if not check_overflow(out_feat):
+                        dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
+                        return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
+                else:
+                    dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
+                    return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
         else:
             msg = f"Current mode '{DumpUtil.dump_switch_mode}' is not supported. Please use the field in {Const.DUMP_MODE}"
             raise ValueError(msg)
+
+def check_overflow(out_feat):
+    return ms.amp.all_finite((out_feat,))
 
 def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file, dump_type):
     if in_feat is not None:
