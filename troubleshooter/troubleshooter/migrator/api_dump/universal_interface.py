@@ -127,7 +127,7 @@ def api_dump_init(net, output_path=os.path.join(os.getcwd(), "ts_api_dump"), *, 
                         f"mindspore.nn.Cell, torch.nn.Module or mindtorch.torch.nn.Module, but got {type(net)}.")
 
 
-def api_dump_start(mode='all', scope=None, dump_type="all", filter_data=True, filter_stack=True, overflow=False):
+def api_dump_start(mode='all', scope=None, dump_type="all", filter_data=True, filter_stack=True, overflow_check=False):
     check_mode_and_scope(mode, scope)
     if scope is None:
         scope = []
@@ -140,7 +140,7 @@ def api_dump_start(mode='all', scope=None, dump_type="all", filter_data=True, fi
                            dump_type=dump_type, filter_stack=filter_stack)
     elif API_DUMP_FRAMEWORK_TYPE == "mindspore":
         ms_set_dump_switch("ON", mode, scope=scope, api_list=scope, filter_switch=filter_switch,
-                           dump_type=dump_type, filter_stack=filter_stack, overflow=overflow)
+                           dump_type=dump_type, filter_stack=filter_stack, overflow=overflow_check)
     elif API_DUMP_FRAMEWORK_TYPE == "mindtorch":
         mindtorch.module_hooker.torch_enable()
         ad_set_dump_switch("ON", mode, scope=scope, api_list=scope, filter_switch=filter_switch,

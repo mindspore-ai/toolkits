@@ -83,7 +83,7 @@ output_path # 输出目录
 
 ## troubleshooter.migrator.api_dump_start
 
-> troubleshooter.migrator.api_dump_start(mode='all', scope=None, dump_type='all', filter_data=True, filter_stack=True)
+> troubleshooter.migrator.api_dump_start(mode='all', scope=None, dump_type='all', filter_data=True, filter_stack=True, overflow_check=False)
 
 开启数据 dump。
 
@@ -107,6 +107,8 @@ output_path # 输出目录
 - filter_data(`bool`, 可选)：是否开启 dump 数据过滤，默认值为 `True`。为 `True` 时，非浮点类型的 Tensor 和标量将会被过滤，不会被保存。
 
 - filter_stack(`bool`, 可选)：是否开启堆栈信息过滤，默认值为 `True`。为 `True`时，会过滤掉 `MindSpore`/`Pytorch`以及`Troubleshooter`dump功能的堆栈信息，只保留用户代码。
+
+- overflow_check(`bool`, 可选)：是否开启溢出检测及dump，默认值为 `False`。为 `True`时，开启全量dump。
 
 ## troubleshooter.migrator.api_dump_stop
 

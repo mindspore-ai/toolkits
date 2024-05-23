@@ -12,6 +12,14 @@ from pathlib import Path
 from xml.etree.ElementPath import ops
 
 import mindspore as ms
+from mindspore import Tensor
+from mindspore.common import mutable
+from mindspore.common import dtype as mstype
+from mindspore.ops.operations.nn_ops import AllFinite
+from mindspore.ops.operations.math_ops import NPUGetFloatStatusV2, NPUClearFloatStatusV2
+from mindspore.ops._primitive_cache import _get_cache_prim
+from mindspore._c_expression import MSContext
+from mindspore.ops import constexpr
 import numpy as np
 from mindspore import ops
 import mindspore.common.dtype as mstype
@@ -482,8 +490,59 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step):
             msg = f"Current mode '{DumpUtil.dump_switch_mode}' is not supported. Please use the field in {Const.DUMP_MODE}"
             raise ValueError(msg)
 
+@constexpr
+def _ascend_target():
+    return ms.context.get_context("device_target") == "Ascend"
+
+@constexpr
+def _ascend_910a_target():
+    return MSContext.get_instance().get_ascend_soc_version() == "ascend910"
+
+@constexpr
+def _ascend_910bc_target():
+    return MSContext.get_instance().get_ascend_soc_version() in ["ascend910b", "ascend910c"]
+
+@constexpr
+def _gpu_target():
+    return ms.context.get_context("device_target") == "GPU"
+
+def _overflow(inputs):
+    if _gpu_target():
+        return ops.FloatStatus()(inputs)
+    status = ops.isfinite(inputs)
+    return 1 - status.all()
+
+def _all_finite(inputs, check_overflow_mode, kernel_mode):
+    """all finite check"""
+    if _ascend_target():
+        if (_ascend_910a_target()) or \
+           (_ascend_910bc_target() and check_overflow_mode == "SATURATION_MODE"):
+            status = Tensor([0] * 8, mstype.int32)
+            status = ms.ops.depend(status, inputs)
+            get_status = _get_cache_prim(NPUGetFloatStatusV2)()(status)
+            status = ms.ops.depend(status, get_status)
+            clear_status = _get_cache_prim(NPUClearFloatStatusV2)()(status)
+            get_status = ms.ops.depend(get_status, clear_status)
+            status_finite = get_status.equal(Tensor(0, mstype.int32)).all()
+            return status_finite
+
+    status_finite = False
+    if kernel_mode:
+        status_finite = ~AllFinite()(inputs)  # pylint: disable=invalid-unary-operand-type
+    else:
+        outputs = ms.ops.HyperMap()(ops.Partial()(_overflow), inputs)
+        flag_sum = ms.ops.addn(outputs).reshape(())
+        status_finite = ms.ops.less(flag_sum, 1)
+    return status_finite
+
+def all_finite(inputs):
+    inputs = mutable(inputs)
+    _check_overflow_mode = os.environ.get('MS_ASCEND_CHECK_OVERFLOW_MODE')
+    _kernel_mode = os.environ.get('GRAPH_OP_RUN') == "1"
+    return _all_finite(inputs, _check_overflow_mode, _kernel_mode)
+
 def check_overflow(out_feat):
-    return ms.amp.all_finite((out_feat,))
+    return all_finite((out_feat,))
 
 def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file, dump_type):
     if in_feat is not None:
