@@ -1,5 +1,6 @@
 import shutil
 import tempfile
+import re
 from pathlib import Path
 
 import troubleshooter as ts
@@ -7,7 +8,7 @@ import mindspore as ms
 import numpy as np
 import pytest
 from mindspore import Tensor, nn, ops
-from tests.st.troubleshooter.migrator.dump.utils import get_pkl_npy_stack_list
+from tests.st.troubleshooter.migrator.dump.utils import get_pkl_npy_stack_list, get_md5_list
 from troubleshooter.migrator import api_dump_init, api_dump_start, api_dump_stop
 
 
@@ -96,6 +97,23 @@ def test_api_dump_ms_all():
         assert len(pkl_list) == 21
         assert set(pkl_list) == set(npy_list)
         assert len(stack_list) == 7
+    finally:
+        shutil.rmtree(data_path)
+        shutil.rmtree(dump_path)
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.platform_arm_ascend_training
+@pytest.mark.platform_x86_ascend_training
+@pytest.mark.env_onecard
+def test_api_dump_md5_ms_all():
+    data_path = generate_data()
+    dump_path = Path(tempfile.mkdtemp(prefix="ms_all"))
+    try:
+        train_ms_one_step_all(data_path, dump_path)
+        md5_list = get_md5_list(dump_path, 'mindspore')
+        for md5 in md5_list:
+            assert bool(re.compile(r'^[a-f0-9]{32}$').match(md5.lower()))
     finally:
         shutil.rmtree(data_path)
         shutil.rmtree(dump_path)
