@@ -45,3 +45,13 @@ def get_pkl_npy_stack_list(path, framework):
     stack_list = get_stack_list(
         path/'rank0'/f'{framework}_api_dump_stack.json')
     return pkl_list, npy_list, stack_list
+
+def get_md5_list(path, framework):
+    assert framework in {
+        'torch', 'mindspore'}, "framework must in 'torch' or 'mindspore'"
+    pkl = load_pkl(path/'rank0'/f'{framework}_api_dump_info.pkl')
+    md5_list = []
+    for line in pkl:
+        md5 = line[6]
+        md5_list.append(md5)
+    return md5_list
