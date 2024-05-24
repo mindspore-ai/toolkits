@@ -108,7 +108,7 @@ output_path # 输出目录
 
 - filter_stack(`bool`, 可选)：是否开启堆栈信息过滤，默认值为 `True`。为 `True`时，会过滤掉 `MindSpore`/`Pytorch`以及`Troubleshooter`dump功能的堆栈信息，只保留用户代码。
 
-- overflow_check(`bool`, 可选)：是否开启溢出检测及dump，默认值为 `False`。为 `True`时，开启全量dump。
+- overflow_check(`bool`, 可选)：是否开启溢出检测及dump，默认值为 `False`。为 `True`时，开启溢出检测并dump溢出数据。
 
 ## troubleshooter.migrator.api_dump_stop
 
