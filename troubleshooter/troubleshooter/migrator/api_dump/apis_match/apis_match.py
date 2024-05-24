@@ -176,7 +176,7 @@ class APIList:
         _get_uni_io(self.api_list, self.framework)
 
     def _read_line(self, line):
-        prefix, dump_step, _, data_type, data_shape, data_summary = line
+        prefix, dump_step, _, data_type, data_shape, data_summary, md5_nume = line
         api_data = APIDataNode(data_shape, data_type, data_summary)
 
         def _read_prefix(prefix):

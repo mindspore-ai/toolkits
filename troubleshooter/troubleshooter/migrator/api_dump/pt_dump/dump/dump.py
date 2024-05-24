@@ -25,6 +25,7 @@ from collections import defaultdict
 from functools import lru_cache, partial
 import re
 
+import hashlib
 import numpy as np
 import torch
 
@@ -53,12 +54,13 @@ NNCount = defaultdict(int)
 
 
 class DataInfo(object):
-    def __init__(self, data, save_data, summary_data, dtype, shape):
+    def __init__(self, data, save_data, summary_data, dtype, shape, md5_nume):
         self.data = data
         self.save_data = save_data
         self.summary_data = summary_data
         self.dtype = dtype
         self.shape = shape
+        self.md5_nume = md5_nume
 
 
 def get_not_float_tensor_info(data, compute_summary):
@@ -81,7 +83,8 @@ def get_not_float_tensor_info(data, compute_summary):
         tensor_min = math.nan
         tensor_mean = math.nan
     summary_data = [tensor_max, tensor_min, tensor_mean]
-    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape))
+    md5_nume = hashlib.md5(saved_tensor).hexdigest()
+    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume)
 
 
 def get_scalar_data_info(data, compute_summary):
@@ -89,7 +92,8 @@ def get_scalar_data_info(data, compute_summary):
         summary_data = [data, data, data]
     else:
         summary_data = [math.nan] * 3
-    return DataInfo(data, data, summary_data, str(type(data)), [])
+    md5_nume = hashlib.md5(str(data).encode()).hexdigest()
+    return DataInfo(data, data, summary_data, str(type(data)), [], md5_nume)
 
 
 def get_float_tensor_info(data, compute_summary):
@@ -103,7 +107,8 @@ def get_float_tensor_info(data, compute_summary):
         tensor_min = math.nan
         tensor_mean = math.nan
     summary_data = [tensor_max, tensor_min, tensor_mean]
-    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape))
+    md5_nume = hashlib.md5(saved_tensor).hexdigest()
+    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume)
 
 
 def json_dump_condition(prefix):
@@ -162,7 +167,7 @@ def dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy):
                 else:
                     np.save(output_path, data_info.save_data)
                 os.chmod(output_path, 0o400)
-            json.dump([prefix, dump_step, [], data_info.dtype, data_info.shape, data_info.summary_data], f)
+            json.dump([prefix, dump_step, [], data_info.dtype, data_info.shape, data_info.summary_data, data_info.md5_nume], f)
             f.write('\n')
 
 
