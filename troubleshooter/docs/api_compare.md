@@ -7,7 +7,7 @@ PyTorch 网络迁移到 MindSpore，以及 MindSpore 不同后端/版本迁移�
 
 > 注意：
 >
-> 目前api_dump相关功能只支持MindSpore的PYNATIVE模式，暂不支持并行场景。
+> 目前api_dump相关功能只支持MindSpore的PYNATIVE模式。
 
 ## 如何使用
 

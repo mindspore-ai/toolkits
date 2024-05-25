@@ -9,7 +9,11 @@ from . import hooks
 from . import wrap_functional, wrap_nn, wrap_sub_tensor, wrap_tensor
 from .utils import (CompareException, Const, check_file_or_directory_path, print_error_log)
 from troubleshooter import log as logger
-
+try:
+    from mindspore.communication import comm_func
+    comm_func_label = True
+except ImportError:
+    comm_func_label = False 
 
 def initialize_hook(hook):
     wrap_tensor.wrap_tensor_ops_and_bind(hook)
@@ -23,12 +27,16 @@ def initialize_hook(hook):
     for attr_name in dir(wrap_functional.HOOKFunctionalOP):
         if attr_name.startswith("wrap_"):
             if attr_name.startswith("wrap_ops."):
-                setattr(ms.ops, attr_name[len("wrap_ops."):], getattr(wrap_functional.HOOKFunctionalOP, attr_name))
+                setattr(ms.ops, attr_name[len("wrap_ops."):], 
+                        getattr(wrap_functional.HOOKFunctionalOP, attr_name))
             if attr_name.startswith("wrap_mint.ops."):
-                setattr(ms.mint, attr_name[len("wrap_mint.ops."):], getattr(wrap_functional.HOOKFunctionalOP,
-                                                                            attr_name))
+                setattr(ms.mint, attr_name[len("wrap_mint.ops."):], 
+                        getattr(wrap_functional.HOOKFunctionalOP,attr_name))
             if attr_name.startswith("wrap_mint.nn.functional."):
                 setattr(ms.mint.nn.functional, attr_name[len("wrap_mint.nn.functional."):],
+                        getattr(wrap_functional.HOOKFunctionalOP, attr_name))
+            if comm_func_label: 
+                setattr(ms.communication.comm_func, attr_name[len("wrap_communication.comm_func."):],
                         getattr(wrap_functional.HOOKFunctionalOP, attr_name))
 
     wrap_nn.wrap_nn_cell_and_bind()
