@@ -16,7 +16,6 @@ import mindspore as ms
 from mindspore import Tensor
 from mindspore.common import mutable
 from mindspore.common import dtype as mstype
-from mindspore.ops.operations.nn_ops import AllFinite
 from mindspore.ops.operations.math_ops import NPUGetFloatStatusV2, NPUClearFloatStatusV2
 from mindspore.ops._primitive_cache import _get_cache_prim
 from mindspore._c_expression import MSContext
@@ -517,7 +516,7 @@ def _overflow(inputs):
     status = ops.isfinite(inputs)
     return 1 - status.all()
 
-def _all_finite(inputs, check_overflow_mode, kernel_mode):
+def _all_finite(inputs, check_overflow_mode):
     """all finite check"""
     if _ascend_target():
         if (_ascend_910a_target()) or \
@@ -532,19 +531,15 @@ def _all_finite(inputs, check_overflow_mode, kernel_mode):
             return status_finite
 
     status_finite = False
-    if kernel_mode:
-        status_finite = ~AllFinite()(inputs)  # pylint: disable=invalid-unary-operand-type
-    else:
-        outputs = ms.ops.HyperMap()(ops.Partial()(_overflow), inputs)
-        flag_sum = ms.ops.addn(outputs).reshape(())
-        status_finite = ms.ops.less(flag_sum, 1)
+    outputs = ms.ops.HyperMap()(ops.Partial()(_overflow), inputs)
+    flag_sum = ms.ops.addn(outputs).reshape(())
+    status_finite = ms.ops.less(flag_sum, 1)
     return status_finite
 
 def all_finite(inputs):
     inputs = mutable(inputs)
     _check_overflow_mode = os.environ.get('MS_ASCEND_CHECK_OVERFLOW_MODE')
-    _kernel_mode = os.environ.get('GRAPH_OP_RUN') == "1"
-    return _all_finite(inputs, _check_overflow_mode, _kernel_mode)
+    return _all_finite(inputs, _check_overflow_mode)
 
 def check_overflow(out_feat):
     return all_finite((out_feat,))
