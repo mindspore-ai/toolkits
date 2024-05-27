@@ -16,55 +16,33 @@
 import mindspore as ms
 import os
 import yaml
+from pathlib import Path
+
 from .hook_cell import HOOKCell
+
 try:
     from mindspore.communication import comm_func
     comm_func_label = True
 except ImportError:
     comm_func_label = False 
 
-ops_label = "ops."
-mint_ops_label = "mint.ops."
-mint_nn_func_label = "mint.nn.functional."
+
 cur_path = os.path.dirname(os.path.realpath(__file__))
 yaml_path = os.path.join(cur_path, "support_wrap_ops.yaml")
 if comm_func_label:
-    communication_comm_func_label = "communication.comm_func."
-
-WrapFunctionalOps = []
-with open(yaml_path, 'r') as f:
-    WrapFunctionalOps.extend([ops_label + f for f in yaml.safe_load(f).get('ops')])
-with open(yaml_path, 'r') as f:
-    WrapFunctionalOps.extend([mint_ops_label + f for f in yaml.safe_load(f).get('mint.ops')])
-with open(yaml_path, 'r') as f:
-    WrapFunctionalOps.extend([mint_nn_func_label + f for f in yaml.safe_load(f).get('mint.nn.functional')])
-if comm_func_label:
     with open(yaml_path, 'r') as f:
-        WrapFunctionalOps.extend([communication_comm_func_label + f for f in yaml.safe_load(f).get('communication.comm_func')])
+        WrapFunctionalOps = yaml.safe_load(f).get('communication.comm_func')
 
 OpsFunc = {}
-for f in dir(ms.ops):
-    OpsFunc[ops_label + f] = getattr(ms.ops, f)
-if "mint" in dir(ms):
-    for f in dir(ms.mint):
-        OpsFunc[mint_ops_label + f] = getattr(ms.mint, f)
-    for f in dir(ms.mint.nn.functional):
-        OpsFunc[mint_nn_func_label + f] = getattr(ms.mint.nn.functional, f)
 if comm_func_label:
     for f in dir(ms.communication.comm_func):
-        OpsFunc[communication_comm_func_label + f] = getattr(ms.communication.comm_func, f)
-
+        OpsFunc[f] = getattr(ms.communication.comm_func, f)
 
 
 def get_functional_ops():
     global WrapFunctionalOps
-    _all_functional_ops = []
-    _all_functional_ops.extend([ops_label + f for f in dir(ms.ops)])
-    if "mint" in dir(ms):
-        _all_functional_ops.extend([mint_ops_label + f for f in dir(ms.mint)])
-        _all_functional_ops.extend([mint_nn_func_label + f for f in dir(ms.mint.nn.functional)])
     if comm_func_label:
-        _all_functional_ops.extend([communication_comm_func_label + f for f in dir(ms.communication.comm_func)])            
+        _all_functional_ops = dir(ms.communication.comm_func)
     return set(WrapFunctionalOps) & set(_all_functional_ops)
 
 
@@ -75,7 +53,7 @@ class HOOKFunctionalOP(object):
 class FunctionalOPTemplate(HOOKCell):
     def __init__(self, op_name, hook):
         self.op_name_ = op_name
-        self.prefix_op_name_ = "Functional_" + str(op_name.split(".")[-1]) + "_"
+        self.prefix_op_name_ = "Functional_" + str(op_name) + "_"
         super().__init__(hook)
 
     def construct(self, *args, **kwargs):
@@ -91,7 +69,7 @@ def wrap_functional_op(op_name, hook):
     return functional_op_template
 
 
-def wrap_functional_ops_and_bind(hook):
+def wrap_hccl_functional_ops_and_bind(hook):
     _functional_ops = get_functional_ops()
     for op_name in _functional_ops:
         if callable(OpsFunc[op_name]):

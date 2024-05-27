@@ -15,6 +15,12 @@
 
 # List of ops that register hooks
 
+communication.comm_func:
+  - all_reduce
+  - all_gather_into_tensor
+  - reduce
+  - reduce_scatter_tensor
+  
 ops:
   - adaptive_avg_pool1d
   - adaptive_avg_pool2d
