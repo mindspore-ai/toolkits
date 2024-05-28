@@ -365,3 +365,51 @@ def test_api_dump_ms_with_not_float_output():
     ts.migrator.api_dump_stop()
     shutil.rmtree(dump_path)
     assert len(out) == 2
+
+
+def train_ms_one_step_jit(data_path, dump_path, info_path=None, retain_backward=True,
+                          **api_dump_start_args):
+    class Net(BaseNet):
+        def construct(self, x):
+            api_dump_start(**api_dump_start_args)
+            x = self.conv(x)
+            x = ops.clip(x, Tensor(0.2, ms.float32), Tensor(0.5, ms.float32))
+            x = self.bn(x)
+            x = self.relu(x)
+            x = x.reshape(1, -1)
+            x = self.linear(x)
+            x = self.relu(x)
+            net_inner = Net_inner()
+            x = net_inner(x)
+            return x
+    
+    class Net_inner(BaseNet):
+        @ms.jit
+        def construct(self, x):
+            x = self.relu(x)
+            x = x + x
+            x = 3 * x
+            return x
+
+    train_one_step = BaseTrainOneStep(
+        Net(), data_path, dump_path, info_path, retain_backward)
+    train_one_step()
+
+@pytest.mark.level0
+@pytest.mark.platform_x86_gpu_training
+@pytest.mark.platform_arm_ascend_training
+@pytest.mark.platform_x86_ascend_training
+@pytest.mark.env_onecard
+def test_api_dump_ms_jit():
+    data_path = generate_data()
+    dump_path = Path(tempfile.mkdtemp(prefix="ms_jit"))
+    try:
+        train_ms_one_step_jit(data_path, dump_path)
+        pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
+            dump_path, 'mindspore')
+        assert len(pkl_list) == 21
+        assert set(pkl_list) == set(npy_list)
+        assert len(stack_list) == 7
+    finally:
+        shutil.rmtree(data_path)
+        shutil.rmtree(dump_path)
