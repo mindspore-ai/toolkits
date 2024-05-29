@@ -9,21 +9,20 @@ from . import hooks
 from . import wrap_functional, wrap_nn, wrap_sub_tensor, wrap_tensor
 from .utils import (CompareException, Const, check_file_or_directory_path, print_error_log)
 from troubleshooter import log as logger
+from mindspore.common.api import _MindsporeFunctionExecutor
 try:
     from mindspore.communication import comm_func
     comm_func_label = True
 except ImportError:
     comm_func_label = False 
 
-def initialize_hook(hook):
-    wrap_tensor.wrap_tensor_ops_and_bind(hook)
-    wrap_sub_tensor.wrap_sub_tensor_ops_and_bind(hook)
+
+def hook_apis():
     for attr_name in dir(wrap_tensor.HOOKTensor):
         if attr_name.startswith("wrap_"):
             setattr(ms.Tensor, attr_name[5:], getattr(wrap_tensor.HOOKTensor, attr_name))
             setattr(ms.common._stub_tensor.StubTensor, attr_name[5:], getattr(wrap_sub_tensor.HOOKSubTensor, attr_name))
 
-    wrap_functional.wrap_functional_ops_and_bind(hook)
     for attr_name in dir(wrap_functional.HOOKFunctionalOP):
         if attr_name.startswith("wrap_"):
             if attr_name.startswith("wrap_ops."):
@@ -38,10 +37,53 @@ def initialize_hook(hook):
             if comm_func_label: 
                 setattr(ms.communication.comm_func, attr_name[len("wrap_communication.comm_func."):],
                         getattr(wrap_functional.HOOKFunctionalOP, attr_name))
+    
 
+def restore_apis():
+    for attr_name in dir(wrap_tensor.HOOKTensor):
+        if attr_name.startswith("wrap_"):
+            setattr(ms.Tensor, attr_name[5:], wrap_tensor.TensorFunc[attr_name[5:]])
+            setattr(ms.common._stub_tensor.StubTensor, attr_name[5:], wrap_sub_tensor.SubTensorFunc[attr_name[5:]])
+    
+    for attr_name in dir(wrap_functional.HOOKFunctionalOP):
+        if attr_name.startswith("wrap_"):
+            if attr_name.startswith("wrap_ops."):
+                setattr(ms.ops, attr_name[len("wrap_ops."):], 
+                        wrap_functional.OpsFunc[wrap_functional.ops_label + attr_name[len("wrap_ops."):]])
+            if attr_name.startswith("wrap_mint.ops."):
+                setattr(ms.mint, attr_name[len("wrap_mint.ops."):], 
+                        wrap_functional.OpsFunc[wrap_functional.mint_ops_label + attr_name[len("wrap_mint.ops."):]])
+            if attr_name.startswith("wrap_mint.nn.functional."):
+                setattr(ms.mint.nn.functional, attr_name[len("wrap_mint.nn.functional."):], 
+                        wrap_functional.OpsFunc[wrap_functional.mint_nn_func_label + attr_name[len("wrap_mint.nn.functional."):]])
+            if comm_func_label: 
+                setattr(ms.communication.comm_func, attr_name[len("wrap_communication.comm_func."):], 
+                        wrap_functional.OpsFunc[wrap_functional.communication_comm_func_label + attr_name[len("wrap_communication.comm_func."):]])
+
+
+class MyMindsporeFunctionExecutor(_MindsporeFunctionExecutor):
+
+    def __call__(self, *args, **kwargs):
+
+        restore_apis()
+        out = super().__call__(*args, **kwargs)
+        hook_apis()
+
+        return out
+
+
+def initialize_hook(hook):
+    wrap_tensor.wrap_tensor_ops_and_bind(hook)
+    wrap_sub_tensor.wrap_sub_tensor_ops_and_bind(hook)
+    wrap_functional.wrap_functional_ops_and_bind(hook)
     wrap_nn.wrap_nn_cell_and_bind()
     wrap_nn.wrap_optimizer()
     builtins.print = wrap_nn.stop_hook_print
+
+    hook_apis()
+
+    ms.common.api._MindsporeFunctionExecutor = MyMindsporeFunctionExecutor
+
 
 def register_hook(net, hook, **kwargs):
     dump_mode, dump_config_file = init_dump_config(kwargs)
