@@ -484,9 +484,10 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step):
         if DumpUtil.dump_switch_mode in [Const.ALL, Const.RANGE, Const.LIST, Const.API_LIST]:
             if DumpUtil.check_switch_scope(name.rstrip('_forward')):
                 if DumpUtil.dump_overflow:
-                    if not check_overflow(out_feat):
-                        dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
-                        return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
+                    if isinstance(out_feat, ms.Tensor):
+                        if not check_overflow(out_feat):
+                            dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
+                            return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
                 else:
                     dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
                     return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
