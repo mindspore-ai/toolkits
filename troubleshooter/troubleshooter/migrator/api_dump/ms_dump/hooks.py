@@ -154,13 +154,14 @@ class DumpUtil(object):
 
 
 class DataInfo(object):
-    def __init__(self, data, save_data, summary_data, dtype, shape, md5_nume):
+    def __init__(self, data, save_data, summary_data, dtype, shape, md5_nume, l2norm):
         self.data = data
         self.save_data = save_data
         self.summary_data = summary_data
         self.dtype = dtype
         self.shape = shape
         self.md5_nume = md5_nume
+        self.l2norm = l2norm
 
 
 def get_not_float_tensor_info(data, compute_summary):
@@ -184,7 +185,8 @@ def get_not_float_tensor_info(data, compute_summary):
         tensor_mean = math.nan
     summary_data = [tensor_max, tensor_min, tensor_mean]
     md5_nume = hashlib.md5(saved_tensor).hexdigest()
-    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume)
+    l2norm = np.linalg.norm(saved_tensor).item()
+    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, l2norm)
 
 
 def get_scalar_data_info(data, compute_summary):
@@ -193,7 +195,8 @@ def get_scalar_data_info(data, compute_summary):
     else:
         summary_data = [math.nan] * 3
     md5_nume = hashlib.md5(str(data).encode()).hexdigest()
-    return DataInfo(data, data, summary_data, str(type(data)), [], md5_nume)
+    l2norm = np.linalg.norm(data).item()
+    return DataInfo(data, data, summary_data, str(type(data)), [], md5_nume, l2norm)
 
 
 def get_float_tensor_info(data, compute_summary):
@@ -212,7 +215,8 @@ def get_float_tensor_info(data, compute_summary):
         tensor_mean = math.nan
     summary_data = [tensor_max, tensor_min, tensor_mean]
     md5_nume = hashlib.md5(saved_tensor).hexdigest()
-    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume)
+    l2norm = np.linalg.norm(saved_tensor).item()
+    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, l2norm)
 
 
 def set_dump_path(fpath=None):
@@ -265,7 +269,7 @@ def dump_data(dump_file_name, dump_step, prefix, data_info, dump_type):
                 else:
                     np.save(output_path, data_info.save_data)
                 os.chmod(output_path, 0o400)
-            json.dump([prefix, dump_step, [], data_info.dtype, data_info.shape, data_info.summary_data, data_info.md5_nume], f)
+            json.dump([prefix, dump_step, [], data_info.dtype, data_info.shape, data_info.summary_data, data_info.md5_nume, data_info.l2norm], f)
             f.write('\n')
 
 

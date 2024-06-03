@@ -46,12 +46,26 @@ def get_pkl_npy_stack_list(path, framework):
         path/'rank0'/f'{framework}_api_dump_stack.json')
     return pkl_list, npy_list, stack_list
 
+
 def get_md5_list(path, framework):
     assert framework in {
         'torch', 'mindspore'}, "framework must in 'torch' or 'mindspore'"
     pkl = load_pkl(path/'rank0'/f'{framework}_api_dump_info.pkl')
+    md5_position = 6
     md5_list = []
     for line in pkl:
-        md5 = line[6]
+        md5 = line[md5_position]
         md5_list.append(md5)
     return md5_list
+
+
+def get_l2norm_list(path, framework):
+    assert framework in {
+        'torch', 'mindspore'}, "framework must in 'torch' or 'mindspore'"
+    pkl = load_pkl(path/'rank0'/f'{framework}_api_dump_info.pkl')
+    l2norm_position = 7
+    l2norm_list = []
+    for line in pkl:
+        l2norm = line[l2norm_position]
+        l2norm_list.append(l2norm)
+    return l2norm_list
