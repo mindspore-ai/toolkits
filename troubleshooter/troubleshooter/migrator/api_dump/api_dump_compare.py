@@ -70,7 +70,7 @@ def _get_npy_list(apis, io, file_dict):
 
 def _get_npy_shape_map(pkl_path):
     def _read_line(line):
-        prefix, dump_step, _, data_type, data_shape, data_summary, md5_nume = line
+        prefix, dump_step, _, data_type, data_shape, data_summary, md5_nume, l2norm = line
         return {prefix: data_shape}
 
     ret = {}
@@ -481,7 +481,7 @@ def print_mindtorch_summary_result(
 def compare_mindtorch_summary(origin_pkl_path, target_pkl_path, name_map_list, frame_names, **print_kwargs):
     def get_api_info(pkl_path):
         def _read_line(line):
-            prefix, dump_step, _, data_type, data_shape, data_summary, md5_nume = line
+            prefix, dump_step, _, data_type, data_shape, data_summary, md5_nume, l2norm = line
             return {prefix: (data_type, data_shape, data_summary)}
 
         ret = {}
@@ -530,7 +530,7 @@ def compare_mindtorch_summary(origin_pkl_path, target_pkl_path, name_map_list, f
 def compare_summary(origin_pkl_path, target_pkl_path, name_map_list, **print_kwargs):
     def get_api_info(pkl_path):
         def _read_line(line):
-            prefix, dump_step, _, data_type, data_shape, data_summary, md5_nume = line
+            prefix, dump_step, _, data_type, data_shape, data_summary, md5_nume, l2norm = line
             return {prefix: (data_shape, data_summary)}
 
         ret = {}
