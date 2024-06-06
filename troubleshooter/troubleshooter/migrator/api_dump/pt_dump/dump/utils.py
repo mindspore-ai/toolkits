@@ -30,6 +30,7 @@ class DumpUtil(object):
     dump_stack_dic = {}
     dump_filter_stack = True
     dump_count = 0
+    statistic_category = None
 
     @staticmethod
     def set_ori_dir(path):
@@ -48,7 +49,7 @@ class DumpUtil(object):
 
     @staticmethod
     def set_dump_switch(switch, mode, scope, api_list,
-                        filter_switch, dump_mode, dump_type, filter_stack, overflow):
+                        filter_switch, dump_mode, dump_type, filter_stack, overflow,statistic_category):
         DumpUtil.dump_switch = switch
         DumpUtil.dump_switch_mode = mode
         DumpUtil.dump_switch_scope = scope
@@ -58,6 +59,7 @@ class DumpUtil(object):
         DumpUtil.dump_type = dump_type
         DumpUtil.dump_filter_stack = filter_stack
         DumpUtil.dump_overflow = overflow
+        DumpUtil.statistic_category = statistic_category
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
 
@@ -157,7 +159,7 @@ def generate_dump_path_str():
 
 def set_dump_switch(switch, mode=Const.ALL, scope=None, api_list=None,
                     filter_switch=Const.ON, dump_mode=Const.ALL, dump_type=Const.ALL,
-                    filter_stack=True, overflow=False):
+                    filter_stack=True, overflow=False,statistic_category=None):
     if scope is None:
         scope = []
     if api_list is None:
@@ -165,7 +167,7 @@ def set_dump_switch(switch, mode=Const.ALL, scope=None, api_list=None,
 
     DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list,
                              filter_switch=filter_switch, dump_mode=dump_mode, dump_type=dump_type,
-                             filter_stack=filter_stack, overflow=overflow)
+                             filter_stack=filter_stack, overflow=overflow,statistic_category=statistic_category)
 
     if switch == "ON":
         dump_path_str = generate_dump_path_str()
@@ -204,7 +206,7 @@ def make_dump_data_dir(dump_file_name):
 
 
 def make_dump_dirs(rank):
-    dump_file_name, dump_path = "torch_api_dump_info.pkl", "torch_api_dump"
+    dump_file_name, dump_path = "torch_api_dump_info.csv", "torch_api_dump"
     dump_stack_file = "torch_api_dump_stack.json"
     dump_root_dir = DumpUtil.dump_ori_dir if DumpUtil.dump_ori_dir else "./"
     Path(dump_root_dir).mkdir(mode=0o700, parents=True, exist_ok=True)

@@ -27,7 +27,7 @@ MindSpore 生成的目录结构。
 output_path # 输出目录
 └── rank0
     ├── mindspore_api_dump # npy数据目录
-    ├── mindspore_api_dump_info.pkl # dump的info信息
+    ├── mindspore_api_dump_info.csv # dump的info信息
     └── mindspore_api_dump_stack.json # dump的堆栈信息
 ```
 
@@ -37,7 +37,7 @@ Torch 生成的目录结构。
 output_path # 输出目录
 └── rank0
     ├── torch_api_dump # npy数据目录
-    ├── torch_api_dump_info.pkl # dump的info信息
+    ├── torch_api_dump_info.csv # dump的info信息
     ├── torch_api_dump_stack.json # dump的堆栈信息
     └── pt_net.pth # 存储的网络 state_dict 中的内容(仅在compare_statedict 为 `True`时保存)
 ```
@@ -48,7 +48,7 @@ MindTorch 生成的目录结构。
 output_path # 输出目录
 └── rank0
     ├── mindtorch_api_dump # npy数据目录
-    ├── mindtorch_api_dump_info.pkl # dump的info信息
+    ├── mindtorch_api_dump_info.csv # dump的info信息
     ├── mindtorch_api_dump_stack.json # dump的堆栈信息
     └── ad_net.pth # 存储的网络 state_dict 中的内容(仅在compare_statedict 为 `True`时保存)
 ```
@@ -73,7 +73,7 @@ output_path # 输出目录
 
   其中LAYER表示该npy文件用于存储模块名称；LAYERNAME表示模块的名称。
 
-- `api_dump_info.pkl`文件为网络在dump时按照API的执行顺序保存的信息，文件项格式如下：
+- `api_dump_info.csv`文件为网络在dump时按照API的执行顺序保存的信息，文件项格式如下：
   ```
   [数据名称，保留字段，保留字段，数据类型，数据shape，[最大值，最小值，均值], md5值, l2norm值]
   ```
@@ -91,24 +91,32 @@ output_path # 输出目录
 
 - mode(str, 可选)：dump 模式，目前支持 `'all'`、`'list'`、`'range'`、`'api_list'`，默认值 `'all'`。`'all'` 模式会 dump 全部 API 的数据；`'list'`、`'range'`、`'api_list'` 模式通过配合 `scope` 参数可以实现 dump 特定 API、范围、名称等功能。
 
-- scope(list, 可选)：dump 范围。根据 `mode` 配置的模式选择 dump 的 API 范围。API 范围中的名称可以通过输出目录下的 `api_dump_info.pkl` 文件获取）。
+- scope(list, 可选)：dump 范围。根据 `mode` 配置的模式选择 dump 的 API 范围。API 范围中的名称可以通过输出目录下的 `api_dump_info.csv` 文件获取）。
 
   - `mode` 为 `'list'` 时，`scope` 为 dump 特定的文件列表，例如 `['Functional_softmax_1', 'NN_Dense_1', 'Tensor___matmul___1']`，只会 dump 列表中的三个 API；
   - `mode` 为 `'range'` 时，`scope` 为 dump 的区间范围，例如 `['NN_Dense_1', 'Tensor___matmul___1']`，会 dump 从`'NN_Dense_1'`直到`'Tensor__matmul___1'`的所有 API；
   - `mode` 为 `'api_list'` 时，`scope` 为 dump 特定的 API 列表，例如 `['relu', 'softmax', 'layernorm']`，会 dump 名称中含有 `relu`、`softmax`、`layernorm` 关键字的所有 API，不区分 `Tensor`、`Functional` 等方法类型。
 
-- dump_type(`str`, 可选)：dump 保存的数据类型，目前支持 `'all'`、`'statistics'`、`'npy'`、`'stack'`， 默认值为 `'all'`。以下模式均会保存数据的堆栈信息（`api_dump_stack.json`）与执行顺序（`api_dump_info.pkl`）。
+- dump_type(`str`, 可选)：dump 保存的数据类型，目前支持 `'all'`、`'statistics'`、`'npy'`、`'stack'`， 默认值为 `'all'`。以下模式均会保存数据的堆栈信息（`api_dump_stack.json`）与执行顺序（`api_dump_info.csv`）。
 
-  - 为 `'all'`时会保存数据的统计信息（`api_dump_info.pkl`文件中数据的最大/最小/均值信息）和 npy 文件，速度最慢，存储空间占用大；
+  - 为 `'all'`时会保存数据的统计信息（`api_dump_info.csv`文件中数据的最大/最小/均值信息）和 npy 文件，速度最慢，存储空间占用大；
   - 为 `'npy'`时，**不会保存数据的统计信息**，会保存数据的npy文件，速度较`'all'`模式快，存储空间占用大；
   - 为 `'statistics'` 时，**不会保存npy文件**，会保存数据的统计信息，存储空间占用小，结合`api_dump_compare`，可以根据统计信息初步定位精度问题；
-  - 为 `'stack'`时，只会保存数据的堆栈信息（`api_dump_stack.json`）与执行顺序（`api_dump_info.pkl`），运行速度最快，存储空间占用最小，常用于快速验证`api_dump_compare`中API映射结果。
+  - 为 `'stack'`时，只会保存数据的堆栈信息（`api_dump_stack.json`）与执行顺序（`api_dump_info.csv`），运行速度最快，存储空间占用最小，常用于快速验证`api_dump_compare`中API映射结果。
 
 - filter_data(`bool`, 可选)：是否开启 dump 数据过滤，默认值为 `True`。为 `True` 时，非浮点类型的 Tensor 和标量将会被过滤，不会被保存。
 
 - filter_stack(`bool`, 可选)：是否开启堆栈信息过滤，默认值为 `True`。为 `True`时，会过滤掉 `MindSpore`/`Pytorch`以及`Troubleshooter`dump功能的堆栈信息，只保留用户代码。
 
 - overflow_check(`bool`, 可选)：是否开启溢出检测及dump，默认值为 `False`。为 `True`时，开启溢出检测并dump溢出数据。
+
+- statistic_category(`list`,可选): 是否开启用户自定义dump输出结果，默认值为[`'max'`, `'min'`，`'l2norm'`]时，只会dump出`api_dump_info.csv`文件中数据的最大值和最小值和l2norm信息，减少dump没必要的数据的时间开支；目前支持的模式有`max`, `min`, `avg`, `md5`,`l2norm`五种模式，
+
+  - `max`: 统计最大值
+  - `min`: 统计最小值
+  - `avg`: 统计平均值
+  - `md5`: 统计md5信息
+  - `l2norm`: 统计l2norm信息
 
 ## troubleshooter.migrator.api_dump_stop
 

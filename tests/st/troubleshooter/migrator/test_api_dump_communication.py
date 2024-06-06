@@ -23,7 +23,7 @@ import shutil
 from mindspore import dtype as mstype
 from pathlib import Path
 from troubleshooter.migrator import api_dump_init, api_dump_start, api_dump_stop
-from tests.st.troubleshooter.migrator.dump.utils import get_pkl_npy_stack_list
+from tests.st.troubleshooter.migrator.dump.utils import get_csv_npy_stack_list
 try:
     from mindspore.communication import comm_func
     comm_func_label = True
@@ -53,12 +53,12 @@ def test_api_dump_communicate():
     dump_path = Path(tempfile.mkdtemp(prefix="ms_api_dump_communication"))
     try:
         api_dump_init(net, dump_path, retain_backward=True)
-        api_dump_start()
+        api_dump_start(statistic_category = ['min', 'avg', 'l2norm'])
         input = ms.Tensor(np.ones([3, 4]).astype(np.float32))
         expect_output = [[2, 2, 2, 2],[2, 2, 2, 2],[2, 2, 2, 2]]
         output = ops.grad(all_reduce_dump)(input)
         api_dump_stop()
-        pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(dump_path, 'mindspore')
+        csv_list, npy_list, stack_list = get_csv_npy_stack_list(dump_path, 'mindspore')
         assert 'Functional_all_reduce_0_backward_input' in npy_list
         assert 'Functional_all_reduce_0_forward_input.0' in npy_list
         assert 'Functional_all_reduce_0_forward_output' in npy_list 

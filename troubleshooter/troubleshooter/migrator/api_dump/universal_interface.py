@@ -127,24 +127,28 @@ def api_dump_init(net, output_path=os.path.join(os.getcwd(), "ts_api_dump"), *, 
                         f"mindspore.nn.Cell, torch.nn.Module or mindtorch.torch.nn.Module, but got {type(net)}.")
 
 
-def api_dump_start(mode='all', scope=None, dump_type="all", filter_data=True, filter_stack=True, overflow_check=False):
+def api_dump_start(mode = 'all', scope = None, dump_type = "all", filter_data = True, filter_stack = True, overflow_check = False, statistic_category = ['max', 'min', 'l2norm']):
     check_mode_and_scope(mode, scope)
     if scope is None:
         scope = []
     support_dump_type = {'all', 'statistics', 'stack', 'npy'}
+    support_statistic_category = {'min', 'avg', 'max', 'md5','l2norm'}
     enum_check(dump_type, 'support_dump_type', support_dump_type)
+    if statistic_category is not None:
+        for param in statistic_category:
+            enum_check(param, 'statistic_category', support_statistic_category)
     type_check(filter_data, 'filter_data', bool)
     filter_switch = 'ON' if filter_data else 'OFF'
     if API_DUMP_FRAMEWORK_TYPE == "torch":
         pt_set_dump_switch("ON", mode, scope=scope, api_list=scope, filter_switch=filter_switch,
-                           dump_type=dump_type, filter_stack=filter_stack)
+                           dump_type=dump_type, filter_stack=filter_stack, statistic_category=statistic_category)
     elif API_DUMP_FRAMEWORK_TYPE == "mindspore":
         ms_set_dump_switch("ON", mode, scope=scope, api_list=scope, filter_switch=filter_switch,
-                           dump_type=dump_type, filter_stack=filter_stack, overflow=overflow_check)
+                           dump_type=dump_type, filter_stack=filter_stack, overflow=overflow_check, statistic_category=statistic_category)
     elif API_DUMP_FRAMEWORK_TYPE == "mindtorch":
         mindtorch.module_hooker.torch_enable()
         ad_set_dump_switch("ON", mode, scope=scope, api_list=scope, filter_switch=filter_switch,
-                           dump_type=dump_type, filter_stack=filter_stack)
+                           dump_type=dump_type, filter_stack=filter_stack, statistic_category=statistic_category)
         mindtorch.module_hooker.torch_pop()
     else:
         raise RuntimeError("You must call 'troubleshooter.api_dump.init' before calling"

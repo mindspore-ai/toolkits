@@ -7,7 +7,7 @@ from mindtorch.torch.tensor import cast_to_adapter_tensor
 NNCount = defaultdict(int)
 
 def make_adapter_dump_dirs(rank):
-    dump_file_name, dump_path = "mindtorch_api_dump_info.pkl", "mindtorch_api_dump"
+    dump_file_name, dump_path = "mindtorch_api_dump_info.csv", "mindtorch_api_dump"
     dump_stack_file = "mindtorch_api_dump_stack.json"
     dump_root_dir = DumpUtil.dump_ori_dir if DumpUtil.dump_ori_dir else "./"
     Path(dump_root_dir).mkdir(mode=0o700, parents=True, exist_ok=True)
