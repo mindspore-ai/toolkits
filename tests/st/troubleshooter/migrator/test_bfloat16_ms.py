@@ -21,7 +21,7 @@ import shutil
 import mindspore as ms
 from mindspore import Tensor, context, ops, nn
 from troubleshooter.migrator import api_dump_init, api_dump_start, api_dump_stop
-from tests.st.troubleshooter.migrator.dump.utils import get_pkl_npy_stack_list
+from tests.st.troubleshooter.migrator.dump.utils import get_csv_npy_stack_list
 
 
 class Net(nn.Cell):
@@ -59,13 +59,13 @@ def test_conv2d_bfloat16():
     try:
         net = Net()
         api_dump_init(net, dump_path, retain_backward=True)
-        api_dump_start()
+        api_dump_start(statistic_category = ['max', 'min', 'avg', 'md5', 'l2norm'])
         x = Tensor(np.ones([10, 32, 32, 32]), ms.bfloat16)
         weight = Tensor(np.ones([32, 32, 3, 3]), ms.bfloat16)
         grads = conv2d_backward_func(x, weight)
         dx, dw = grads
         api_dump_stop()
-        pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
+        csv_list, npy_list, stack_list = get_csv_npy_stack_list(
             dump_path, 'mindspore')
         assert 'Functional_conv2d_0_forward_input.0' in npy_list
         assert 'Functional_conv2d_0_forward_input.1' in npy_list

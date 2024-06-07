@@ -21,7 +21,7 @@ import mindspore as ms
 import mindspore.nn as nn
 from mindspore import Tensor, ops
 from troubleshooter.migrator import api_dump_init, api_dump_start, api_dump_stop
-from tests.st.troubleshooter.migrator.dump.utils import get_pkl_npy_stack_list
+from tests.st.troubleshooter.migrator.dump.utils import get_csv_npy_stack_list
 
 
 class MaxNet(nn.Cell):
@@ -65,7 +65,7 @@ def test_mint():
     dump_path = Path(tempfile.mkdtemp(prefix="ms_api_dump_mint"))
     try:
         api_dump_init(net2, dump_path, retain_backward=True)
-        api_dump_start()
+        api_dump_start(statistic_category=['max', 'min', 'avg', 'md5', 'l2norm'])
 
         input0 = Tensor(np.array([[0.0, 0.3, 0.4, 0.5, 0.1], [3.2, 0.4, 0.1, 2.9, 4.0]]), ms.float32)
         input1 = Tensor(np.array([[180, 234, 154], [244, 48, 247]]), ms.float32)
@@ -79,7 +79,7 @@ def test_mint():
         grad = avg_pool2d_backward_func(image, 2, 2, 0, True, False)
 
         api_dump_stop()
-        pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(dump_path, 'mindspore')
+        csv_list, npy_list, stack_list = get_csv_npy_stack_list(dump_path, 'mindspore')
         assert 'Functional_max_0_forward_input.0' in npy_list
         assert 'Functional_max_0_forward_output.0' in npy_list
         assert 'NN_Linear_0_forward_input.0' in npy_list

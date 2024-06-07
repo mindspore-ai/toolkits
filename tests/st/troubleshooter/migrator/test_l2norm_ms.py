@@ -35,7 +35,7 @@ def test_l2norm_ms():
         net = Net()
         api_dump_init(net, dump_path, retain_backward=True)
 
-        api_dump_start()
+        api_dump_start(statistic_category = ['max', 'min', 'avg', 'md5', 'l2norm'])
         data = ms.Tensor(np.ones([2,10]), ms.float16)
         out = net(data)
         api_dump_stop()

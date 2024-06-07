@@ -64,56 +64,85 @@ class DataInfo(object):
         self.l2norm = l2norm
 
 
-def get_not_float_tensor_info(data, compute_summary):
+def get_not_float_tensor_info(data, compute_summary, statistic_category):
     saved_tensor = data.contiguous().cpu().detach().numpy()
+    tensor_max, tensor_min, tensor_mean = math.nan, math.nan, math.nan
     if compute_summary:
         if data.numel() == 0 or data.dtype == torch.bool:
-            tensor_max = math.nan
-            tensor_min = math.nan
-            tensor_mean = math.nan
+            pass
         elif len(data.shape) == 0:
-            tensor_max = data.cpu().detach().float().numpy().tolist()
-            tensor_min = data.cpu().detach().float().numpy().tolist()
-            tensor_mean = data.cpu().detach().float().numpy().tolist()
+            if 'max' in statistic_category:
+                tensor_max = data.cpu().detach().float().numpy().tolist()
+            if 'min' in statistic_category:
+                tensor_min = data.cpu().detach().float().numpy().tolist()
+            if 'avg' in statistic_category:
+                tensor_mean = data.cpu().detach().float().numpy().tolist()
         else:
-            tensor_max = TorchFunc['max'](data).cpu().detach().float().numpy().tolist()
-            tensor_min = TorchFunc['min'](data).cpu().detach().float().numpy().tolist()
-            tensor_mean = TorchFunc['mean'](data.float()).cpu().detach().float().numpy().tolist()
+            if 'max' in statistic_category:
+                tensor_max = TorchFunc['max'](data).cpu().detach().float().numpy().tolist()
+            if 'min' in statistic_category:
+                tensor_min = TorchFunc['min'](data).cpu().detach().float().numpy().tolist()
+            if 'avg' in statistic_category:
+                tensor_mean = TorchFunc['mean'](data.float()).cpu().detach().float().numpy().tolist()
     else:
-        tensor_max = math.nan
-        tensor_min = math.nan
-        tensor_mean = math.nan
+        pass
     summary_data = [tensor_max, tensor_min, tensor_mean]
-    md5_nume = hashlib.md5(saved_tensor).hexdigest()
-    l2norm = np.linalg.norm(saved_tensor).item()
-    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, l2norm)
-
-
-def get_scalar_data_info(data, compute_summary):
+    if 'md5' in statistic_category and 'l2norm' in statistic_category:    
+        md5_nume = hashlib.md5(saved_tensor).hexdigest()
+        l2norm = np.linalg.norm(saved_tensor).item()
+        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, l2norm)
+    elif 'md5' in statistic_category:
+        md5_nume = hashlib.md5(saved_tensor).hexdigest()        
+        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, [])
+    elif 'l2norm' in statistic_category:
+        l2norm = np.linalg.norm(saved_tensor).item()        
+        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), [], l2norm)
+    else:
+        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), [], [])
+        
+def get_scalar_data_info(data, compute_summary, statistic_category):
     if compute_summary:
         summary_data = [data, data, data]
     else:
         summary_data = [math.nan] * 3
-    md5_nume = hashlib.md5(str(data).encode()).hexdigest()
-    l2norm = np.linalg.norm(data).item()
-    return DataInfo(data, data, summary_data, str(type(data)), [], md5_nume, l2norm)
-
-
-def get_float_tensor_info(data, compute_summary):
-    saved_tensor = data.contiguous().cpu().detach().numpy()
-    if compute_summary:
-        tensor_max = TorchFunc['max'](data).cpu().detach().float().numpy().tolist()
-        tensor_min = TorchFunc['min'](data).cpu().detach().float().numpy().tolist()
-        tensor_mean = TorchFunc['mean'](data).cpu().detach().float().numpy().tolist()
+    if 'md5' in statistic_category and 'l2norm' in statistic_category:    
+        md5_nume = hashlib.md5(str(data).encode()).hexdigest()
+        l2norm = np.linalg.norm(data).item()
+        return DataInfo(data, data, summary_data, str(type(data)), [], md5_nume, l2norm)
+    elif 'md5' in statistic_category:
+        md5_nume = hashlib.md5(str(data).encode()).hexdigest()            
+        return DataInfo(data, data, summary_data, str(type(data)), [], md5_nume, [])
+    elif 'l2norm' in statistic_category:
+        l2norm = np.linalg.norm(data).item()
+        return DataInfo(data, data, summary_data, str(type(data)), [], [], l2norm)
     else:
-        tensor_max = math.nan
-        tensor_min = math.nan
-        tensor_mean = math.nan
-    summary_data = [tensor_max, tensor_min, tensor_mean]
-    md5_nume = hashlib.md5(saved_tensor).hexdigest()
-    l2norm = np.linalg.norm(saved_tensor).item()
-    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, l2norm)
+        return DataInfo(data, data, summary_data, str(type(data)), [], [], [])                    
 
+def get_float_tensor_info(data, compute_summary, statistic_category):
+    saved_tensor = data.contiguous().cpu().detach().numpy()
+    tensor_max, tensor_min, tensor_mean = math.nan, math.nan, math.nan
+    if compute_summary:
+        if 'max' in statistic_category:        
+            tensor_max = TorchFunc['max'](data).cpu().detach().float().numpy().tolist()
+        if 'min' in statistic_category:        
+            tensor_min = TorchFunc['min'](data).cpu().detach().float().numpy().tolist()
+        if 'avg' in statistic_category:
+            tensor_mean = TorchFunc['mean'](data).cpu().detach().float().numpy().tolist()
+    else:
+        pass
+    summary_data = [tensor_max, tensor_min, tensor_mean]
+    if 'md5' in statistic_category and 'l2norm' in statistic_category:     
+        md5_nume = hashlib.md5(saved_tensor).hexdigest()
+        l2norm = np.linalg.norm(saved_tensor).item()
+        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, l2norm)
+    elif 'md5' in statistic_category:
+        md5_nume = hashlib.md5(saved_tensor).hexdigest()
+        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, [])
+    elif 'l2norm' in statistic_category:
+        l2norm = np.linalg.norm(saved_tensor).item()
+        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), [], l2norm)
+    else:                                
+        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), [], [])
 
 def json_dump_condition(prefix):
     cur_threading_id = threading.current_thread().ident
@@ -123,12 +152,13 @@ def json_dump_condition(prefix):
     return (Const.BACKWARD in prefix and backward_threading_id == cur_threading_id) or 'forward' in prefix
 
 
-def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
+def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type, statistic_category):
     compute_summary = True if dump_type in ['all', 'statistics'] else False
     dump_npy = True if dump_type in ['all', 'npy'] else False
+
     if isinstance(x, (tuple, list)) and x:
         for i, item in enumerate(x):
-            dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name, dump_type)
+            dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name, dump_type, statistic_category)
         return
     elif isinstance(x, torch.Tensor):
         def backward_hook(grad, get_info):
@@ -136,7 +166,7 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
                 return
             nonlocal dump_file_name, dump_step, prefix, dump_npy, compute_summary
             prefix = prefix.replace('_forward_output', '_backward_input')
-            data_info_ = get_info(grad, compute_summary)
+            data_info_ = get_info(grad, compute_summary, statistic_category)
             dump_data(dump_file_name, dump_step, prefix, data_info_, dump_npy)
 
         dump_flag = True
@@ -148,14 +178,14 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
             data_info_func = get_float_tensor_info
 
         if dump_flag:
-            data_info = data_info_func(x, compute_summary)
+            data_info = data_info_func(x, compute_summary, statistic_category)
             dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy)
             if universal_interface.g_retain_backward and x.requires_grad is True and "_output" in prefix:
                 x.register_hook(partial(backward_hook, get_info=get_float_tensor_info))
 
     elif DumpUtil.dump_filter_switch == Const.OFF:
         if isinstance(x, bool) or isinstance(x, int) or isinstance(x, float):
-            data_info = get_scalar_data_info(x, compute_summary)
+            data_info = get_scalar_data_info(x, compute_summary, statistic_category)
             dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy)
 
 
@@ -244,10 +274,10 @@ def dump_stack_info(name_template, dump_file, filter_stack):
             f.write(json_str)
 
 
-def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file, dump_type):
+def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file, dump_type, statistic_category):
     if in_feat is not None:
-        dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file, dump_type)
-    dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file, dump_type)
+        dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file, dump_type, statistic_category)
+    dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file, dump_type, statistic_category)
 
 
 def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
@@ -265,8 +295,8 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
             if DumpUtil.check_switch_scope(name.rstrip('_forward')):
                 dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
                 if name[:6] == "LAYER_":
-                    return dump_api_tensor(dump_step, torch.Tensor([0]), name_template, None, dump_file_name, DumpUtil.dump_type)
-                return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
+                    return dump_api_tensor(dump_step, torch.Tensor([0]), name_template, None, dump_file_name, DumpUtil.dump_type, DumpUtil.statistic_category)
+                return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type, DumpUtil.statistic_category)
         else:
             msg = f"Current mode '{DumpUtil.dump_switch_mode}' is not supported. Please use the field in {Const.DUMP_MODE}"
             raise ValueError(msg)

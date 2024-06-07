@@ -105,7 +105,7 @@ class AlexNet(nn.Cell):
 if __name__ == "__main__":
     net = AlexNet()
     api_dump_init(net)
-    api_dump_start()
+    api_dump_start(statistic_category = ['max', 'min', 'avg', 'md5', 'l2norm'])
     grad_net = ms.grad(net, None, net.trainable_params())
     output = grad_net(ms.Tensor(np.random.random([1, 227, 227, 3]).astype(np.float32)))
     print(output)

@@ -72,9 +72,7 @@ def _get_npy_shape_map(pkl_path):
     def _read_line(line):
         prefix, dump_step, _, data_type, data_shape, data_summary, md5_nume, l2norm = line
         return {prefix: data_shape}
-
     ret = {}
-
     pkl = load_pkl(pkl_path)
     for l in pkl:
         shape = _read_line(l)
@@ -303,15 +301,15 @@ def get_npy_map_list(
 
 def get_dump_path(root_path):
     root_path = Path(root_path)
-    ms_pkl_path = root_path.joinpath("rank0", "mindspore_api_dump_info.pkl")
+    ms_pkl_path = root_path.joinpath("rank0", "mindspore_api_dump_info.csv")
     ms_npy_path = root_path.joinpath("rank0", "mindspore_api_dump")
     ms_npy_path_not_empty = ms_npy_path.exists() and list(ms_npy_path.iterdir())
 
-    pt_pkl_path = root_path.joinpath("rank0", "torch_api_dump_info.pkl")
+    pt_pkl_path = root_path.joinpath("rank0", "torch_api_dump_info.csv")
     pt_npy_path = root_path.joinpath("rank0", "torch_api_dump")
     pt_npy_path_not_empty = pt_npy_path.exists() and list(pt_npy_path.iterdir())
 
-    ad_pkl_path = root_path.joinpath('rank0', 'mindtorch_api_dump_info.pkl')
+    ad_pkl_path = root_path.joinpath('rank0', 'mindtorch_api_dump_info.csv')
     ad_npy_path = root_path.joinpath('rank0', 'mindtorch_api_dump')
     ad_npy_path_not_empty = ad_npy_path.exists() and list(ad_npy_path.iterdir())
 
@@ -483,9 +481,7 @@ def compare_mindtorch_summary(origin_pkl_path, target_pkl_path, name_map_list, f
         def _read_line(line):
             prefix, dump_step, _, data_type, data_shape, data_summary, md5_nume, l2norm = line
             return {prefix: (data_type, data_shape, data_summary)}
-
         ret = {}
-
         pkl = load_pkl(pkl_path)
         for l in pkl:
             summary = _read_line(l)
@@ -532,7 +528,6 @@ def compare_summary(origin_pkl_path, target_pkl_path, name_map_list, **print_kwa
         def _read_line(line):
             prefix, dump_step, _, data_type, data_shape, data_summary, md5_nume, l2norm = line
             return {prefix: (data_shape, data_summary)}
-
         ret = {}
 
         pkl = load_pkl(pkl_path)

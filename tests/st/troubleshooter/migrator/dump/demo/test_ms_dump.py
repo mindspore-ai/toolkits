@@ -8,7 +8,7 @@ import mindspore as ms
 import numpy as np
 import pytest
 from mindspore import Tensor, nn, ops
-from tests.st.troubleshooter.migrator.dump.utils import get_pkl_npy_stack_list, get_md5_list
+from tests.st.troubleshooter.migrator.dump.utils import get_csv_npy_stack_list, get_md5_list
 from troubleshooter.migrator import api_dump_init, api_dump_start, api_dump_stop
 
 
@@ -58,7 +58,7 @@ class BaseTrainOneStep:
         grad_fn = ms.value_and_grad(
             forward_fn, None, self.optimizer.parameters)
         for s in range(self.step):
-            api_dump_start()
+            api_dump_start(statistic_category = ['max', 'min', 'avg', 'md5', 'l2norm'])
             loss, grads = grad_fn(self.data, self.label)
             self.optimizer(grads)
             print("step:", s, "   loss:", loss)
@@ -68,7 +68,7 @@ def train_ms_one_step_all(data_path, dump_path, info_path=None, retain_backward=
                           **api_dump_start_args):
     class Net(BaseNet):
         def construct(self, x):
-            api_dump_start(**api_dump_start_args)
+            api_dump_start(**api_dump_start_args,statistic_category = ['max', 'min', 'avg', 'md5', 'l2norm'])
             x = self.conv(x)
             x = ops.clip(x, Tensor(0.2, ms.float32), Tensor(0.5, ms.float32))
             x = self.bn(x)
@@ -92,10 +92,10 @@ def test_api_dump_ms_all():
     dump_path = Path(tempfile.mkdtemp(prefix="ms_all"))
     try:
         train_ms_one_step_all(data_path, dump_path)
-        pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
+        csv_list, npy_list, stack_list = get_csv_npy_stack_list(
             dump_path, 'mindspore')
-        assert len(pkl_list) == 21
-        assert set(pkl_list) == set(npy_list)
+        assert len(csv_list) == 21
+        assert set(csv_list) == set(npy_list)
         assert len(stack_list) == 7
     finally:
         shutil.rmtree(data_path)
@@ -123,7 +123,7 @@ def train_ms_one_step_all_overflow(data_path, dump_path, info_path=None, retain_
                           **api_dump_start_args):
     class Net(BaseNet):
         def construct(self, x):
-            api_dump_start(overflow_check=True, **api_dump_start_args)
+            api_dump_start(overflow_check=True, **api_dump_start_args,statistic_category = ['max', 'min', 'avg', 'md5', 'l2norm'])
             x = self.conv(x)
             x = ops.clip(x, Tensor(0.2, ms.float32), Tensor(0.5, ms.float32))
             x = self.bn(x)
@@ -147,10 +147,10 @@ def test_api_dump_ms_all_overflow():
     dump_path = Path(tempfile.mkdtemp(prefix="ms_all"))
     try:
         train_ms_one_step_all_overflow(data_path, dump_path)
-        pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
+        csv_list, npy_list, stack_list = get_csv_npy_stack_list(
             dump_path, 'mindspore')
-        assert len(pkl_list) == 6
-        assert set(pkl_list) == set(npy_list)
+        assert len(csv_list) == 6
+        assert set(csv_list) == set(npy_list)
         assert len(stack_list) == 2
     finally:
         shutil.rmtree(data_path)
@@ -167,13 +167,13 @@ def test_api_dump_ms_all_with_scalar():
     dump_path = Path(tempfile.mkdtemp(prefix="ms_all_with_scalar"))
     try:
         train_ms_one_step_all(data_path, dump_path, filter_data=False)
-        pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
+        csv_list, npy_list, stack_list = get_csv_npy_stack_list(
             dump_path, 'mindspore')
-        assert len(pkl_list) == 25
-        assert 'Functional_clip_0_forward_input.1' in pkl_list
-        assert 'Functional_clip_0_forward_input.2' in pkl_list
-        assert 'Tensor_reshape_0_forward_input.1' in pkl_list
-        assert 'Tensor_reshape_0_forward_input.2' in pkl_list
+        assert len(csv_list) == 25
+        assert 'Functional_clip_0_forward_input.1' in csv_list
+        assert 'Functional_clip_0_forward_input.2' in csv_list
+        assert 'Tensor_reshape_0_forward_input.1' in csv_list
+        assert 'Tensor_reshape_0_forward_input.2' in csv_list
     finally:
         shutil.rmtree(data_path)
         shutil.rmtree(dump_path)
@@ -189,7 +189,7 @@ def test_api_dump_ms_all_with_full_stack():
     dump_path = Path(tempfile.mkdtemp(prefix="ms_all_with_full_stack"))
     try:
         train_ms_one_step_all(data_path, dump_path, filter_stack=False)
-        pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
+        csv_list, npy_list, stack_list = get_csv_npy_stack_list(
             dump_path, 'mindspore')
         assert len(stack_list) == 7
     finally:
@@ -202,14 +202,14 @@ def train_ms_one_step_part(data_path, dump_path, info_path=None, retain_backwad=
         def construct(self, x):
             api_dump_stop()
             x = self.conv(x)
-            api_dump_start()
+            api_dump_start(statistic_category = ['max', 'min', 'avg', 'md5', 'l2norm'])
             x = ops.clip(x, Tensor(0.2, ms.float32), Tensor(0.5, ms.float32))
             api_dump_stop()
             x = self.bn(x)
             x = self.relu(x)
             x = x.reshape(1, -1)
             x = self.linear(x)
-            api_dump_start()
+            api_dump_start(statistic_category = ['max', 'min', 'avg', 'md5', 'l2norm'])
             x = self.relu(x)
             api_dump_stop()
             return x
@@ -228,10 +228,10 @@ def test_api_dump_ms_part():
     dump_path = Path(tempfile.mkdtemp(prefix="ms_part"))
     try:
         train_ms_one_step_part(data_path, dump_path)
-        pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
+        csv_list, npy_list, stack_list = get_csv_npy_stack_list(
             dump_path, 'mindspore')
-        assert len(pkl_list) == 6
-        assert set(pkl_list) == set(npy_list)
+        assert len(csv_list) == 6
+        assert set(csv_list) == set(npy_list)
         assert len(stack_list) == 2
     finally:
         shutil.rmtree(data_path)
@@ -241,7 +241,7 @@ def test_api_dump_ms_part():
 def train_ms_one_step_api_list(data_path, dump_path, info_path=None, retain_backwad=True):
     class Net(BaseNet):
         def construct(self, x):
-            api_dump_start(mode='api_list', scope=['relu', 'conv2d'])
+            api_dump_start(mode = 'api_list', scope = ['relu', 'conv2d'], statistic_category = ['max', 'min', 'avg', 'md5', 'l2norm'])
             x = self.conv(x)
             x = ops.clip(x, Tensor(0.2, ms.float32), Tensor(0.5, ms.float32))
             x = self.bn(x)
@@ -265,10 +265,10 @@ def test_api_dump_ms_api_list():
     dump_path = Path(tempfile.mkdtemp(prefix="ms_part"))
     try:
         train_ms_one_step_api_list(data_path, dump_path)
-        pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
+        csv_list, npy_list, stack_list = get_csv_npy_stack_list(
             dump_path, 'mindspore')
-        assert len(pkl_list) == 9
-        assert set(pkl_list) == set(npy_list)
+        assert len(csv_list) == 9
+        assert set(csv_list) == set(npy_list)
         assert len(stack_list) == 3
     finally:
         shutil.rmtree(data_path)
@@ -278,8 +278,8 @@ def test_api_dump_ms_api_list():
 def train_ms_one_step_list(data_path, dump_path, info_path=None, retain_backwad=True):
     class Net(BaseNet):
         def construct(self, x):
-            api_dump_start(mode='list', scope=[
-                           'NN_BatchNorm2d_0', 'NN_ReLU_0'])
+            api_dump_start(mode = 'list', scope = [
+                           'NN_BatchNorm2d_0', 'NN_ReLU_0'],statistic_category = ['max', 'min', 'avg', 'md5', 'l2norm'])
             x = self.conv(x)
             x = ops.clip(x, 0.2, 0.5)
             x = self.bn(x)
@@ -303,10 +303,10 @@ def test_api_dump_ms_list():
     dump_path = Path(tempfile.mkdtemp(prefix="ms_list"))
     try:
         train_ms_one_step_list(data_path, dump_path)
-        pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
+        csv_list, npy_list, stack_list = get_csv_npy_stack_list(
             dump_path, 'mindspore')
-        assert len(pkl_list) == 6
-        assert set(pkl_list) == set(npy_list)
+        assert len(csv_list) == 6
+        assert set(csv_list) == set(npy_list)
         assert len(stack_list) == 2
     finally:
         shutil.rmtree(data_path)
@@ -316,8 +316,8 @@ def test_api_dump_ms_list():
 def train_ms_one_step_range(data_path, dump_path, info_path=None, retain_backwad=True):
     class Net(BaseNet):
         def construct(self, x):
-            api_dump_start(mode='range', scope=[
-                           'Functional_clip_0', 'Tensor_reshape_0'])
+            api_dump_start(mode = 'range', scope = [
+                           'Functional_clip_0', 'Tensor_reshape_0'],statistic_category = ['max', 'min', 'avg', 'md5', 'l2norm'])
             x = self.conv(x)
             x = ops.clip(x, 0.2, 0.5)
             x = self.bn(x)
@@ -341,10 +341,10 @@ def test_api_dump_ms_range():
     dump_path = Path(tempfile.mkdtemp(prefix="ms_range"))
     try:
         train_ms_one_step_range(data_path, dump_path)
-        pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
+        csv_list, npy_list, stack_list = get_csv_npy_stack_list(
             dump_path, 'mindspore')
-        assert len(pkl_list) == 12
-        assert set(pkl_list) == set(npy_list)
+        assert len(csv_list) == 12
+        assert set(csv_list) == set(npy_list)
         assert len(stack_list) == 4
     finally:
         shutil.rmtree(data_path)
@@ -360,7 +360,7 @@ def test_api_dump_ms_with_not_float_output():
     x = Tensor(np.random.randn(8, 5).astype(np.float32))
     dump_path = Path(tempfile.mkdtemp(prefix="with_not_float_output"))
     ts.migrator.api_dump_init(ms.nn.Cell(), dump_path, retain_backward=True)
-    ts.migrator.api_dump_start()
+    ts.migrator.api_dump_start(statistic_category = ['max', 'min', 'avg', 'md5', 'l2norm'])
     out = x.max(axis=1, return_indices=True)
     ts.migrator.api_dump_stop()
     shutil.rmtree(dump_path)
@@ -371,7 +371,7 @@ def train_ms_one_step_jit(data_path, dump_path, info_path=None, retain_backward=
                           **api_dump_start_args):
     class Net(BaseNet):
         def construct(self, x):
-            api_dump_start(**api_dump_start_args)
+            api_dump_start(**api_dump_start_args , statistic_category=['max','min','avg','md5','l2norm'])
             x = self.conv(x)
             x = ops.clip(x, Tensor(0.2, ms.float32), Tensor(0.5, ms.float32))
             x = self.bn(x)
@@ -405,10 +405,10 @@ def test_api_dump_ms_jit():
     dump_path = Path(tempfile.mkdtemp(prefix="ms_jit"))
     try:
         train_ms_one_step_jit(data_path, dump_path)
-        pkl_list, npy_list, stack_list = get_pkl_npy_stack_list(
+        csv_list, npy_list, stack_list = get_csv_npy_stack_list(
             dump_path, 'mindspore')
-        assert len(pkl_list) == 21
-        assert set(pkl_list) == set(npy_list)
+        assert len(csv_list) == 21
+        assert set(csv_list) == set(npy_list)
         assert len(stack_list) == 7
     finally:
         shutil.rmtree(data_path)

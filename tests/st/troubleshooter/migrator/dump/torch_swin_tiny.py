@@ -681,7 +681,7 @@ if __name__ == '__main__':
     net = swin_tiny_patch4_window7_224(5)
     ts.migrator.api_dump_init(net, 'torch_dump_new', retain_backward=True)
     data = np.random.random((1, 3, 224, 224)).astype(np.float32)
-    ts.migrator.api_dump_start()
+    ts.migrator.api_dump_start(statistic_category = ['max', 'min', 'avg', 'md5', 'l2norm'])
     out = net(torch.tensor(data))
     criterion = nn.MSELoss()   # 均方损失函数
     target_tensor = torch.randn(1, 5)

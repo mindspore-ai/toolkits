@@ -54,6 +54,8 @@ class DumpUtil(object):
     dump_filter_stack = True
     dump_count = 0
     dump_overflow = False
+    statistic_category = None
+    
 
     @staticmethod
     def set_ori_dir(path):
@@ -66,7 +68,7 @@ class DumpUtil(object):
         DumpUtil.dump_stack_file = dump_stack_file
         DumpUtil.dump_init_enable = True
     @staticmethod
-    def set_dump_switch(switch, mode, scope, api_list, filter_switch, dump_mode, dump_type, filter_stack, overflow):
+    def set_dump_switch(switch, mode, scope, api_list, filter_switch, dump_mode, dump_type, filter_stack, overflow,statistic_category):
         DumpUtil.dump_switch = switch
         DumpUtil.dump_switch_mode = mode
         DumpUtil.dump_switch_scope = scope
@@ -76,6 +78,7 @@ class DumpUtil(object):
         DumpUtil.dump_type = dump_type
         DumpUtil.dump_filter_stack = filter_stack
         DumpUtil.dump_overflow = overflow
+        DumpUtil.statistic_category = statistic_category
         if mode == Const.ACL:
             DumpUtil.dump_switch_scope = [api_name.replace("backward", "forward") for api_name in scope]
 
@@ -164,60 +167,88 @@ class DataInfo(object):
         self.l2norm = l2norm
 
 
-def get_not_float_tensor_info(data, compute_summary):
+def get_not_float_tensor_info(data, compute_summary, statistic_category):
     saved_tensor = data.asnumpy()
+    tensor_max, tensor_min, tensor_mean = math.nan, math.nan, math.nan
     if compute_summary:
         if saved_tensor.size == 0 or saved_tensor.dtype == np.bool_:
-            tensor_max = []
-            tensor_min = []
-            tensor_mean = []
+            pass
         elif len(saved_tensor.shape) == 0:
-            tensor_max = saved_tensor.astype(np.float32).tolist()
-            tensor_min = saved_tensor.astype(np.float32).tolist()
-            tensor_mean = saved_tensor.astype(np.float32).tolist()
+            if 'max' in statistic_category:
+                tensor_max = saved_tensor.astype(np.float32).tolist()
+            if 'min' in statistic_category:
+                tensor_min = saved_tensor.astype(np.float32).tolist()
+            if 'avg' in statistic_category:
+                tensor_mean = saved_tensor.astype(np.float32).tolist()
         else:
-            tensor_max = saved_tensor.max().astype(np.float32).tolist()
-            tensor_min = saved_tensor.min().astype(np.float32).tolist()
-            tensor_mean = saved_tensor.astype(np.float32).mean().tolist()
+            if 'max' in statistic_category:
+                tensor_max = saved_tensor.max().astype(np.float32).tolist()
+            if 'min' in statistic_category:
+                tensor_min = saved_tensor.min().astype(np.float32).tolist()
+            if 'avg' in statistic_category:
+                tensor_mean = saved_tensor.astype(np.float32).mean().tolist()
     else:
-        tensor_max = math.nan
-        tensor_min = math.nan
-        tensor_mean = math.nan
+        pass
     summary_data = [tensor_max, tensor_min, tensor_mean]
-    md5_nume = hashlib.md5(saved_tensor).hexdigest()
-    l2norm = np.linalg.norm(saved_tensor).item()
-    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, l2norm)
-
-
-def get_scalar_data_info(data, compute_summary):
+    if 'md5' in statistic_category and 'l2norm' in statistic_category:
+        md5_nume = hashlib.md5(saved_tensor).hexdigest()
+        l2norm = np.linalg.norm(saved_tensor).item()
+        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, l2norm)
+    elif 'md5' in statistic_category:
+        md5_nume = hashlib.md5(saved_tensor).hexdigest()        
+        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume,[])
+    elif 'l2norm' in statistic_category:
+        l2norm = np.linalg.norm(saved_tensor).item()
+        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), [], l2norm)
+    else:
+        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), [], [])        
+ 
+def get_scalar_data_info(data, compute_summary, statistic_category):
     if compute_summary:
         summary_data = [data, data, data]
     else:
         summary_data = [math.nan] * 3
-    md5_nume = hashlib.md5(str(data).encode()).hexdigest()
-    l2norm = np.linalg.norm(data).item()
-    return DataInfo(data, data, summary_data, str(type(data)), [], md5_nume, l2norm)
+    if 'md5' in statistic_category and 'l2norm' in statistic_category:        
+        md5_nume = hashlib.md5(str(data).encode()).hexdigest()
+        l2norm = np.linalg.norm(data).item()
+        return DataInfo(data, data, summary_data, str(type(data)), [], md5_nume, l2norm)
+    elif 'md5' in statistic_category:
+        md5_nume = hashlib.md5(str(data).encode()).hexdigest()            
+        return DataInfo(data, data, summary_data, str(type(data)), [], md5_nume, [])
+    elif 'l2norm' in statistic_category:    
+        l2norm = np.linalg.norm(data).item()
+        return DataInfo(data, data, summary_data, str(type(data)), [], [], l2norm)
+    else:
+        return DataInfo(data, data, summary_data, str(type(data)), [], [], [])            
 
-
-def get_float_tensor_info(data, compute_summary):
+def get_float_tensor_info(data, compute_summary,statistic_category):
     dtype = str(data.dtype)
+    tensor_max, tensor_min, tensor_mean = math.nan, math.nan, math.nan
     if data.dtype == mstype.bfloat16:
         data = ops.Cast()(data, dtype=mstype.float32)
-
     saved_tensor = data.asnumpy()
     if compute_summary:
-        tensor_max = saved_tensor.max().astype(np.float32).tolist()
-        tensor_min = saved_tensor.min().astype(np.float32).tolist()
-        tensor_mean = saved_tensor.mean().astype(np.float32).tolist()
+        if 'max' in statistic_category:
+            tensor_max = saved_tensor.max().astype(np.float32).tolist()
+        if 'min' in statistic_category:
+            tensor_min = saved_tensor.min().astype(np.float32).tolist()
+        if 'avg' in statistic_category:        
+            tensor_mean = saved_tensor.mean().astype(np.float32).tolist()
     else:
-        tensor_max = math.nan
-        tensor_min = math.nan
-        tensor_mean = math.nan
+        pass
     summary_data = [tensor_max, tensor_min, tensor_mean]
-    md5_nume = hashlib.md5(saved_tensor).hexdigest()
-    l2norm = np.linalg.norm(saved_tensor).item()
-    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, l2norm)
-
+    if 'md5' in statistic_category and 'l2norm' in statistic_category:
+        md5_nume = hashlib.md5(saved_tensor).hexdigest()
+        l2norm = np.linalg.norm(saved_tensor).item()
+        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, l2norm)
+    elif 'md5' in statistic_category:
+        md5_nume = hashlib.md5(saved_tensor).hexdigest()        
+        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, [])
+    elif 'l2norm' in statistic_category:
+        l2norm = np.linalg.norm(saved_tensor).item()
+        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), [], l2norm)
+    else:
+        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), [], [])  
 
 def set_dump_path(fpath=None):
     if fpath is None:
@@ -231,7 +262,7 @@ def set_dump_path(fpath=None):
 
 def set_dump_switch(switch, mode=Const.ALL, scope=None, api_list=None,
                     filter_switch=Const.ON, dump_mode=Const.ALL, dump_type=Const.ALL,
-                    filter_stack=True, overflow=False):
+                    filter_stack=True, overflow=False,statistic_category=None):
     if scope is None:
         scope = []
     if api_list is None:
@@ -239,7 +270,7 @@ def set_dump_switch(switch, mode=Const.ALL, scope=None, api_list=None,
 
     DumpUtil.set_dump_switch(switch, mode=mode, scope=scope, api_list=api_list,
                              filter_switch=filter_switch, dump_mode=dump_mode, dump_type=dump_type,
-                             filter_stack=filter_stack, overflow=overflow)
+                             filter_stack=filter_stack, overflow=overflow,statistic_category=statistic_category)
 
     if switch == "ON":
         logger.user_attention(f"API dump has started. Dump data will be saved to {DumpUtil.dump_ori_dir}. ")
@@ -273,13 +304,14 @@ def dump_data(dump_file_name, dump_step, prefix, data_info, dump_type):
             f.write('\n')
 
 
-def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
+def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type, statistic_category):
     compute_summary = True if dump_type in ['all', 'statistics'] else False
     dump_npy = True if dump_type in ['all', 'npy'] else False
+
     if isinstance(x, (tuple, list)) and x:
         res = []
         for i, item in enumerate(x):
-            output_hook_tensor = dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name, dump_type)
+            output_hook_tensor = dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name, dump_type,statistic_category)
             res.append(output_hook_tensor)
         return res if universal_interface.g_retain_backward else None
     elif isinstance(x, ms.Tensor):
@@ -288,7 +320,7 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
                 grad = grad[0]
             nonlocal dump_file_name, dump_step, prefix, dump_npy, compute_summary
             prefix = prefix.replace('_forward_output', '_backward_input')
-            data_info_ = get_info(grad, compute_summary)
+            data_info_ = get_info(grad, compute_summary, statistic_category)
             dump_data(dump_file_name, dump_step, prefix, data_info_, dump_npy)
 
         dump_flag = True
@@ -300,7 +332,7 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
             data_info_func = get_float_tensor_info
 
         if dump_flag:
-            data_info = data_info_func(x, compute_summary)
+            data_info = data_info_func(x, compute_summary, statistic_category)
             dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy)
             if universal_interface.g_retain_backward and "_output" in prefix:
                 def backward_hook_func(grad):
@@ -310,7 +342,7 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type):
         return x if universal_interface.g_retain_backward else None
     elif DumpUtil.dump_filter_switch == Const.OFF:
         if isinstance(x, bool) or isinstance(x, int) or isinstance(x, float):
-            data_info = get_scalar_data_info(x, compute_summary)
+            data_info = get_scalar_data_info(x, compute_summary, statistic_category)
             dump_data(dump_file_name, dump_step, prefix, data_info, dump_npy)
         return x if universal_interface.g_retain_backward else None
 
@@ -389,14 +421,14 @@ def ad_dump_acc_cmp(name, in_feat, out_feat, dump_step):
                 if name[:6] == "LAYER_":
                     from mindtorch.torch.tensor import Tensor
                     # backward hook will not be executed if we move this func to another file, bug?
-                    return dump_api_tensor(dump_step, Tensor([0]), name_template, None, dump_file_name, DumpUtil.dump_type)
-                return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
+                    return dump_api_tensor(dump_step, Tensor([0]), name_template, None, dump_file_name, DumpUtil.dump_type,DumpUtil.statistic_category)
+                return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type,DumpUtil.statistic_category)
         else:
             msg = f"Current mode '{DumpUtil.dump_switch_mode}' is not supported. Please use the field in {Const.DUMP_MODE}"
             raise ValueError(msg)
 
 def make_dump_dirs(rank):
-    dump_file_name, dump_path = "mindspore_api_dump_info.pkl", "mindspore_api_dump"
+    dump_file_name, dump_path = "mindspore_api_dump_info.csv", "mindspore_api_dump"
     dump_stack_file = "mindspore_api_dump_stack.json"
     dump_root_dir = DumpUtil.dump_ori_dir if DumpUtil.dump_ori_dir else "./"
     Path(dump_root_dir).mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -491,10 +523,10 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step):
                     if isinstance(out_feat, ms.Tensor):
                         if not check_overflow(out_feat):
                             dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
-                            return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
+                            return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type, DumpUtil.statistic_category)
                 else:
                     dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
-                    return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type)
+                    return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type, DumpUtil.statistic_category)
         else:
             msg = f"Current mode '{DumpUtil.dump_switch_mode}' is not supported. Please use the field in {Const.DUMP_MODE}"
             raise ValueError(msg)
@@ -549,10 +581,10 @@ def all_finite(inputs):
 def check_overflow(out_feat):
     return all_finite((out_feat,))
 
-def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file, dump_type):
+def dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file, dump_type, statistic_category):
     if in_feat is not None:
-        dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file, dump_type)
-    return dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file, dump_type)
+        dump_tensor(in_feat, name_template.format("input"), dump_step, dump_file, dump_type,statistic_category)
+    return dump_tensor(out_feat, name_template.format("output"), dump_step, dump_file, dump_type,statistic_category)
 
 def acc_cmp_dump(name, **kwargs):
     dump_step = kwargs.get('dump_step', 1)
