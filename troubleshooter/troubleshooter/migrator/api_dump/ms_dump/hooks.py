@@ -240,15 +240,15 @@ def get_float_tensor_info(data, compute_summary,statistic_category):
     if 'md5' in statistic_category and 'l2norm' in statistic_category:
         md5_nume = hashlib.md5(saved_tensor).hexdigest()
         l2norm = np.linalg.norm(saved_tensor).item()
-        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, l2norm)
+        return DataInfo(data, saved_tensor, summary_data, dtype, tuple(data.shape), md5_nume, l2norm)
     elif 'md5' in statistic_category:
         md5_nume = hashlib.md5(saved_tensor).hexdigest()        
-        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, [])
+        return DataInfo(data, saved_tensor, summary_data, dtype, tuple(data.shape), md5_nume, [])
     elif 'l2norm' in statistic_category:
         l2norm = np.linalg.norm(saved_tensor).item()
-        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), [], l2norm)
+        return DataInfo(data, saved_tensor, summary_data, dtype, tuple(data.shape), [], l2norm)
     else:
-        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), [], [])  
+        return DataInfo(data, saved_tensor, summary_data, dtype, tuple(data.shape), [], [])  
 
 def set_dump_path(fpath=None):
     if fpath is None:
