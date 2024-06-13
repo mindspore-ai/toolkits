@@ -186,47 +186,44 @@ def get_not_float_tensor_info(data, compute_summary, statistic_category):
             if 'min' in statistic_category:
                 tensor_min = saved_tensor.min().astype(np.float32).tolist()
             if 'avg' in statistic_category:
-                tensor_mean = saved_tensor.astype(np.float32).mean().tolist()
-    else:
-        pass
+                tensor_mean = saved_tensor.astype(np.float32).mean().tolist()  
+        summary_data = [tensor_max, tensor_min, tensor_mean]
+        if 'md5' in statistic_category and 'l2norm' in statistic_category:
+            md5_nume = hashlib.md5(saved_tensor).hexdigest()
+            l2norm = np.linalg.norm(saved_tensor).item()
+            return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, l2norm)
+        elif 'md5' in statistic_category:
+            md5_nume = hashlib.md5(saved_tensor).hexdigest()        
+            return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume,[])
+        elif 'l2norm' in statistic_category:
+            l2norm = np.linalg.norm(saved_tensor).item()
+            return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), [], l2norm)
     summary_data = [tensor_max, tensor_min, tensor_mean]
-    if 'md5' in statistic_category and 'l2norm' in statistic_category:
-        md5_nume = hashlib.md5(saved_tensor).hexdigest()
-        l2norm = np.linalg.norm(saved_tensor).item()
-        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, l2norm)
-    elif 'md5' in statistic_category:
-        md5_nume = hashlib.md5(saved_tensor).hexdigest()        
-        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume,[])
-    elif 'l2norm' in statistic_category:
-        l2norm = np.linalg.norm(saved_tensor).item()
-        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), [], l2norm)
-    else:
-        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), [], [])        
+    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), [], [])        
  
 def get_scalar_data_info(data, compute_summary, statistic_category):
     if compute_summary:
         summary_data = [data, data, data]
+        if 'md5' in statistic_category and 'l2norm' in statistic_category:        
+            md5_nume = hashlib.md5(str(data).encode()).hexdigest()
+            l2norm = np.linalg.norm(data).item()
+            return DataInfo(data, data, summary_data, str(type(data)), [], md5_nume, l2norm)
+        elif 'md5' in statistic_category:
+            md5_nume = hashlib.md5(str(data).encode()).hexdigest()            
+            return DataInfo(data, data, summary_data, str(type(data)), [], md5_nume, [])
+        elif 'l2norm' in statistic_category:    
+            l2norm = np.linalg.norm(data).item()
+            return DataInfo(data, data, summary_data, str(type(data)), [], [], l2norm)
     else:
         summary_data = [math.nan] * 3
-    if 'md5' in statistic_category and 'l2norm' in statistic_category:        
-        md5_nume = hashlib.md5(str(data).encode()).hexdigest()
-        l2norm = np.linalg.norm(data).item()
-        return DataInfo(data, data, summary_data, str(type(data)), [], md5_nume, l2norm)
-    elif 'md5' in statistic_category:
-        md5_nume = hashlib.md5(str(data).encode()).hexdigest()            
-        return DataInfo(data, data, summary_data, str(type(data)), [], md5_nume, [])
-    elif 'l2norm' in statistic_category:    
-        l2norm = np.linalg.norm(data).item()
-        return DataInfo(data, data, summary_data, str(type(data)), [], [], l2norm)
-    else:
-        return DataInfo(data, data, summary_data, str(type(data)), [], [], [])            
+    return DataInfo(data, data, summary_data, str(type(data)), [], [], [])            
 
 def get_float_tensor_info(data, compute_summary,statistic_category):
     dtype = str(data.dtype)
-    tensor_max, tensor_min, tensor_mean = math.nan, math.nan, math.nan
     if data.dtype == mstype.bfloat16:
         data = ops.Cast()(data, dtype=mstype.float32)
     saved_tensor = data.asnumpy()
+    tensor_max, tensor_min, tensor_mean = math.nan, math.nan, math.nan
     if compute_summary:
         if 'max' in statistic_category:
             tensor_max = saved_tensor.max().astype(np.float32).tolist()
@@ -234,21 +231,19 @@ def get_float_tensor_info(data, compute_summary,statistic_category):
             tensor_min = saved_tensor.min().astype(np.float32).tolist()
         if 'avg' in statistic_category:        
             tensor_mean = saved_tensor.mean().astype(np.float32).tolist()
-    else:
-        pass
+        summary_data = [tensor_max, tensor_min, tensor_mean]
+        if 'md5' in statistic_category and 'l2norm' in statistic_category:
+            md5_nume = hashlib.md5(saved_tensor).hexdigest()
+            l2norm = np.linalg.norm(saved_tensor).item()
+            return DataInfo(data, saved_tensor, summary_data, dtype, tuple(data.shape), md5_nume, l2norm)
+        elif 'md5' in statistic_category:
+            md5_nume = hashlib.md5(saved_tensor).hexdigest()        
+            return DataInfo(data, saved_tensor, summary_data, dtype, tuple(data.shape), md5_nume, [])
+        elif 'l2norm' in statistic_category:
+            l2norm = np.linalg.norm(saved_tensor).item()
+            return DataInfo(data, saved_tensor, summary_data, dtype, tuple(data.shape), [], l2norm)
     summary_data = [tensor_max, tensor_min, tensor_mean]
-    if 'md5' in statistic_category and 'l2norm' in statistic_category:
-        md5_nume = hashlib.md5(saved_tensor).hexdigest()
-        l2norm = np.linalg.norm(saved_tensor).item()
-        return DataInfo(data, saved_tensor, summary_data, dtype, tuple(data.shape), md5_nume, l2norm)
-    elif 'md5' in statistic_category:
-        md5_nume = hashlib.md5(saved_tensor).hexdigest()        
-        return DataInfo(data, saved_tensor, summary_data, dtype, tuple(data.shape), md5_nume, [])
-    elif 'l2norm' in statistic_category:
-        l2norm = np.linalg.norm(saved_tensor).item()
-        return DataInfo(data, saved_tensor, summary_data, dtype, tuple(data.shape), [], l2norm)
-    else:
-        return DataInfo(data, saved_tensor, summary_data, dtype, tuple(data.shape), [], [])  
+    return DataInfo(data, saved_tensor, summary_data, dtype, tuple(data.shape), [], [])  
 
 def set_dump_path(fpath=None):
     if fpath is None:
