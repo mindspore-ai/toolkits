@@ -84,39 +84,36 @@ def get_not_float_tensor_info(data, compute_summary, statistic_category):
                 tensor_min = TorchFunc['min'](data).cpu().detach().float().numpy().tolist()
             if 'avg' in statistic_category:
                 tensor_mean = TorchFunc['mean'](data.float()).cpu().detach().float().numpy().tolist()
-    else:
-        pass
+        summary_data = [tensor_max, tensor_min, tensor_mean]
+        if 'md5' in statistic_category and 'l2norm' in statistic_category:    
+            md5_nume = hashlib.md5(saved_tensor).hexdigest()
+            l2norm = np.linalg.norm(saved_tensor).item()
+            return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, l2norm)
+        elif 'md5' in statistic_category:
+            md5_nume = hashlib.md5(saved_tensor).hexdigest()        
+            return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, [])
+        elif 'l2norm' in statistic_category:
+            l2norm = np.linalg.norm(saved_tensor).item()        
+            return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), [], l2norm)
     summary_data = [tensor_max, tensor_min, tensor_mean]
-    if 'md5' in statistic_category and 'l2norm' in statistic_category:    
-        md5_nume = hashlib.md5(saved_tensor).hexdigest()
-        l2norm = np.linalg.norm(saved_tensor).item()
-        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, l2norm)
-    elif 'md5' in statistic_category:
-        md5_nume = hashlib.md5(saved_tensor).hexdigest()        
-        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, [])
-    elif 'l2norm' in statistic_category:
-        l2norm = np.linalg.norm(saved_tensor).item()        
-        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), [], l2norm)
-    else:
-        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), [], [])
+    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), [], [])
         
 def get_scalar_data_info(data, compute_summary, statistic_category):
     if compute_summary:
         summary_data = [data, data, data]
+        if 'md5' in statistic_category and 'l2norm' in statistic_category:    
+            md5_nume = hashlib.md5(str(data).encode()).hexdigest()
+            l2norm = np.linalg.norm(data).item()
+            return DataInfo(data, data, summary_data, str(type(data)), [], md5_nume, l2norm)
+        elif 'md5' in statistic_category:
+            md5_nume = hashlib.md5(str(data).encode()).hexdigest()            
+            return DataInfo(data, data, summary_data, str(type(data)), [], md5_nume, [])
+        elif 'l2norm' in statistic_category:
+            l2norm = np.linalg.norm(data).item()
+            return DataInfo(data, data, summary_data, str(type(data)), [], [], l2norm)
     else:
         summary_data = [math.nan] * 3
-    if 'md5' in statistic_category and 'l2norm' in statistic_category:    
-        md5_nume = hashlib.md5(str(data).encode()).hexdigest()
-        l2norm = np.linalg.norm(data).item()
-        return DataInfo(data, data, summary_data, str(type(data)), [], md5_nume, l2norm)
-    elif 'md5' in statistic_category:
-        md5_nume = hashlib.md5(str(data).encode()).hexdigest()            
-        return DataInfo(data, data, summary_data, str(type(data)), [], md5_nume, [])
-    elif 'l2norm' in statistic_category:
-        l2norm = np.linalg.norm(data).item()
-        return DataInfo(data, data, summary_data, str(type(data)), [], [], l2norm)
-    else:
-        return DataInfo(data, data, summary_data, str(type(data)), [], [], [])                    
+    return DataInfo(data, data, summary_data, str(type(data)), [], [], [])                    
 
 def get_float_tensor_info(data, compute_summary, statistic_category):
     saved_tensor = data.contiguous().cpu().detach().numpy()
@@ -128,21 +125,19 @@ def get_float_tensor_info(data, compute_summary, statistic_category):
             tensor_min = TorchFunc['min'](data).cpu().detach().float().numpy().tolist()
         if 'avg' in statistic_category:
             tensor_mean = TorchFunc['mean'](data).cpu().detach().float().numpy().tolist()
-    else:
-        pass
+        summary_data = [tensor_max, tensor_min, tensor_mean]
+        if 'md5' in statistic_category and 'l2norm' in statistic_category:     
+            md5_nume = hashlib.md5(saved_tensor).hexdigest()
+            l2norm = np.linalg.norm(saved_tensor).item()
+            return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, l2norm)
+        elif 'md5' in statistic_category:
+            md5_nume = hashlib.md5(saved_tensor).hexdigest()
+            return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, [])
+        elif 'l2norm' in statistic_category:
+            l2norm = np.linalg.norm(saved_tensor).item()
+            return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), [], l2norm)
     summary_data = [tensor_max, tensor_min, tensor_mean]
-    if 'md5' in statistic_category and 'l2norm' in statistic_category:     
-        md5_nume = hashlib.md5(saved_tensor).hexdigest()
-        l2norm = np.linalg.norm(saved_tensor).item()
-        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, l2norm)
-    elif 'md5' in statistic_category:
-        md5_nume = hashlib.md5(saved_tensor).hexdigest()
-        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, [])
-    elif 'l2norm' in statistic_category:
-        l2norm = np.linalg.norm(saved_tensor).item()
-        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), [], l2norm)
-    else:                                
-        return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), [], [])
+    return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), [], [])
 
 def json_dump_condition(prefix):
     cur_threading_id = threading.current_thread().ident
