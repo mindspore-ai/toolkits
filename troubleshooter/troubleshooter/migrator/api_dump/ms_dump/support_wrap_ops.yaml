@@ -430,7 +430,6 @@ ops:
   - scatter_nd
   - select
   - sequence_mask
-  - shape
   - shuffle
   - size
   - slice
