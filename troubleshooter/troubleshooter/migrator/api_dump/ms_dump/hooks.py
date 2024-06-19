@@ -517,10 +517,12 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step):
                 if DumpUtil.dump_overflow:
                     if isinstance(out_feat, ms.Tensor):
                         if not check_overflow(out_feat):
-                            dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
+                            if DumpUtil.dump_count % 500 == 0 or DumpUtil.dump_count < 100:
+                                dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
                             return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type, DumpUtil.statistic_category)
                 else:
-                    dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
+                    if DumpUtil.dump_count % 500 == 0 or DumpUtil.dump_count < 100:
+                        dump_stack_info(name_template, dump_stack_file, DumpUtil.dump_filter_stack)
                     return dump_api_tensor(dump_step, in_feat, name_template, out_feat, dump_file_name, DumpUtil.dump_type, DumpUtil.statistic_category)
         else:
             msg = f"Current mode '{DumpUtil.dump_switch_mode}' is not supported. Please use the field in {Const.DUMP_MODE}"
