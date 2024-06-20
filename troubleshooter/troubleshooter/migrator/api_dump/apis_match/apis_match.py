@@ -11,7 +11,7 @@ from prettytable import ALL, PrettyTable
 from .api_io_dict import pt_io_dict
 from .api_name_dict import pt_name_dict
 
-__all__ = ['flow_match', 'APIList', '_print_apis_map_result', 'load_pkl']
+__all__ = ['flow_match', 'APIList', '_print_apis_map_result', 'load_csv']
 
 
 def _print_apis_map_result(
@@ -46,7 +46,7 @@ def _print_apis_map_result(
             f.write(x.get_csv_string(dialect='unix') + os.linesep)
 
 
-def load_pkl(path: str):
+def load_csv(path: str):
     ret = []
     with open(path, "r") as f:
         while True:
@@ -147,29 +147,29 @@ class APINode:
 
 
 class APIList:
-    """用于根据pkl文件构造一个api数据流。"""
+    """用于根据csv文件构造一个api数据流。"""
 
     @classmethod
-    def get(cls, pkl_path, framework):
-        pkl = load_pkl(pkl_path)
-        pkl_list = []
+    def get(cls, csv_path, framework):
+        csv = load_csv(csv_path)
+        csv_list = []
         p = APIList(framework)
-        for l in pkl:
+        for l in csv:
             ret = p._read_line(l)
             if not ret and len(p) != 0:
-                pkl_list.append(p)
+                csv_list.append(p)
                 p = APIList(framework)
-        if not pkl_list and len(p) != 0:
-            pkl_list.append(p)
-        return pkl_list
+        if not csv_list and len(p) != 0:
+            csv_list.append(p)
+        return csv_list
 
     def __init__(self, framework: str):
         self.api_list = []
         self.framework = framework
 
-    def construct(self, pkl_path: str) -> Any:
-        pkl = load_pkl(pkl_path)
-        for l in pkl:
+    def construct(self, csv_path: str) -> Any:
+        csv = load_csv(csv_path)
+        for l in csv:
             ret = self._read_line(l)
             if not ret:
                 break
