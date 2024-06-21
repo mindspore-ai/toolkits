@@ -19,24 +19,24 @@ https://gitee.com/lv-kaimeng/tools/tree/ms-cmp/ptdbg_ascend
 ```python
 from troubleshooter.migrator.api_diff_finder import APIDiffFinder
 
-APIDiffFinder(ignore_backward=False).compare('pt_npy_path', 'ms_npy_path', 'pt.pkl', 'ms.pkl')
+APIDiffFinder(ignore_backward=False).compare('pt_npy_path', 'ms_npy_path', 'pt.csv', 'ms.csv')
 ```
 
 ---
 
 （下面方法弃用）
 
-### 载入pkl文件
+### 载入csv文件
 
 ```python
 # 载入pt网络流
 pt_list = APIList("pytorch")
-pt_list.Construct("net_pt.pkl")
+pt_list.Construct("net_pt.csv")
 # 算子输入输出个数与顺序映射
 
 # 载入ms网络流
 ms_list = APIList("mindspore")
-ms_list.Construct("dnet_ms.pkl")
+ms_list.Construct("dnet_ms.csv")
 ```
 
 ### 匹配
@@ -56,8 +56,8 @@ pt_list = APIList("pytorch")
 ms_list = APIList("mindspore")
 
 model = 'mobilenet'
-pt_list.Construct(f"demo_net/{model}_pt.pkl")
-ms_list.Construct(f"demo_net/{model}_ms.pkl")
+pt_list.Construct(f"demo_net/{model}_pt.csv")
+ms_list.Construct(f"demo_net/{model}_ms.csv")
 
 print('--------------------------')
 apis_map = FlowMatch()(pt_list, ms_list, 1)

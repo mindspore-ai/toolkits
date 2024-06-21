@@ -15,7 +15,7 @@ from troubleshooter.common.format_msg import truncate_decimal, print_adapter_dif
     _parse_layer_name, _parse_api_name
 from troubleshooter.widget import object_load
 
-from .apis_match import APIList, _print_apis_map_result, flow_match, load_pkl
+from .apis_match import APIList, _print_apis_map_result, flow_match, load_csv
 from ...common.util import (all_none_or_isfile_check, isfile_check, type_check)
 
 __all__ = ["api_dump_compare"]
@@ -68,13 +68,13 @@ def _get_npy_list(apis, io, file_dict):
     return forward_npy_list, backward_npy_list
 
 
-def _get_npy_shape_map(pkl_path):
+def _get_npy_shape_map(csv_path):
     def _read_line(line):
         prefix, dump_step, _, data_type, data_shape, data_summary, md5_nume, l2norm = line
         return {prefix: data_shape}
     ret = {}
-    pkl = load_pkl(pkl_path)
-    for l in pkl:
+    csv = load_csv(csv_path)
+    for l in csv:
         shape = _read_line(l)
         if shape:
             ret.update(shape)
@@ -191,8 +191,8 @@ def get_npy_map_list(
     apis_map: List,
     origin_npy_dir: str,
     target_npy_dir: str,
-    origin_pkl_path: str,
-    target_pkl_path: str,
+    origin_csv_path: str,
+    target_csv_path: str,
     ignore_backward: bool = False,
     ignore_unmatched: bool = False,
 ):
@@ -202,8 +202,8 @@ def get_npy_map_list(
         apis_map (List): 通过toolkit中的api_match生成的api映射表
         origin_npy_dir (str): 原网络dump出的npy文件目录
         target_npy_dir (str): 目标网络dump出的npy文件目录
-        origin_pkl_path (str): 原网络dump出的pkl文件路径
-        target_pkl_path (str): 目标网络dump出的pkl文件路径
+        origin_csv_path (str): 原网络dump出的csv文件路径
+        target_csv_path (str): 目标网络dump出的csv文件路径
         ignore_backward (bool, optional): 是否忽略反向npy的比对. Defaults to False.
 
     Returns:
@@ -211,8 +211,8 @@ def get_npy_map_list(
     """
     forward_list = []
     backward_list = []
-    origin_shape_map = _get_npy_shape_map(origin_pkl_path)
-    target_shape_map = _get_npy_shape_map(target_pkl_path)
+    origin_shape_map = _get_npy_shape_map(origin_csv_path)
+    target_shape_map = _get_npy_shape_map(target_csv_path)
 
     origin_npy_files = defaultdict(list)
     target_npy_files = defaultdict(list)
@@ -301,33 +301,33 @@ def get_npy_map_list(
 
 def get_dump_path(root_path):
     root_path = Path(root_path)
-    ms_pkl_path = root_path.joinpath("rank0", "mindspore_api_dump_info.csv")
+    ms_csv_path = root_path.joinpath("rank0", "mindspore_api_dump_info.csv")
     ms_npy_path = root_path.joinpath("rank0", "mindspore_api_dump")
     ms_npy_path_not_empty = ms_npy_path.exists() and list(ms_npy_path.iterdir())
 
-    pt_pkl_path = root_path.joinpath("rank0", "torch_api_dump_info.csv")
+    pt_csv_path = root_path.joinpath("rank0", "torch_api_dump_info.csv")
     pt_npy_path = root_path.joinpath("rank0", "torch_api_dump")
     pt_npy_path_not_empty = pt_npy_path.exists() and list(pt_npy_path.iterdir())
 
-    ad_pkl_path = root_path.joinpath('rank0', 'mindtorch_api_dump_info.csv')
+    ad_csv_path = root_path.joinpath('rank0', 'mindtorch_api_dump_info.csv')
     ad_npy_path = root_path.joinpath('rank0', 'mindtorch_api_dump')
     ad_npy_path_not_empty = ad_npy_path.exists() and list(ad_npy_path.iterdir())
 
-    if ad_pkl_path.exists():
+    if ad_csv_path.exists():
         return (
             str(ad_npy_path) if ad_npy_path_not_empty else None,
-            str(ad_pkl_path), 'mindtorch',
+            str(ad_csv_path), 'mindtorch',
         )
-    elif ms_pkl_path.exists():
+    elif ms_csv_path.exists():
         return (
             str(ms_npy_path) if ms_npy_path_not_empty else None,
-            str(ms_pkl_path),
+            str(ms_csv_path),
             "mindspore",
         )
-    elif pt_pkl_path.exists():
+    elif pt_csv_path.exists():
         return (
             str(pt_npy_path) if pt_npy_path_not_empty else None,
-            str(pt_pkl_path),
+            str(pt_csv_path),
             "pytorch",
         )
     else:
@@ -476,26 +476,26 @@ def print_mindtorch_summary_result(
             f.write(csv_x.get_csv_string(dialect="unix") + os.linesep)
     return x.get_string()
 
-def compare_mindtorch_summary(origin_pkl_path, target_pkl_path, name_map_list, frame_names, **print_kwargs):
-    def get_api_info(pkl_path):
+def compare_mindtorch_summary(origin_csv_path, target_csv_path, name_map_list, frame_names, **print_kwargs):
+    def get_api_info(csv_path):
         def _read_line(line):
             prefix, dump_step, _, data_type, data_shape, data_summary, md5_nume, l2norm = line
             return {prefix: (data_type, data_shape, data_summary)}
         ret = {}
-        pkl = load_pkl(pkl_path)
-        for l in pkl:
+        csv = load_csv(csv_path)
+        for l in csv:
             summary = _read_line(l)
             if summary:
                 ret.update(summary)
         return ret
 
-    origin_info_map = get_api_info(origin_pkl_path)
-    target_info_map = get_api_info(target_pkl_path)
+    origin_info_map = get_api_info(origin_csv_path)
+    target_info_map = get_api_info(target_csv_path)
 
     if all([np.all(np.isnan(i[1])) for i in origin_info_map.values()]) or all(
         [np.all(np.isnan(i[1])) for i in target_info_map.values()]
     ):
-        logger.user_attention("all the data in the pkl files are nan.")
+        logger.user_attention("all the data in the csv files are nan.")
         return []
     result_list = []
     for origin_key, target_key in name_map_list:
@@ -523,26 +523,26 @@ def compare_mindtorch_summary(origin_pkl_path, target_pkl_path, name_map_list, f
 
     return result_list
 
-def compare_summary(origin_pkl_path, target_pkl_path, name_map_list, **print_kwargs):
-    def get_api_info(pkl_path):
+def compare_summary(origin_csv_path, target_csv_path, name_map_list, **print_kwargs):
+    def get_api_info(csv_path):
         def _read_line(line):
             prefix, dump_step, _, data_type, data_shape, data_summary, md5_nume, l2norm = line
             return {prefix: (data_shape, data_summary)}
         ret = {}
 
-        pkl = load_pkl(pkl_path)
-        for l in pkl:
+        csv = load_csv(csv_path)
+        for l in csv:
             summary = _read_line(l)
             if summary:
                 ret.update(summary)
         return ret
 
-    origin_info_map = get_api_info(origin_pkl_path)
-    target_info_map = get_api_info(target_pkl_path)
+    origin_info_map = get_api_info(origin_csv_path)
+    target_info_map = get_api_info(target_csv_path)
     if all([np.all(np.isnan(i[1])) for i in origin_info_map.values()]) or all(
         [np.all(np.isnan(i[1])) for i in target_info_map.values()]
     ):
-        logger.user_attention("all the data in the pkl files are nan.")
+        logger.user_attention("all the data in the csv files are nan.")
         return []
     result_list = []
     for origin_key, target_key in name_map_list:
@@ -705,14 +705,14 @@ def api_dump_compare(
     origin_ret = get_dump_path(origin_path)
     if origin_ret is None:
         raise ValueError("origin_path is not a valid dump path")
-    origin_npy_path, origin_pkl_path, origin_framework = origin_ret
+    origin_npy_path, origin_csv_path, origin_framework = origin_ret
     target_ret = get_dump_path(target_path)
     if target_ret is None:
         raise ValueError("target_path is not a valid dump path")
     type_check(rtol, "rtol", float)
     type_check(atol, "atol", float)
     type_check(equal_nan, "equal_nan", bool)
-    target_npy_path, target_pkl_path, target_framework = target_ret
+    target_npy_path, target_csv_path, target_framework = target_ret
 
     ad_pth_path = pt_pth_path = ''
     if origin_framework == 'mindtorch' or target_framework == 'mindtorch':
@@ -753,10 +753,10 @@ def api_dump_compare(
         ]
     diff_summary_name = ["max, min, mean diffs"]
 
-    origin_pkl_list = APIList.get(origin_pkl_path, origin_framework)
-    target_pkl_list = APIList.get(target_pkl_path, target_framework)
-    origin_step = len(origin_pkl_list)
-    target_step = len(target_pkl_list)
+    origin_csv_list = APIList.get(origin_csv_path, origin_framework)
+    target_csv_list = APIList.get(target_csv_path, target_framework)
+    origin_step = len(origin_csv_list)
+    target_step = len(target_csv_list)
     common_step = min(origin_step, target_step)
     if origin_step != target_step:
         logger.user_warning(
@@ -780,8 +780,8 @@ def api_dump_compare(
             )
 
         apis_map = flow_match(
-            origin_pkl_list[step],
-            target_pkl_list[step],
+            origin_csv_list[step],
+            target_csv_list[step],
             err_threshold=1.0,
             ignore_shape=False,
             convinced_match_method=convinced_match_method,
@@ -797,18 +797,18 @@ def api_dump_compare(
             apis_map,
             origin_npy_path,
             target_npy_path,
-            origin_pkl_path,
-            target_pkl_path,
+            origin_csv_path,
+            target_csv_path,
             ignore_backward=ignore_backward,
             ignore_unmatched=ignore_unmatched,
         )
 
         if origin_npy_path is None or target_npy_path is None:
-            logger.user_warning("npy files not found, use pkl files to compare.")
+            logger.user_warning("npy files not found, use csv files to compare.")
             if 'mindtorch' in (origin_framework, target_framework):
                 ret = compare_mindtorch_summary(
-                    origin_pkl_path,
-                    target_pkl_path,
+                    origin_csv_path,
+                    target_csv_path,
                     npy_forward_list,
                     title=f"The forward comparison results (step {step})",
                     field_names=field_names + diff_summary_name,
@@ -817,8 +817,8 @@ def api_dump_compare(
                 )
             else:
                 ret = compare_summary(
-                    origin_pkl_path,
-                    target_pkl_path,
+                    origin_csv_path,
+                    target_csv_path,
                     npy_forward_list,
                     title=f"The forward comparison results (step {step})",
                     field_names=field_names + diff_summary_name,
@@ -829,8 +829,8 @@ def api_dump_compare(
                 npy_backward_list.reverse()
                 if 'mindtorch' in (origin_framework, target_framework):
                     compare_mindtorch_summary(
-                        origin_pkl_path,
-                        target_pkl_path,
+                        origin_csv_path,
+                        target_csv_path,
                         npy_backward_list,
                         title=f"The backward comparison results (step {step})",
                         field_names=field_names + diff_summary_name,
@@ -839,8 +839,8 @@ def api_dump_compare(
                     )
                 else:
                     compare_summary(
-                        origin_pkl_path,
-                        target_pkl_path,
+                        origin_csv_path,
+                        target_csv_path,
                         npy_backward_list,
                         title=f"The backward comparison results (step {step})",
                         field_names=field_names + diff_summary_name,
