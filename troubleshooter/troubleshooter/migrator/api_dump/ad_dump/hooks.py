@@ -28,11 +28,10 @@ def acc_cmp_dump(name, **kwargs):
     pid = kwargs.get('pid')
     DumpUtil.dump_config = kwargs.get('dump_config')
     name_template = name
-    overflow_flag = kwargs.get('overflow')
     if not pid:
         return RuntimeError("Not get the specified process pid.")
 
-    def acc_cmp_hook(cell, in_feat, out_feat, overflow_flag):
+    def acc_cmp_hook(cell, in_feat, out_feat):
         nonlocal name, name_template
         global NNCount
         if "{}_" in name_template:
