@@ -308,6 +308,8 @@ def dump_tensor(x, prefix, dump_step, dump_file_name, dump_type, statistic_categ
         for i, item in enumerate(x):
             output_hook_tensor = dump_tensor(item, "{}.{}".format(prefix, i), dump_step, dump_file_name, dump_type,statistic_category)
             res.append(output_hook_tensor)
+        if isinstance(x,tuple):
+            res = tuple(res)
         return res if universal_interface.g_retain_backward else None
     elif isinstance(x, ms.Tensor):
         def backward_hook(grad, get_info):
