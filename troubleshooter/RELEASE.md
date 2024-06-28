@@ -1,5 +1,20 @@
 # TroubleShooter Release Notes
 
+## 1.0.18 Release Notes
+
+### 主要特性和增强
+
+#### API级别自动比较
+- 新增支持多卡 api dump, 不同rank保存于不同rank名称的目录中;
+- 新增支持MindSpore 通信级API以及mint api dump;
+- 新增溢出dump功能，通过`api_dump_start`接口新增`overflow_check`参数使能;
+- 新增支持统计信息支持可配置，通过`api_dump_start`接口新增`statistic_category`参数配置, 默认保存的统计数据变为"min", "max", "l2norm"; 新增支持"md5"与"l2norm"值统计值计算;
+- 统计信息文件格式由pkl改为csv格式。
+
+### 问题修复
+
+- 修复若干bug
+
 ## 1.0.17 Release Notes
 
 ### 主要特性和增强

@@ -24,7 +24,7 @@ from setuptools import find_packages, setup
 from setuptools.command.build_py import build_py
 from setuptools.command.egg_info import egg_info
 
-version = '1.0.17'
+version = '1.0.18'
 
 cur_dir = os.path.dirname(os.path.realpath(__file__))
 pkg_dir = os.path.join(cur_dir, 'build')
