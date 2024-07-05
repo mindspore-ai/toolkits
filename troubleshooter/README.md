@@ -21,6 +21,12 @@ bash package.sh
 pip install output/troubleshooter-*-py3-none-any.whl
 ```
 
+## 版本更新
+
+推荐使用最新版本，当前最新版本为1.0.18，更新说明可查看[RELEASE NOTE](RELEASE.md)。
+
+获取最新版本可使用pip在线安装或前往PyPI下载后离线安装，PyPI网站可查看[PyPI](https://pypi.org/project/troubleshooter/#files)。
+
 # API列表
 
 ## [API汇总](docs/api_summary.md)
