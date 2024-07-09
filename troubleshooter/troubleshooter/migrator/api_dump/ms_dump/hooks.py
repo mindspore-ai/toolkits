@@ -28,6 +28,7 @@ from troubleshooter import log as logger
 
 from .. import universal_interface
 from .utils import Const, __version__, get_time, print_error_log, remove_dump_file
+from . import wrap_functional
 
 forward_init_status = False
 backward_init_status = False
@@ -167,6 +168,52 @@ class DataInfo(object):
         self.l2norm = l2norm
 
 
+def cal_l2norm(data):
+    Key_ops = "wrap_ops."
+    setattr(ms.ops, 'norm', wrap_functional.OpsFunc[wrap_functional.ops_label + 'norm'])
+    setattr(ms.ops, 'square', wrap_functional.OpsFunc[wrap_functional.ops_label + 'square'])
+    setattr(ms.ops, 'sqrt', wrap_functional.OpsFunc[wrap_functional.ops_label + 'sqrt'])
+    setattr(ms.ops, 'is_complex', wrap_functional.OpsFunc[wrap_functional.ops_label + 'is_complex'])
+    l2norm = ms.ops.norm(data).tolist()
+    if DumpUtil.dump_overflow:
+        if _ascend_target():
+            if (_ascend_910a_target()) or \
+            (_ascend_910bc_target() and check_overflow_mode == "SATURATION_MODE"):
+                status = Tensor([0] * 8, mstype.int32)
+                _get_cache_prim(NPUClearFloatStatusV2)()(status)
+    setattr(ms.ops, 'norm', getattr(wrap_functional.HOOKFunctionalOP, Key_ops + 'norm'))
+    setattr(ms.ops, 'square', getattr(wrap_functional.HOOKFunctionalOP, Key_ops + 'square'))
+    setattr(ms.ops, 'sqrt', getattr(wrap_functional.HOOKFunctionalOP, Key_ops + 'sqrt'))
+    setattr(ms.ops, 'is_complex', getattr(wrap_functional.HOOKFunctionalOP, Key_ops + 'is_complex'))
+    return l2norm
+
+def cal_max(data):
+    if(hasattr(ms,'mint')):
+        max = wrap_functional.OpsFunc[wrap_functional.mint_ops_label + 'max']
+    else:
+        max = wrap_functional.OpsFunc[wrap_functional.ops_label + 'max']
+    tensor_max = max(data).astype(ms.float32).tolist()
+    return tensor_max
+
+
+def cal_min(data):
+    if(hasattr(ms,'mint')):
+        min = wrap_functional.OpsFunc[wrap_functional.mint_ops_label + 'min']
+    else:
+        min = wrap_functional.OpsFunc[wrap_functional.ops_label + 'min']
+    tensor_min = min(data).astype(ms.float32).tolist()
+    return tensor_min
+
+
+def cal_mean(data):
+    if(hasattr(ms,'mint')):
+        mean = wrap_functional.OpsFunc[wrap_functional.mint_ops_label + 'mean']
+    else:
+        mean = wrap_functional.OpsFunc[wrap_functional.ops_label + 'mean']
+    tensor_mean = mean(data).astype(ms.float32).tolist()
+    return tensor_mean
+
+
 def get_not_float_tensor_info(data, compute_summary, statistic_category):
     saved_tensor = data.asnumpy()
     tensor_max, tensor_min, tensor_mean = math.nan, math.nan, math.nan
@@ -182,21 +229,21 @@ def get_not_float_tensor_info(data, compute_summary, statistic_category):
                 tensor_mean = saved_tensor.astype(np.float32).tolist()
         else:
             if 'max' in statistic_category:
-                tensor_max = saved_tensor.max().astype(np.float32).tolist()
+                tensor_max = cal_max(data)
             if 'min' in statistic_category:
-                tensor_min = saved_tensor.min().astype(np.float32).tolist()
+                tensor_min = cal_min(data)
             if 'avg' in statistic_category:
-                tensor_mean = saved_tensor.astype(np.float32).mean().tolist()  
+                tensor_mean = cal_mean(data)
         summary_data = [tensor_max, tensor_min, tensor_mean]
         if 'md5' in statistic_category and 'l2norm' in statistic_category:
             md5_nume = hashlib.md5(saved_tensor).hexdigest()
-            l2norm = np.linalg.norm(saved_tensor).item()
+            l2norm = cal_l2norm(data)
             return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume, l2norm)
         elif 'md5' in statistic_category:
             md5_nume = hashlib.md5(saved_tensor).hexdigest()        
             return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), md5_nume,[])
         elif 'l2norm' in statistic_category:
-            l2norm = np.linalg.norm(saved_tensor).item()
+            l2norm = cal_l2norm(data)
             return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), [], l2norm)
     summary_data = [tensor_max, tensor_min, tensor_mean]
     return DataInfo(data, saved_tensor, summary_data, str(data.dtype), tuple(data.shape), [], [])        
@@ -226,21 +273,21 @@ def get_float_tensor_info(data, compute_summary,statistic_category):
     tensor_max, tensor_min, tensor_mean = math.nan, math.nan, math.nan
     if compute_summary:
         if 'max' in statistic_category:
-            tensor_max = saved_tensor.max().astype(np.float32).tolist()
+            tensor_max = cal_max(data)
         if 'min' in statistic_category:
-            tensor_min = saved_tensor.min().astype(np.float32).tolist()
-        if 'avg' in statistic_category:        
-            tensor_mean = saved_tensor.mean().astype(np.float32).tolist()
+            tensor_min = cal_min(data)
+        if 'avg' in statistic_category:
+            tensor_mean = cal_mean(data)
         summary_data = [tensor_max, tensor_min, tensor_mean]
         if 'md5' in statistic_category and 'l2norm' in statistic_category:
             md5_nume = hashlib.md5(saved_tensor).hexdigest()
-            l2norm = np.linalg.norm(saved_tensor).item()
+            l2norm = cal_l2norm(data)
             return DataInfo(data, saved_tensor, summary_data, dtype, tuple(data.shape), md5_nume, l2norm)
         elif 'md5' in statistic_category:
             md5_nume = hashlib.md5(saved_tensor).hexdigest()        
             return DataInfo(data, saved_tensor, summary_data, dtype, tuple(data.shape), md5_nume, [])
         elif 'l2norm' in statistic_category:
-            l2norm = np.linalg.norm(saved_tensor).item()
+            l2norm = cal_l2norm(data)
             return DataInfo(data, saved_tensor, summary_data, dtype, tuple(data.shape), [], l2norm)
     summary_data = [tensor_max, tensor_min, tensor_mean]
     return DataInfo(data, saved_tensor, summary_data, dtype, tuple(data.shape), [], [])  
