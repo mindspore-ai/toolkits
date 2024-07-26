@@ -72,3 +72,14 @@ def get_l2norm_list(path, framework):
         l2norm = line[l2norm_position]
         l2norm_list.append(l2norm)
     return l2norm_list
+
+def get_summary_list(path, framework):
+    assert framework in {
+        'torch', 'mindspore'}, "framework must in 'torch' or 'mindspore'"
+    csv = load_csv(path/'rank0'/f'{framework}_api_dump_info.csv')
+    summary_position = 5
+    summary_list = []
+    for line in csv:
+        summary = line[summary_position]
+        summary_list.append(summary)
+    return summary_list
