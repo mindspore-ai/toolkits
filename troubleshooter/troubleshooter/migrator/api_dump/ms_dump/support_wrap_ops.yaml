@@ -20,6 +20,12 @@ communication.comm_func:
   - all_gather_into_tensor
   - reduce
   - reduce_scatter_tensor
+  - all_to_all_single_with_output_shape
+  - all_to_all_with_output_shape
+  - batch_isend_irecv
+  - broadcast
+  - gather_into_tensor
+  - scatter_tensor
   
 ops:
   - adaptive_avg_pool1d
@@ -32,6 +38,7 @@ ops:
   - avg_pool3d
   - batch_norm
   - bias_add
+  - bidense
   - ctc_greedy_decoder
   - conv1d
   - conv2d
@@ -42,9 +49,12 @@ ops:
   - dropout1d
   - dropout2d
   - dropout3d
+  - embedding
   - flatten
   - fold
   - fractional_max_pool3d
+  - group_norm
+  - layer_norm
   - lp_pool1d
   - lp_pool2d
   - lrn
@@ -53,6 +63,7 @@ ops:
   - max_unpool1d
   - max_unpool2d
   - max_unpool3d
+  - rms_norm
   - unfold
   - binary_cross_entropy
   - binary_cross_entropy_with_logits
@@ -71,7 +82,9 @@ ops:
   - multilabel_soft_margin_loss
   - nll_loss
   - smooth_l1_loss
+  - soft_margin_loss
   - triplet_margin_loss
+  - celu
   - elu
   - fast_gelu
   - gelu
@@ -185,6 +198,7 @@ ops:
   - expm1
   - floor
   - floor_div
+  - floor_divide
   - floor_mod
   - float_power
   - fmod
@@ -206,6 +220,7 @@ ops:
   - log1p
   - logaddexp
   - logaddexp2
+  - logcumsumexp
   - logical_and
   - logical_not
   - logical_or
@@ -278,6 +293,7 @@ ops:
   - var_mean
   - argsort
   - approximate_equal
+  - bucketize
   - equal
   - ge
   - greater
@@ -292,6 +308,7 @@ ops:
   - isposinf
   - isreal
   - is_complex
+  - is_floating_point
   - le
   - less
   - less_equal
@@ -311,9 +328,10 @@ ops:
   - adjoint
   - cholesky
   - cholesky_solve
+  - cond
   - batch_dot
   - dot
-  - eig
+  - eigvals
   - inner
   - inverse
   - geqrf
@@ -335,15 +353,17 @@ ops:
   - pinv
   - svd
   - tensor_dot
+  - vander
+  - vecdot
   - logdet
   - slogdet
-  - qr
   - trace
   - bartlett_window
   - blackman_window
   - hamming_window
   - hann_window
   - kaiser_window
+  - eps
   - eye
   - fill
   - full
@@ -351,12 +371,17 @@ ops:
   - linspace
   - logspace
   - one_hot
+  - ones
+  - ones_like
   - arange
   - range
+  - zeros
+  - zeros_like
   - heaviside
   - bernoulli
   - gamma
   - laplace
+  - mul
   - multinomial
   - multinomial_with_replacement
   - rand
@@ -387,6 +412,7 @@ ops:
   - diag
   - diagflat
   - diagonal
+  - diagonal_scatter
   - dyn_shape
   - dsplit
   - dstack
@@ -396,6 +422,7 @@ ops:
   - flip
   - fliplr
   - flipud
+  - gather
   - gather_d
   - gather_elements
   - gather_nd
@@ -408,6 +435,7 @@ ops:
   - inplace_index_add
   - inplace_sub
   - inplace_update
+  - is_nonzero
   - masked_fill
   - masked_select
   - meshgrid
@@ -416,8 +444,12 @@ ops:
   - narrow
   - nan_to_num
   - nansum
+  - nanmean
+  - nanmedian
   - normal
   - nonzero
+  - numel
+  - permute
   - population_count
   - rank
   - repeat_elements
@@ -426,13 +458,16 @@ ops:
   - reverse
   - reverse_sequence
   - roll
+  - row_stack
   - scatter
   - scatter_nd
   - select
+  - select_scatter
   - sequence_mask
   - shuffle
   - size
   - slice
+  - slice_scatter
   - sort
   - space_to_batch_nd
   - sparse_segment_mean
@@ -477,6 +512,7 @@ ops:
   - tuple_to_array
   - clip_by_global_norm
   - clip_by_value
+  - clip_by_norm
   - assign
   - assign_add
   - assign_sub
@@ -538,20 +574,25 @@ tensor:
   - addmm
   - addmv
   - addr
+  - adjoint
   - all
   - amax
   - amin
+  - aminmax
   - any
   - arccos
   - arccosh
   - argmax
+  - argmax_with_value
   - angle
+  - approximate_equal
   - arcsin
   - arcsinh
   - arctan
   - arctanh
   - argmin
   - argsort
+  - argwhere
   - asin
   - asinh
   - atan
@@ -561,7 +602,9 @@ tensor:
   - bernoulli
   - bincount
   - bitwise_and
+  - bitwise_left_shift
   - bitwise_or
+  - bitwise_right_shift
   - bitwise_xor
   - bmm
   - bool
@@ -569,12 +612,18 @@ tensor:
   - ceil
   - cholesky_solve
   - cholesky
+  - choose
+  - chunk
   - clamp
   - clip
+  - col2im
   - conj
+  - contiguous
   - copysign
   - cos
   - cosh
+  - count_nonzero
+  - cov
   - cross
   - cummax
   - cummin
@@ -587,21 +636,30 @@ tensor:
   - digamma
   - div
   - divide
+  - dot
+  - dsplit
+  - eigvals
+  - eq
   - equal
   - erf
   - erfc
   - erfinv
   - exp
   - expand_as
+  - expand_dims
   - expm1
+  - fill_diagonal
   - flip
   - fliplr
   - flipud
   - float_power
   - floor
+  - fold
   - fmod
   - frac
+  - gather
   - gather_elements
+  - gather_nd
   - ge
   - geqrf
   - ger
@@ -610,8 +668,10 @@ tensor:
   - gt
   - half
   - hardshrink
+  - has_init
   - heaviside
   - histc
+  - hsplit
   - hypot
   - i0
   - igamma
@@ -623,17 +683,22 @@ tensor:
   - index_select
   - inner
   - int
+  - inv
   - inverse
   - isclose
   - isfinite
   - isinf
   - isnan
   - is_complex
+  - is_contiguous
+  - is_floating_point
   - is_signed
   - isneginf
   - isposinf
   - isreal
   - item
+  - itemset
+  - itemsize
   - lcm
   - ldexp
   - le
@@ -651,10 +716,12 @@ tensor:
   - logical_not
   - logical_or
   - logical_xor
+  - log_normal
   - logit
   - logsumexp
   - long
   - lt
+  - lu_solve
   - masked_fill
   - masked_scatter
   - masked_select
@@ -672,6 +739,11 @@ tensor:
   - multiply
   - mvlgamma
   - nan_to_num
+  - nanmean
+  - nanmedian
+  - nbytes
+  - ndim
+  - ndimension
   - nansum
   - narrow
   - ne
@@ -681,11 +753,15 @@ tensor:
   - new_ones
   - new_zeros
   - nextafter
+  - numel
   - norm
   - nonzero
   - not_equal
+  - outer
+  - orgqr
   - ormqr
   - permute
+  - positive
   - pow
   - prod
   - qr
@@ -696,14 +772,24 @@ tensor:
   - renorm
   - rad2deg
   - tile
+  - repeat
   - repeat_interleave
   - reshape
-  - reshape
+  - reshape_as
   - round
   - rot90
   - rsqrt
   - sum_to_size
   - scatter
+  - scatter_add
+  - scatter_div
+  - scatter_max
+  - scatter_min
+  - scatter_mul
+  - scatter_sub
+  - searchsorted
+  - select
+  - select_scatter
   - sgn
   - short
   - sigmoid
@@ -712,14 +798,17 @@ tensor:
   - sin
   - sinc
   - sinh
+  - size
+  - slice_scatter
   - slogdet
+  - softmax
   - sort
   - split
   - sqrt
   - square
   - squeeze
   - std
-  - subtract
+  - sub
   - subtract
   - svd
   - swapaxes
@@ -734,17 +823,26 @@ tensor:
   - to
   - topk
   - tril
+  - triu
   - tensor_split
   - transpose
   - true_divide
   - trunc
+  - unfold
+  - uniform
   - unbind
   - unique_consecutive
+  - unique_with_pad
+  - unsorted_segment_max
+  - unsorted_segment_min
+  - unsorted_segment_prod
   - unsqueeze
   - var
   - view
+  - vsplit
   - where
   - xlogy
+  - xdivy
   - from_numpy
   - std
   - take
@@ -753,8 +851,12 @@ tensor:
   - any
   - copy
   - diagonal
+  - diagonal_scatter
   - flatten
   - resize
+  - reverse
+  - reverse_sequence
+  - roll
   - sum
 
 nn:
@@ -893,27 +995,27 @@ mint.ops:
   - abs
   - absolute_import
   - add
-  - add_ex
   - all
   - any
-  - any_ex
   - arange
   - argmax
   - avg_pool2d
   - baddbmm
-  - baddbmm_ex
   - batch_norm
   - binary_cross_entropy_with_logits
   - bitwise_and
   - bitwise_or
   - bitwise_xor
   - bmm
+  - inverse
   - broadcast_to
   - cat
   - cat_ex
   - ceil
   - chunk
   - clamp
+  - atan2
+  - arctan2
   - conv2d
   - conv_transpose2d
   - cos
@@ -929,15 +1031,16 @@ mint.ops:
   - erf
   - erfinv
   - exp
+  - floor
   - flatten
   - flip
-  - flip_ex
   - fold
   - full
   - functional
   - gather
   - gelu
   - greater
+  - greater_equal
   - grid_sample
   - group_norm
   - gt
@@ -963,7 +1066,6 @@ mint.ops:
   - max_pool2d
   - maximum
   - mean
-  - mean_ex
   - min
   - minimum
   - mul
@@ -998,7 +1100,6 @@ mint.ops:
   - sort
   - split
   - sqrt
-  - sqrt_ex
   - square
   - stack
   - sub
@@ -1031,14 +1132,15 @@ mint.nn.functional:
   - absolute_import
   - avg_pool2d
   - batch_norm
-  - batch_norm_ex
   - bce_with_logits
+  - binary_cross_entropy
   - binary_cross_entropy_with_logits
   - conv_transpose2d
   - dense
   - dropout
   - embedding
   - fold
+  - elu
   - gelu
   - grid_sample
   - group_norm
@@ -1047,7 +1149,6 @@ mint.nn.functional:
   - leaky_relu
   - linear
   - max_pool2d
-  - max_pool2d_ex
   - normal
   - one_hot
   - one_hot_ext
@@ -1056,7 +1157,6 @@ mint.nn.functional:
   - sigmoid
   - silu
   - softmax
-  - softmax_ex
   - softplus
   - tanh
   - unfold
