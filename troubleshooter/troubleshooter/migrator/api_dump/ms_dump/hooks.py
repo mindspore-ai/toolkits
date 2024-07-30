@@ -170,47 +170,63 @@ class DataInfo(object):
 
 def cal_l2norm(data):
     Key_ops = "wrap_ops."
-    setattr(ms.ops, 'norm', wrap_functional.OpsFunc[wrap_functional.ops_label + 'norm'])
-    setattr(ms.ops, 'square', wrap_functional.OpsFunc[wrap_functional.ops_label + 'square'])
-    setattr(ms.ops, 'sqrt', wrap_functional.OpsFunc[wrap_functional.ops_label + 'sqrt'])
-    setattr(ms.ops, 'is_complex', wrap_functional.OpsFunc[wrap_functional.ops_label + 'is_complex'])
-    l2norm = ms.ops.norm(data).tolist()
-    if DumpUtil.dump_overflow:
-        if _ascend_target():
-            if (_ascend_910a_target()) or \
-            (_ascend_910bc_target() and check_overflow_mode == "SATURATION_MODE"):
-                status = Tensor([0] * 8, mstype.int32)
-                _get_cache_prim(NPUClearFloatStatusV2)()(status)
-    setattr(ms.ops, 'norm', getattr(wrap_functional.HOOKFunctionalOP, Key_ops + 'norm'))
-    setattr(ms.ops, 'square', getattr(wrap_functional.HOOKFunctionalOP, Key_ops + 'square'))
-    setattr(ms.ops, 'sqrt', getattr(wrap_functional.HOOKFunctionalOP, Key_ops + 'sqrt'))
-    setattr(ms.ops, 'is_complex', getattr(wrap_functional.HOOKFunctionalOP, Key_ops + 'is_complex'))
+    if(universal_interface.API_DUMP_FRAMEWORK_TYPE == "mindtorch"):
+        saved_tensor = data.asnumpy()
+        l2norm = np.linalg.norm(saved_tensor).item()
+    else:
+        setattr(ms.ops, 'norm', wrap_functional.OpsFunc[wrap_functional.ops_label + 'norm'])
+        setattr(ms.ops, 'square', wrap_functional.OpsFunc[wrap_functional.ops_label + 'square'])
+        setattr(ms.ops, 'sqrt', wrap_functional.OpsFunc[wrap_functional.ops_label + 'sqrt'])
+        setattr(ms.ops, 'is_complex', wrap_functional.OpsFunc[wrap_functional.ops_label + 'is_complex'])
+        l2norm = ms.ops.norm(data).tolist()
+        if DumpUtil.dump_overflow:
+            if _ascend_target():
+                if (_ascend_910a_target()) or \
+                (_ascend_910bc_target() and check_overflow_mode == "SATURATION_MODE"):
+                    status = Tensor([0] * 8, mstype.int32)
+                    _get_cache_prim(NPUClearFloatStatusV2)()(status)
+        setattr(ms.ops, 'norm', getattr(wrap_functional.HOOKFunctionalOP, Key_ops + 'norm'))
+        setattr(ms.ops, 'square', getattr(wrap_functional.HOOKFunctionalOP, Key_ops + 'square'))
+        setattr(ms.ops, 'sqrt', getattr(wrap_functional.HOOKFunctionalOP, Key_ops + 'sqrt'))
+        setattr(ms.ops, 'is_complex', getattr(wrap_functional.HOOKFunctionalOP, Key_ops + 'is_complex'))
     return l2norm
 
 def cal_max(data):
-    if(hasattr(ms,'mint')):
-        max = wrap_functional.OpsFunc[wrap_functional.mint_ops_label + 'max']
+    if(universal_interface.API_DUMP_FRAMEWORK_TYPE == "mindtorch"):
+        saved_tensor = data.asnumpy()
+        tensor_max = saved_tensor.max().astype(np.float32).tolist()
     else:
-        max = wrap_functional.OpsFunc[wrap_functional.ops_label + 'max']
-    tensor_max = max(data).astype(ms.float32).tolist()
+        if(hasattr(ms,'mint')):
+            max = wrap_functional.OpsFunc[wrap_functional.mint_ops_label + 'max']
+        else:
+            max = wrap_functional.OpsFunc[wrap_functional.ops_label + 'max']
+        tensor_max = max(data).astype(ms.float32).tolist()
     return tensor_max
 
 
 def cal_min(data):
-    if(hasattr(ms,'mint')):
-        min = wrap_functional.OpsFunc[wrap_functional.mint_ops_label + 'min']
+    if(universal_interface.API_DUMP_FRAMEWORK_TYPE == "mindtorch"):
+        saved_tensor = data.asnumpy()
+        tensor_min = saved_tensor.min().astype(np.float32).tolist()
     else:
-        min = wrap_functional.OpsFunc[wrap_functional.ops_label + 'min']
-    tensor_min = min(data).astype(ms.float32).tolist()
+        if(hasattr(ms,'mint')):
+            min = wrap_functional.OpsFunc[wrap_functional.mint_ops_label + 'min']
+        else:
+            min = wrap_functional.OpsFunc[wrap_functional.ops_label + 'min']
+        tensor_min = min(data).astype(ms.float32).tolist()
     return tensor_min
 
 
 def cal_mean(data):
-    if(hasattr(ms,'mint')):
-        mean = wrap_functional.OpsFunc[wrap_functional.mint_ops_label + 'mean']
+    if(universal_interface.API_DUMP_FRAMEWORK_TYPE == "mindtorch"):
+        saved_tensor = data.asnumpy()
+        tensor_mean = saved_tensor.mean().astype(np.float32).tolist()
     else:
-        mean = wrap_functional.OpsFunc[wrap_functional.ops_label + 'mean']
-    tensor_mean = mean(data).astype(ms.float32).tolist()
+        if(hasattr(ms,'mint')):
+            mean = wrap_functional.OpsFunc[wrap_functional.mint_ops_label + 'mean']
+        else:
+            mean = wrap_functional.OpsFunc[wrap_functional.ops_label + 'mean']
+        tensor_mean = mean(data).astype(ms.float32).tolist()
     return tensor_mean
 
 
