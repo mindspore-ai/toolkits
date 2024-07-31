@@ -110,13 +110,14 @@ output_path # 输出目录
 
 - overflow_check(`bool`, 可选)：是否开启溢出检测及dump，默认值为 `False`。为 `True`时，开启溢出检测并dump溢出数据。
 
-- statistic_category(`list`,可选): 是否开启用户自定义dump输出结果，默认值为[`'max'`, `'min'`，`'l2norm'`]时，只会dump出`api_dump_info.csv`文件中数据的最大值和最小值和l2norm信息，减少dump没必要的数据的时间开支；目前支持的模式有`max`, `min`, `avg`, `md5`,`l2norm`五种模式，
+- statistic_category(`list`,可选): 是否开启用户自定义dump输出结果，默认值为[`'max'`, `'min'`，`'l2norm'`]时，只会dump出`api_dump_info.csv`文件中数据的最大值和最小值和l2norm信息，减少dump没必要的数据的时间开支；目前支持的模式有`max`, `min`, `avg`, `md5`,`l2norm`五种模式。
 
   - `max`: 统计最大值
   - `min`: 统计最小值
   - `avg`: 统计平均值
   - `md5`: 统计md5信息
   - `l2norm`: 统计l2norm信息
+  **注意：在Ascend平台，暂不支持uint16,uint32,uint64,complex64,complex128数据类型计算max/min/avg/l2norm，相应位置显示'null'**
 
 ## troubleshooter.migrator.api_dump_stop
 

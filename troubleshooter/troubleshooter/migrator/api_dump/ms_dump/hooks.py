@@ -35,7 +35,8 @@ backward_init_status = False
 range_begin_flag, range_end_flag = False, False
 NNCount = defaultdict(int)
 backward_threading_id = 0
-
+unsupport_count = 0
+unsupport_dtype = [ms.uint16, ms.uint32, ms.uint64, ms.complex64, ms.complex128]
 
 class DumpUtil(object):
     dump_data_dir = None
@@ -168,12 +169,28 @@ class DataInfo(object):
         self.l2norm = l2norm
 
 
+def is_unsupport_type(data):
+    is_unsupport_type = False
+    global unsupport_count
+    if data.dtype in unsupport_dtype:
+        is_unsupport_type = True
+        if unsupport_count == 0:
+            logger.user_attention(f"On the Acend platform, {unsupport_dtype}data types are currently not supported for calculating statistical values.")
+        unsupport_count += 1
+        return is_unsupport_type
+    return is_unsupport_type
+
+
 def cal_l2norm(data):
     Key_ops = "wrap_ops."
     if(universal_interface.API_DUMP_FRAMEWORK_TYPE == "mindtorch"):
         saved_tensor = data.asnumpy()
         l2norm = np.linalg.norm(saved_tensor).item()
     else:
+        if is_unsupport_type(data):
+            l2norm = None
+            return l2norm
+
         setattr(ms.ops, 'norm', wrap_functional.OpsFunc[wrap_functional.ops_label + 'norm'])
         setattr(ms.ops, 'square', wrap_functional.OpsFunc[wrap_functional.ops_label + 'square'])
         setattr(ms.ops, 'sqrt', wrap_functional.OpsFunc[wrap_functional.ops_label + 'sqrt'])
@@ -196,6 +213,10 @@ def cal_max(data):
         saved_tensor = data.asnumpy()
         tensor_max = saved_tensor.max().astype(np.float32).tolist()
     else:
+        if is_unsupport_type(data):
+            tensor_max = None
+            return tensor_max
+
         if(hasattr(ms,'mint')):
             max = wrap_functional.OpsFunc[wrap_functional.mint_ops_label + 'max']
         else:
@@ -209,6 +230,10 @@ def cal_min(data):
         saved_tensor = data.asnumpy()
         tensor_min = saved_tensor.min().astype(np.float32).tolist()
     else:
+        if is_unsupport_type(data):
+            tensor_min = None
+            return tensor_min
+
         if(hasattr(ms,'mint')):
             min = wrap_functional.OpsFunc[wrap_functional.mint_ops_label + 'min']
         else:
@@ -222,6 +247,10 @@ def cal_mean(data):
         saved_tensor = data.asnumpy()
         tensor_mean = saved_tensor.mean().astype(np.float32).tolist()
     else:
+        if is_unsupport_type(data):
+            tensor_mean = None
+            return tensor_mean
+
         if(hasattr(ms,'mint')):
             mean = wrap_functional.OpsFunc[wrap_functional.mint_ops_label + 'mean']
         else:
