@@ -198,6 +198,7 @@ def cal_l2norm(data):
         l2norm = ms.ops.norm(data).tolist()
         if DumpUtil.dump_overflow:
             if _ascend_target():
+                check_overflow_mode = os.environ.get('MS_ASCEND_CHECK_OVERFLOW_MODE')
                 if (_ascend_910a_target()) or \
                 (_ascend_910bc_target() and check_overflow_mode == "SATURATION_MODE"):
                     status = Tensor([0] * 8, mstype.int32)
