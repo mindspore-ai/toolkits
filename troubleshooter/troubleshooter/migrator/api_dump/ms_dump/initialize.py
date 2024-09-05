@@ -11,6 +11,12 @@ from .utils import (CompareException, Const, check_file_or_directory_path, print
 from troubleshooter import log as logger
 from mindspore.common.api import _MindsporeFunctionExecutor
 try:
+    from mindspore.common._pijit_context import PIJitCaptureContext
+    pijit_label = True
+except ImportError:
+    pijit_label = False
+
+try:
     from mindspore.communication import comm_func
     comm_func_label = True
 except ImportError:
@@ -75,6 +81,9 @@ class MyMindsporeFunctionExecutor(_MindsporeFunctionExecutor):
         hook_apis()
 
         return out
+    
+    def empty(self, *args, **kwargs):
+        pass
 
 
 def initialize_hook(hook):
@@ -88,6 +97,9 @@ def initialize_hook(hook):
     hook_apis()
 
     ms.common.api._MindsporeFunctionExecutor = MyMindsporeFunctionExecutor
+    if pijit_label:
+        PIJitCaptureContext.__enter__ = MyMindsporeFunctionExecutor.empty
+        PIJitCaptureContext.__exit__ = MyMindsporeFunctionExecutor.empty
 
 
 def register_hook(net, hook, **kwargs):
