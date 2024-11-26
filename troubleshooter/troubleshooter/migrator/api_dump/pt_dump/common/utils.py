@@ -28,20 +28,6 @@ from functools import wraps
 import numpy as np
 import torch
 
-try:
-    import torch_npu
-except ImportError:
-    is_gpu = True
-else:
-    is_gpu = False
-
-if not is_gpu:
-    try:
-        from torch_npu.utils.device_guard import torch_device_guard as torch_npu_device_guard
-    except ImportError:
-        torch_without_guard_version = True
-    else:
-        torch_without_guard_version = False
 
 device = collections.namedtuple('device', ['type', 'index'])
 
@@ -445,32 +431,17 @@ def format_value(value):
     return '{:.6f}'.format(value)
 
 
-def torch_device_guard(func):
-    if is_gpu or torch_without_guard_version:
-        return func
-    # Parse args/kwargs matched torch.device objects
-
-    @torch_npu_device_guard
-    def wrapper(*args, **kwargs):
-        return func(*args, **kwargs)
-    return wrapper
-
-
 def seed_all(seed=1234, mode=False):
     random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.use_deterministic_algorithms(mode)
-    if is_gpu:
-        torch.cuda.manual_seed_all(seed)
-        torch.cuda.manual_seed(seed)
-        torch.backends.cudnn.deterministic = True
-        torch.backends.cudnn.enable = False
-        torch.backends.cudnn.benchmark = False
-    else:
-        torch_npu.npu.manual_seed_all(seed)
-        torch_npu.npu.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    torch.cuda.manual_seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.enable = False
+    torch.backends.cudnn.benchmark = False
 
 
 def get_process_rank(model):

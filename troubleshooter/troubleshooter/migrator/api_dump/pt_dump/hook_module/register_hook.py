@@ -30,13 +30,6 @@ from ..dump import dump, utils
 from ..dump.utils import make_dump_dirs, make_pth_dir
 from . import hook_module, wrap_functional, wrap_module, wrap_tensor, wrap_torch, wrap_vf
 
-try:
-    import torch_npu
-except ImportError:
-    is_gpu = True
-else:
-    is_gpu = False
-    from . import wrap_npu_custom
 
 global_manage.init()
 
@@ -60,12 +53,6 @@ def initialize_hook(hook):
     for attr_name in dir(wrap_vf.HOOKVfOP):
         if attr_name.startswith("wrap_"):
             setattr(torch._VF, attr_name[5:], getattr(wrap_vf.HOOKVfOP, attr_name))
-
-    if not is_gpu:
-        wrap_npu_custom.wrap_npu_ops_and_bind(hook)
-        for attr_name in dir(wrap_npu_custom.HOOKNpuOP):
-            if attr_name.startswith("wrap_"):
-                setattr(torch_npu, attr_name[5:], getattr(wrap_npu_custom.HOOKNpuOP, attr_name))
 
     wrap_module.wrap_nn_module_and_bind()
     wrap_module.wrap_optimizer()
@@ -102,19 +89,6 @@ def register_hook(model, hook, **kwargs):
     dump.backward_threading_id = 0
 
     hook_name = hook.__name__
-
-    if "overflow_check" in hook_name and not is_gpu:
-        if hasattr(torch_npu._C, "_enable_overflow_npu"):
-            torch_npu._C._enable_overflow_npu()
-            logger.info("Enable overflow function success.")
-        else:
-            logger.user_warning("Api '_enable_overflow_npu' is not exist, "
-                           "the overflow detection function on milan platform maybe not work! "
-                           "please check the version of software torch_npu.")
-        # In NPU scene, clear the overflow flag before overflow detection
-        if need_clear:
-            torch_npu.npu.set_device(rank)
-            torch_npu._C._clear_overflow_npu()
 
     logger.info("Start mounting the {} hook function to the model.".format(hook_name))
     hook = functools.partial(hook, dump_step=dump_step, overflow_nums=overflow_nums, pid=pid,

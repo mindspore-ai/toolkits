@@ -21,7 +21,6 @@ import torch
 import yaml
 
 from .hook_module import HOOKModule
-from ..common.utils import torch_device_guard
 
 cur_path = os.path.dirname(os.path.realpath(__file__))
 yaml_path = os.path.join(cur_path, "support_wrap_ops.yaml")
@@ -46,7 +45,6 @@ class VfOPTemplate(HOOKModule):
         self.prefix_op_name_ = "VF_" + str(op_name) + "_"
         super().__init__(hook)
 
-    @torch_device_guard
     def forward(self, *args, **kwargs):
         return getattr(torch._C._VariableFunctionsClass, str(self.op_name_))(*args, **kwargs)
 

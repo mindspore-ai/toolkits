@@ -31,13 +31,6 @@ import torch
 
 from ... import universal_interface
 
-try:
-    import torch_npu
-except ImportError:
-    is_gpu = True
-else:
-    is_gpu = False
-
 from troubleshooter import log as logger
 
 from ..common.utils import Const
@@ -296,74 +289,12 @@ def dump_acc_cmp(name, in_feat, out_feat, dump_step, module):
             msg = f"Current mode '{DumpUtil.dump_switch_mode}' is not supported. Please use the field in {Const.DUMP_MODE}"
             raise ValueError(msg)
 
-def acl_dump(module, module_name, name_prefix):
-    if name_prefix in DumpUtil.backward_input:
-        dump_mode_backward_acl_dump(module, module_name, DumpUtil.backward_input.get(name_prefix))
-    else:
-        forward_acl_dump(module, module_name)
-
 
 def Op_Need_Trigger(module_name):
     if 'Tensor___getitem___' in module_name:
         return True
     return False
 
-
-def forward_acl_dump(module, module_name):
-    global forward_init_status
-    global backward_init_status
-    if not forward_init_status and not backward_init_status:
-        forward_init_status = True
-        torch_npu.npu.init_dump()
-        torch_npu.npu.set_dump(DumpUtil.dump_config)
-        torch_npu.npu.synchronize()
-        if Op_Need_Trigger(module_name):
-            module.forward(*module.input_args, **module.input_kwargs).cpu()
-        else:
-            module.forward(*module.input_args, **module.input_kwargs)
-        torch_npu.npu.synchronize()
-        torch_npu.npu.finalize_dump()
-    del module.input_args
-    del module.input_kwargs
-    forward_init_status = False
-    logger.info("Dump %s op file." % module_name)
-
-
-def acl_backward_dump_status(output, grad, module_name):
-    if isinstance(output, torch.Tensor):
-        output.backward(grad, retain_graph=True)
-        return True
-
-    if "_sort_" in module_name :
-        output[0].backward(grad, retain_graph=True)
-        return True
-    return False
-
-
-def dump_mode_backward_acl_dump(module, module_name, grad_path):
-    global forward_init_status
-    global backward_init_status
-    module_name = module_name.replace(Const.FORWARD, Const.BACKWARD)
-    if not forward_init_status and not backward_init_status:
-        forward_init_status = True
-        module.input_args = list(module.input_args)
-        for i, data in enumerate(module.input_args):
-            if isinstance(data, torch.Tensor) and data.grad_fn:
-                module.input_args[i] = data.detach().requires_grad_()
-        output = module.forward(*module.input_args, **module.input_kwargs)
-        grad = torch.tensor(np.load(grad_path)).to("npu").requires_grad_()
-        torch_npu.npu.init_dump()
-        torch_npu.npu.set_dump(DumpUtil.dump_config)
-        torch_npu.npu.synchronize()
-        if not acl_backward_dump_status(output, grad, module_name):
-            logger.user_warning("The output of {} is not of tensor type and cannot be automatically derived. "
-                                "you can manually construct a single API backward case for ACL dump.".format(module_name))
-        torch_npu.npu.synchronize()
-        torch_npu.npu.finalize_dump()
-    del module.input_args
-    del module.input_kwargs
-    forward_init_status = False
-    logger.info("Dump %s op file." % module_name)
 
 
 def acc_cmp_dump(name, **kwargs):
