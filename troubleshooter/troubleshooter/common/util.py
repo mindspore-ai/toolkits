@@ -101,14 +101,14 @@ def extract_number(string):
 def extract_front_end_number(string):
     numbers = extract_number(string)
     if numbers:
-        return numbers[0], numbers[-1]
+        return [numbers[0], numbers[-1]]
     return []
 
 
 def extract_end_number(string):
     numbers = extract_number(string)
     if numbers:
-        return numbers[-1]
+        return [numbers[-1]]
     return []
 
 
