@@ -93,7 +93,7 @@ def _iterate_items(data):
 
 def _add_id_prefix_to_filename(filename):
     global TORCH_SAVE_COUNT
-    new_filename = f"{TORCH_SAVE_COUNT}_{filename}"
+    new_filename = f"{filename}_{TORCH_SAVE_COUNT}"
     TORCH_SAVE_COUNT += 1
     return new_filename
 
@@ -126,6 +126,10 @@ def torch_TensorDump(file, data):
     directory, filename = os.path.split(file)
     if directory and not os.path.exists(directory):
         os.makedirs(directory, mode=stat.S_IRWXU, exist_ok=True)
+    dtype = str(data.dtype).split('.')[-1]
+    filename = f"{filename}_{dtype}"
+    if dtype == 'bfloat16':
+        data = data.float()
     filename = _add_id_prefix_to_filename(filename)
     file = os.path.join(directory, filename)
     if not file.endswith(".npy"):
@@ -171,8 +175,6 @@ if {"torch", "mindspore"}.issubset(FRAMEWORK_TYPE):
                 print(format_name, grad)
             else:
                 data = grad
-                if data.dtype == ms.bfloat16:
-                    data = data.float()
                 ms.ops.TensorDump()(file, data)
             return grad
         return _save_grad_func
@@ -224,8 +226,6 @@ elif "mindspore" in FRAMEWORK_TYPE:
 
     def _npy_save_ops(file, data):
         if isinstance(data, ms.Tensor):
-            if data.dtype == ms.bfloat16:
-                data = data.float()
             ms.ops.TensorDump()(file, data)
         else:
             raise TypeError(f"For 'ts.save', the type of argument 'data' must be mindspore.Tensor or torch.tensor, "
@@ -238,8 +238,6 @@ elif "mindspore" in FRAMEWORK_TYPE:
                 print(format_name, grad)
             else:
                 data = grad
-                if data.dtype == ms.bfloat16:
-                    data = data.float()
                 ms.ops.TensorDump()(file, data)
             return grad
         return _save_grad_func

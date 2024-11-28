@@ -6,12 +6,12 @@
 
 ### 参数
 
-- file(str): 文件名路径。为避免同名文件覆盖，保存的文件名称会自动添加前缀，前缀从0开始，按照执行顺序递增。
+- file(str): 文件名路径。为避免同名文件覆盖，保存的文件名称会自动添加后缀，后缀从0开始，按照执行顺序递增。
 - data(Union(Tensor, list[Tensor], tuple[Tensor], dict[str, Tensor])): 数据，支持保存`Tensor`（包括`mindspore.Tensor`和`pytorch.Tensor`），以及`Tensor`构成的`list/tuple/dict`。
 - suffix(str, 可选): 文件名后缀，默认值为`None`。
 - output_mode(str, 可选)：Tensor输出的模式，目前支持 `['npy','print']`，默认值`'npy'`。
-    - `'npy'`模式会保存Tensor为numpy格式的npy文件，存储的文件名称为`[id]_name.[idx/key]_[suffix].npy`，其中`id`为按照执行顺序自增的前缀；`name`为`file`中的文件名部分；当数据为`list/tuple`类型时，会按照索引顺序添加`idx`，为`dict`类型时，文件名中会添加`key`，使用点分隔；`suffix`为指定的后缀，默认为空；
-    - `print`模式会将Tensor使用print输出到屏幕，输出内容依次为标识符`_TS_SAVE_NAME:`、`name`与`Tensor`。输出的`name`与`'npy'`模式类似，但不包含前缀`id`和文件路径，只包含文件名。print模式下，MindSpore Ascend平台图模式下支持配置context中的[print_file_path](https://www.mindspore.cn/docs/zh-CN/r2.2/api_python/ops/mindspore.ops.print_.html)使Tensor**完整输出到文件**，输出的文件可以使用[save_convert](./widget/save_convert.md)解析为npy文件。不同模式与MindSpore版本支持对应关系如下。
+    - `'npy'`模式会保存Tensor为numpy格式的npy文件，存储的文件名称为`name.[idx/key]_[suffix]_[dtype]_[id].npy`，其中`name`为`file`中的文件名部分；`dtype`为数据原始类型（bfloat16类型会转化为float32类型保存）；`id`为按照执行顺序自增的后缀；当数据为`list/tuple`类型时，会按照索引顺序添加`idx`，为`dict`类型时，文件名中会添加`key`，使用点分隔；`suffix`为指定的后缀，默认为空；
+    - `print`模式会将Tensor使用print输出到屏幕，输出内容依次为标识符`_TS_SAVE_NAME:`、`name`与`Tensor`。输出的`name`与`'npy'`模式类似，但不包含后缀`id`和文件路径，只包含文件名。print模式下，MindSpore Ascend平台图模式下支持配置context中的[print_file_path](https://www.mindspore.cn/docs/zh-CN/r2.2/api_python/ops/mindspore.ops.print_.html)使Tensor**完整输出到文件**，输出的文件可以使用[save_convert](./widget/save_convert.md)解析为npy文件。不同模式与MindSpore版本支持对应关系如下。
 
 | output_mode | 版本   | device         | 备注                                                         |
 | ----------- | ------ | -------------- | ------------------------------------------------------------ |
@@ -21,13 +21,9 @@
 
 > **Warning:**
 >
+> - 在Ascend平台上的Graph模式下，可以通过设置环境变量 MS_DUMP_SLICE_SIZE 和 MS_DUMP_WAIT_TIME 解决在输出大Tesnor或输出Tensor比较密集场景下算子执行失败的问题，详情请查看[环境变量](https://www.mindspore.cn/docs/zh-CN/r2.4.0/api_python/env_var_list.html)。
+>
 > - 在MindSpore 2.3之前的版本中，save只支持使用print输出。
->
-> - MindSpore 中数据保存是异步处理的。当数据量过大或主进程退出过快时，可能出现数据丢失的问题，需要主动控制主进程销毁时间，例如使用sleep。
->
-> - 如果在短时间内保存大量数据，可能会导致内存溢出。可以考虑对数据进行切片，以减小数据规模。
->
-> - 当前MindSpore支持保存的最大数据为2GB，包含100字节左右的数据描述头，当Tensor大小超过2GB时需要切片后再保存。
 >
 > - 暂不支持在MindSpore自定义反向中保存数据。
 
@@ -36,7 +32,6 @@
 #### MindSpore output_mode='npy'使用方法
 
 ```python
-import tempfile
 from pathlib import Path
 
 import troubleshooter as ts
@@ -54,24 +49,50 @@ class NetWorkSave(nn.Cell):
 
 x1 = Tensor(-0.5962, ms.float32)
 x2 = Tensor(0.4985, ms.float32)
-dir = tempfile.TemporaryDirectory(prefix="save")
-path = Path(dir.name)
+path = Path('save_ms')
 net = NetWorkSave(str(path / "ms_tensor"))
 
 # 文件会自动编号
 out1 = net(x1)
-# 0_ms_tensor.npy
+# save_ms/ms_tensor_float32_0.npy
 
 out2 = net(x2)
-# 1_ms_tensor.npy
+# save_ms/ms_tensor_float32_1.npy
 
 out3 = net([x1, x2])
-# 2_ms_tensor.0.npy
-# 3_ms_tensor.1.npy
+# save_ms/ms_tensor.0_float32_2.npy
+# save_ms/ms_tensor.1_float32_3.npy
 
 out4 = net({"x1": x1, "x2":x2})
-# 4_ms_tensor.x1.npy
-# 5_ms_tensor.x2.npy
+# save_ms/ms_tensor.x1_float32_4.npy
+# save_ms/ms_tensor.x2_float32_5.npy
+```
+
+#### PyTorch使用方法
+
+```python
+from pathlib import Path
+
+import troubleshooter as ts
+import torch
+x1 = torch.tensor([-0.5962, 0.3123], dtype=torch.float32)
+x2 = torch.tensor([[0.4985],[0.4323]], dtype=torch.float32)
+path = Path('save_pt')
+file = str(path / "torch_tensor")
+
+ts.save(file, x1)
+# save_pt/torch_tensor_float32_0.npy
+
+ts.save(file, x2)
+# save_pt/torch_tensor_float32_1.npy
+
+ts.save(file, {"x1":x1, "x2":x2})
+# save_pt/torch_tensor.x1_float32_2.npy
+# save_pt/torch_tensor.x2_float32_3.npy
+
+ts.save(file, {"x1":x1, "x2":x2}, suffix="torch")
+# save_pt/torch_tensor.x1_torch_float32_4.npy
+# save_pt/torch_tensor.x2_torch_float32_5.npy
 ```
 
 #### MindSpore output_mode='print'使用方法
@@ -81,7 +102,7 @@ output_mode='print'，默认会输出到屏幕。Ascend图模式下，MindSpore�
 > **限制**
 >
 > - 设置print_file_path后，数据只会保存在文件，不会输出到屏幕；
-> -
+>
 > - MindSpore 2.3 版本前，如果保存的数据过多（短时间内保存数据超过128条），Print算子可能丢失数据。
 
 1. 配置print落盘
@@ -134,32 +155,3 @@ output_mode='print'，默认会输出到屏幕。Ascend图模式下，MindSpore�
     
     ts.widget.save_convert(file='xx', output_path='xxx')
     ```
-
-#### PyTorch使用方法
-
-```python
-import tempfile
-from pathlib import Path
-
-import troubleshooter as ts
-import torch
-x1 = torch.tensor([-0.5962, 0.3123], dtype=torch.float32)
-x2 = torch.tensor([[0.4985],[0.4323]], dtype=torch.float32)
-dir = tempfile.TemporaryDirectory(prefix="save")
-path = Path(dir.name)
-file = str(path / "torch_tensor")
-
-ts.save(file, x1)
-# 0_torch_tensor.npy
-
-ts.save(file, x2)
-# 1_torch_tensor.npy
-
-ts.save(file, {"x1":x1, "x2":x2})
-# 2_torch_tensor.x1.npy
-# 3_torch_tensor.x2.npy
-
-ts.save(file, {"x1":x1, "x2":x2}, suffix="torch")
-# 4_torch_tensor.x1_torch.npy
-# 5_torch_tensor.x2_torch.npy
-```
