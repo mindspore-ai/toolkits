@@ -128,7 +128,7 @@ if "mindspore" in FRAMEWORK_TYPE:
                 raise ValueError(f"Data type error, got type is {type(data)}")
 
         def _save_data(self, data):
-            self.name = str(self.auto_id) + "_" + self.name
+            self.name = f"{self.name}_{data.dtype}_{self.auto_id}"
             file_path = str(self.output_path/self.name)
             if not file_path.endswith(".npy"):
                 file_path = file_path + ".npy"

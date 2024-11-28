@@ -246,7 +246,6 @@ ts.migrator.compare_pth_and_ckpt("torch_net_map.json", "pt_net.pth", "ms_net.ckp
 
 **MindSpore**
 ```python
-import tempfile
 from pathlib import Path
 
 import troubleshooter as ts
@@ -264,51 +263,48 @@ class NetWorkSave(nn.Cell):
 
 x1 = Tensor(-0.5962, ms.float32)
 x2 = Tensor(0.4985, ms.float32)
-dir = tempfile.TemporaryDirectory(prefix="save")
-path = Path(dir.name)
+path = Path('save_ms')
 net = NetWorkSave(str(path / "ms_tensor"))
 
 # 文件会自动编号
 out1 = net(x1)
-# 0_ms_tensor.npy
+# save_ms/ms_tensor_float32_0.npy
 
 out2 = net(x2)
-# 1_ms_tensor.npy
+# save_ms/ms_tensor_float32_1.npy
 
 out3 = net([x1, x2])
-# 2_ms_tensor.0.npy
-# 3_ms_tensor.1.npy
+# save_ms/ms_tensor.0_float32_2.npy
+# save_ms/ms_tensor.1_float32_3.npy
 
 out4 = net({"x1": x1, "x2":x2})
-# 4_ms_tensor.x1.npy
-# 5_ms_tensor.x2.npy
+# save_ms/ms_tensor.x1_float32_4.npy
+# save_ms/ms_tensor.x2_float32_5.npy
 ```
 **Pytorch**
 ```python
-import tempfile
 from pathlib import Path
 
 import troubleshooter as ts
 import torch
 x1 = torch.tensor([-0.5962, 0.3123], dtype=torch.float32)
 x2 = torch.tensor([[0.4985],[0.4323]], dtype=torch.float32)
-dir = tempfile.TemporaryDirectory(prefix="save")
-path = Path(dir.name)
+path = Path('save_pt')
 file = str(path / "torch_tensor")
 
 ts.save(file, x1)
-# 0_torch_tensor.npy
+# save_pt/torch_tensor_float32_0.npy
 
 ts.save(file, x2)
-# 1_torch_tensor.npy
+# save_pt/torch_tensor_float32_1.npy
 
 ts.save(file, {"x1":x1, "x2":x2})
-# 2_torch_tensor.x1.npy
-# 3_torch_tensor.x2.npy
+# save_pt/torch_tensor.x1_float32_2.npy
+# save_pt/torch_tensor.x2_float32_3.npy
 
 ts.save(file, {"x1":x1, "x2":x2}, suffix="torch")
-# 4_torch_tensor.x1_torch.npy
-# 5_torch_tensor.x2_torch.npy
+# save_pt/torch_tensor.x1_torch_float32_4.npy
+# save_pt/torch_tensor.x2_torch_float32_5.npy
 ```
 
 ## 应用场景4：比较两组Tensor值(npy文件)是否相等
