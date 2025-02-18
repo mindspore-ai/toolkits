@@ -9,7 +9,12 @@ from . import hooks
 from . import wrap_functional, wrap_nn, wrap_sub_tensor, wrap_tensor
 from .utils import (CompareException, Const, check_file_or_directory_path, print_error_log)
 from troubleshooter import log as logger
-from mindspore.common.api import _MindsporeFunctionExecutor
+
+try:
+    from mindspore.common.api import _MindsporeFunctionExecutor
+except ImportError:
+    from mindspore.common.api import _JitExecutor as _MindsporeFunctionExecutor
+
 try:
     from mindspore.common._pijit_context import PIJitCaptureContext
     pijit_label = True
