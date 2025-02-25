@@ -15,5 +15,4 @@
 
 __all__ = ['api_dump_start', 'api_dump_init', 'api_dump_stop', 'api_dump_compare']
 
-from .universal_interface import api_dump_start, api_dump_init, api_dump_stop
-from .api_dump_compare import api_dump_compare
+from .universal_interface import api_dump_start, api_dump_init, api_dump_stop, api_dump_compare

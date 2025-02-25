@@ -24,7 +24,7 @@ from setuptools import find_packages, setup
 from setuptools.command.build_py import build_py
 from setuptools.command.egg_info import egg_info
 
-version = '1.0.18'
+version = '1.0.19'
 
 cur_dir = os.path.dirname(os.path.realpath(__file__))
 pkg_dir = os.path.join(cur_dir, 'build')
@@ -140,12 +140,6 @@ setup(
         'prettytable >= 3.0.0, < 3.8.0',
         'protobuf >= 3.13.0, <= 3.20.1',
     ],
-    package_data={
-        'troubleshooter': ['migrator/api_dump/ms_dump/support_wrap_ops.yaml',
-                           'migrator/api_dump/pt_dump/hook_module/support_wrap_ops.yaml',
-                           'migrator/api_dump/ad_dump/support_wrap_ops.yaml'
-                           ],
-    },
     classifiers=[
         'License :: OSI Approved :: Apache Software License'
     ]

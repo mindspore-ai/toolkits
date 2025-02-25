@@ -49,8 +49,8 @@
 
 | 接口名                                                       | 描述                    |
 | ------------------------------------------------------------ | ----------------------- |
-| [troubleshooter.migrator.NetDifferenceFinder](api/migrator/NetDifferenceFinder.md) | 自动化比较网络输出结果 |
-| [troubleshooter.migrator.api_dump](api/migrator/api_dump.md) | API级别逐层比较网络结果 |
+| ~~[troubleshooter.migrator.NetDifferenceFinder](api/migrator/NetDifferenceFinder.md)~~ | 功能自1.0.19版本废弃，推荐使用[msprobe](https://gitee.com/ascend/mstt/tree/master/debug/accuracy_tools/msprobe)相关dump和对比功能 |
+| ~~[troubleshooter.migrator.api_dump](api/migrator/api_dump.md)~~ | 功能自1.0.19版本废弃，推荐使用[msprobe](https://gitee.com/ascend/mstt/tree/master/debug/accuracy_tools/msprobe)相关dump和对比功能 |
 
 ## 工具插件
 
