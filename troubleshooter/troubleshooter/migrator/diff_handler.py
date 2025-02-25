@@ -269,40 +269,21 @@ def compare_npy_dir(
         target_dir,
     )
 
-    if field_names is not None and 'mindtorch' in frame_names:
-        with multiprocessing.Pool(processes=num_processes) as pool:
-            _compare_npy_single_process = functools.partial(
-                _adapter_cal_compare_npy_single_process,
-                normal_orig_dir=normal_orig_dir,
-                normal_target_dir=normal_target_dir,
-                rtol=rtol,
-                atol=atol,
-                equal_nan=equal_nan,
-                compare_shape=compare_shape,
-                compare_dtype=True,
-            )
-            result_list = list(tqdm(pool.imap(
-                _compare_npy_single_process, name_map_list), total=len(name_map_list)))
+    with multiprocessing.Pool(processes=num_processes) as pool:
+        _compare_npy_single_process = functools.partial(
+            _ms_cal_compare_npy_single_process,
+            normal_orig_dir=normal_orig_dir,
+            normal_target_dir=normal_target_dir,
+            rtol=rtol,
+            atol=atol,
+            equal_nan=equal_nan,
+            compare_shape=compare_shape,
+        )
+        result_list = list(tqdm(pool.imap(
+            _compare_npy_single_process, name_map_list), total=len(name_map_list)))
 
-        return print_adapter_diff_result(result_list, title=title, field_names=field_names,
-                                         output_file=output_file, show_shape_diff=compare_shape, show_dtype_diff=True,
-                                         frame_names=frame_names)
-    else:
-        with multiprocessing.Pool(processes=num_processes) as pool:
-            _compare_npy_single_process = functools.partial(
-                _ms_cal_compare_npy_single_process,
-                normal_orig_dir=normal_orig_dir,
-                normal_target_dir=normal_target_dir,
-                rtol=rtol,
-                atol=atol,
-                equal_nan=equal_nan,
-                compare_shape=compare_shape,
-            )
-            result_list = list(tqdm(pool.imap(
-                _compare_npy_single_process, name_map_list), total=len(name_map_list)))
-
-        return print_diff_result(result_list, title=title, field_names=field_names,
-                                 output_file=output_file, show_shape_diff=compare_shape)
+    return print_diff_result(result_list, title=title, field_names=field_names,
+                                output_file=output_file, show_shape_diff=compare_shape)
 
 
 def compare_grads_dir(orig_dir, target_dir, rtol=1e-4, atol=1e-4, equal_nan=False, compare_shape=True, output_file=None, num_processes=None):

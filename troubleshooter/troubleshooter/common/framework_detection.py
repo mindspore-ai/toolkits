@@ -46,17 +46,6 @@ def _detect_framework():
                         )
         else:
             raise e
-
-    try:
-        import mindtorch
-
-        FRAMEWORK_TYPE.add("mindtorch")
-    except ModuleNotFoundError as e:
-        e_msg = e.msg
-        no_module_msg = "No module named 'mindtorch'"
-        if e_msg != no_module_msg:
-            raise e
-
     try:
         import mindspore
 
@@ -72,12 +61,6 @@ class _ImportError:
     def __init__(self, name, depend) -> None:
         raise ImportError(f"For '{name}', {depend} must be installed, "
                           "please try again after installation.")
-
-
-class NetDifferenceFinder(_ImportError):
-    def __init__(self) -> None:
-        super(NetDifferenceFinder, self).__init__(
-            "ts.NetDifferenceFinder", "'torch' and 'mindspore'")
 
 
 class WeightMigrator(_ImportError):

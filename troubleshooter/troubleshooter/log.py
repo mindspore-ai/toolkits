@@ -93,6 +93,15 @@ def user_attention(msg, *args, **kwargs):
     msg = "[*User Attention*] " + msg
     _get_logger().warning(msg, *args, **kwargs)
 
+
 def critical(msg, *args, **kwargs):
     """Log a message with severity 'CRITICAL' on the MindSpore logger."""
     _get_logger().critical(msg, *args, **kwargs)
+
+
+def deprecated_api_alert(deprecated_api, deprecated_version, replacement=None):
+    msg = f"API '{deprecated_api}' has been deprecated since version '{deprecated_version}'."
+    if replacement:
+        msg += f" {replacement}"
+    _get_logger().warning(msg)
+    raise RuntimeError(msg)
