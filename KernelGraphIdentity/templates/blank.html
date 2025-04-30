@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>执行序预检</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+        <link rel="shortcut icon" href="{{ url_for('static', filename='icon.ico') }}">
+    </head>
+    <body>
+        <div id="graphs">
+            <div class="graph">
+                <iframe id="src-graph-iframe"></iframe>
+            </div>
+            <div class="graph">
+                <iframe id="dst-graph-iframe"></iframe>
+            </div>
+        </div>
+        <div id="control-panels">
+            <div class="control-panel">
+                <form method="post" enctype="multipart/form-data" class="set-file-form">
+                    <div class="set-file">
+                        <input type="file" id="src-file" required>
+                        <input type="button" value="设置文件" id="set-src-file-button">
+                    </div>
+                </form>
+                <form>
+                    <label for="src-anchor-line-num"></label>
+                    <input type="number" id="src-anchor-line-num" min="1" required>
+                    <input type="button" value="设置锚点行号" id="set-src-anchor-line-num-button">
+                </form>
+                <button id="set-src-anchor-button">设置锚点</button>
+                <button id="fuse-src-nodes-button">融合节点</button>
+            </div>
+            <div class="control-panel">
+                <button id="change-to-whole-graph-button">切换至整图</button>
+                <form>
+                    <label for="layer-num"></label>
+                    <input type="number" id="layer-num" min="1" required>
+                    <input type="button" value="设置层数" id="set-layer-num-button">
+                </form>
+                <button id="set-match-nodes-button">设置匹配节点</button>
+                <button id="compare-button">比较</button>
+                <button id="fuse-nodes-button">融合节点</button>
+            </div>
+            <div class="control-panel">
+                <form method="post" enctype="multipart/form-data" class="set-file-form">
+                    <div class="set-file">
+                        <input type="file" id="dst-file" required>
+                        <input type="button" value="设置文件" id="set-dst-file-button">
+                    </div>
+                </form>
+                <form>
+                    <label for="dst-anchor-line-num"></label>
+                    <input type="number" id="dst-anchor-line-num" min="1" required>
+                    <input type="button" value="设置锚点行号" id="set-dst-anchor-line-num-button">
+                </form>
+                <button id="set-dst-anchor-button">设置锚点</button>
+                <button id="fuse-dst-nodes-button">融合节点</button>
+            </div>
+        </div>
+        <script src="{{ url_for('static', filename='js/blank.js') }}"></script>
+    </body>
+</html>
