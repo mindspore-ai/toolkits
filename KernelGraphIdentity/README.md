@@ -10,25 +10,25 @@ KernelGraphIdentity 是 MindSpore 精度定位工具，用于比较两执行序�
 ## 2.2 运行程序
 只支持在windows平台使用。
 1. 运行 ExecutingOrderPreCheck.exe 程序。
-![运行程序](static\pictures\运行程序.png)
+![运行程序](static/pictures/运行程序.png)
 
 2. 程序会启动后台页面。
-![后台页面](static\pictures\后台页面.png)
+![后台页面](static/pictures/后台页面.png)
 
 3. 程序自动打开浏览器页面。
-![浏览器页面](static\pictures\浏览器页面.png)
+![浏览器页面](static/pictures/浏览器页面.png)
 
 4. 后台日志会记录在 exe 程序所在文件夹下，出现问题可以将该日志发送给开发人员定位。
-![后台日志](static\pictures\后台日志.png)
+![后台日志](static/pictures/后台日志.png)
 
 ## 2.3 界面介绍
 ### 2.3.1 界面组成
 由上下两半部分组成，上半部分为显示区，显示两张图，下半部分为控制区，点击其中的功能按钮进行相关控制。
-![界面上下两半部分](static\pictures\界面上下两半部分.png)
+![界面上下两半部分](static/pictures/界面上下两半部分.png)
 显示区分左右两张图，左图由左侧执行序文件生成，右图由右侧执行序文件生成。
-![界面上半部分左右两图](static\pictures\界面上半部分左右两图.png)
+![界面上半部分左右两图](static/pictures/界面上半部分左右两图.png)
 控制区分左控制区，中间控制区和右控制区，左控制区负责控制左图，中间控制区同时控制左右两张图，右控制区负责控制右图。
-![界面下半部分](static\pictures\界面下半部分.png)
+![界面下半部分](static/pictures/界面下半部分.png)
 
 ### 2.3.2 节点信息
 每个节点下有一行描述，包括三个信息：
@@ -37,7 +37,7 @@ KernelGraphIdentity 是 MindSpore 精度定位工具，用于比较两执行序�
 3. 算子所在拓扑层数
 
 如下图所示，算子类型为 L1LossExt，在执行序文件中的行号为 19984，所在拓扑层数为 0
-![节点](static\pictures\节点.png)
+![节点](static/pictures/节点.png)
 
 ### 2.3.3 节点颜色
 1. 橙色为锚点。
@@ -45,7 +45,7 @@ KernelGraphIdentity 是 MindSpore 精度定位工具，用于比较两执行序�
 3. 蓝色为未进行差异比较的算子。
 4. 红色为差异算子。
 5. 黄色为选中的算子。
-![节点颜色](static\pictures\节点颜色.png)
+![节点颜色](static/pictures/节点颜色.png)
 
 ### 2.3.4 节点选择
 1. 单击节点可以选择单个节点。
@@ -58,33 +58,33 @@ KernelGraphIdentity 是 MindSpore 精度定位工具，用于比较两执行序�
 ## 2.4 功能列表
 ### 2.4.1 设置执行序文件
 1. 点击 选择文件 按钮，选择左侧执行序文件。
-![选择文件](static\pictures\选择文件.png)
+![选择文件](static/pictures/选择文件.png)
 2. 选择文件后，点击 设置文件 按钮，程序会读取该执行序文件到左侧图中，默认展示执行序文件中第一个算子。
-![设置文件](static\pictures\设置文件.png)
+![设置文件](static/pictures/设置文件.png)
 3. 右侧同理。
 
 ### 2.4.2 设置锚点
 设置执行序文件后默认以执行序文件中第一个算子为锚点，可以手动设置其他锚点，设置方式有如下两种方式。
 #### 2.4.2.1 根据锚点在执行序文件中行号设置锚点
 1. 在执行序文件中找到锚点对应的行号，如下，以 L1LossExt 为例，行号为 19588。
-![锚点行号](static\pictures\锚点行号.png)
+![锚点行号](static/pictures/锚点行号.png)
 2. 输入行号，点击 设置锚点行号 按钮。锚点设置后会以拓扑分层的方式展示锚点依赖的算子，默认展示 10 层。
-![设置锚点行号](static\pictures\设置锚点行号.png)
+![设置锚点行号](static/pictures/设置锚点行号.png)
 
 #### 2.4.2.2 选择图中节点作为锚点
 1. 在图中点击要作为锚点的节点。
-![选择锚点](static\pictures\选择锚点.png)
+![选择锚点](static/pictures/选择锚点.png)
 2. 点击 设置锚点 按钮。
-![设置锚点](static\pictures\设置锚点.png)
+![设置锚点](static/pictures/设置锚点.png)
 
 ### 2.4.3 设置层数
 默认层数 10。
 输入层数，点击 设置层数 即可手动设置层数。
-![设置层数](static\pictures\设置层数.png)
+![设置层数](static/pictures/设置层数.png)
 
 ### 2.4.4 基于锚点比较两图，寻找差异点
 点击 比较 按钮，即可基于锚点向上自动查找差异点。绿色为无差异的点，红色为找到的差异点。
-![比较](static\pictures\比较.png)
+![比较](static/pictures/比较.png)
 识别到的差异有三种：
 1. 差异点在对面图中没有对应的算子。
 2. 差异点前驱算子不同。
@@ -92,26 +92,26 @@ KernelGraphIdentity 是 MindSpore 精度定位工具，用于比较两执行序�
 
 ### 2.4.5 通过节点融合消除差异
 以下图为例，差异原因是左侧Mul前驱算子为Add，右侧Mul前驱算子为GraphKernel_Div_split。
-![差异示例](static\pictures\差异示例.png)
+![差异示例](static/pictures/差异示例.png)
 经分析代码可知左侧MeanExt被拆分成了右侧GraphKernel_ReduceSum_split加GraphKernel_Div_split，同时左侧Mul和Add被优化掉。
 提供两种融合方式消除该差异。
 
 #### 2.4.5.1 左侧和右侧根据对标算子依次融合
 1. 选中右侧GraphKernel_ReduceSum_split加GraphKernel_Div_split算子，再选中左侧MeanExt算子，点击右侧 融合节点 按钮，
 将右侧GraphKernel_ReduceSum_split加GraphKernel_Div_split融合成与对端算子MeanExt一致的算子。
-![融合右侧算子](static\pictures\融合右侧算子.png)
+![融合右侧算子](static/pictures/融合右侧算子.png)
 2. 选中左侧MeanExt、Mul、Add算子，再选中右侧MeanExt算子，点击左侧 融合节点 按钮，
 将左侧MeanExt、Mul、Add融合成与对端算子MeanExt一致的算子。
-![融合左侧算子](static\pictures\融合左侧算子.png)
+![融合左侧算子](static/pictures/融合左侧算子.png)
 融合后的效果：
-![左右两侧分别融合后的效果](static\pictures\左右两侧分别融合后的效果.png)
+![左右两侧分别融合后的效果](static/pictures/左右两侧分别融合后的效果.png)
 
 #### 2.4.5.2 两侧同时融合
 选中右侧GraphKernel_ReduceSum_split加GraphKernel_Div_split算子，再选中左侧MeanExt、Mul、Add算子，点击中间 融合节点 按钮，
 将左右两侧选中算子同时融合成一致的算子。
-![两侧同时融合](static\pictures\两侧同时融合.png)
+![两侧同时融合](static/pictures/两侧同时融合.png)
 融合后的效果：
-![两侧同时融合后的效果](static\pictures\两侧同时融合后的效果.png)
+![两侧同时融合后的效果](static/pictures/两侧同时融合后的效果.png)
 
 ### 2.4.6 整图显示与比较
 点击 切换至整图 按钮，不再受 设置层数 按钮影响，左右两图同时展示整张图。
@@ -121,14 +121,14 @@ KernelGraphIdentity 是 MindSpore 精度定位工具，用于比较两执行序�
 查询到差异点后可能不想通过节点融合来消除差异，而是想继续看后续是否有其他差异，此时可以在原来比较结果的基础上选择两张图中认为匹配的点，在此基础上查询其他差异。
 具体步骤如下：
 1. 点击 比较 按钮查询差异。
-![比较](static\pictures\比较.png)
+![比较](static/pictures/比较.png)
 2. 选择认为匹配的点，点击 设置匹配节点 按钮，该过程可以执行多次。
 第一次
-![设置第一对匹配节点](static\pictures\设置第一对匹配节点.png)
+![设置第一对匹配节点](static/pictures/设置第一对匹配节点.png)
 第二次
-![设置第二对匹配节点](static\pictures\设置第二对匹配节点.png)
+![设置第二对匹配节点](static/pictures/设置第二对匹配节点.png)
 3. 点击 比较 按钮，查询基于设置的匹配节点的差异。
-![多锚点比较](static\pictures\多锚点比较.png)
+![多锚点比较](static/pictures/多锚点比较.png)
 
 # 3 使用场景及用例
 ## 3.1 同框架不同版本比对
@@ -166,14 +166,14 @@ class DataParallelLinear(nn.Cell):
 
 3. 打开执行序比对程序。
 4. 选择并设置左右图对应的执行序文件。
-![设置同框架不同版本执行序](static\pictures\设置同框架不同版本执行序.png)
+![设置同框架不同版本执行序](static/pictures/设置同框架不同版本执行序.png)
 5. 点击 切换至整图 按钮。
-![切换至整图](static\pictures\切换至整图.png)
+![切换至整图](static/pictures/切换至整图.png)
 6. 再点击 比较 按钮，即可找到两执行序的差异点。如图所示，绿色为无差异的点，蓝色为未进行匹配的点，绿色与蓝色分界处为差异层。
-![比较同框架不同版本差异](static\pictures\比较同框架不同版本差异.png)
+![比较同框架不同版本差异](static/pictures/比较同框架不同版本差异.png)
 7. 滚动鼠标滚轮可放大缩小图，放大图找到差异点。
-![缩放图找到同框架不同版本差异点](static\pictures\缩放图找到同框架不同版本差异点.png)
+![缩放图找到同框架不同版本差异点](static/pictures/缩放图找到同框架不同版本差异点.png)
 8. 可以根据后台输出得知差异原因。
 如下为示例打印的原因，Diff node key后以@为分隔符分隔出多个单元，第一个单元为差异算子单元，后续单元为差异算子的前驱算子单元，每个单元的格式为 (输出地址格式列表)<算子名-(输入地址格式列表)。
 可以看到差异原因是差异算子Transpose的前驱算子MatMulExt的输入地址shape存在差异。
-![同框架不同版本差异](static\pictures\同框架不同版本差异.png)
+![同框架不同版本差异](static/pictures/同框架不同版本差异.png)
