@@ -109,6 +109,7 @@ def _ignore_operator_type(operator_type: str) -> bool:
     ignore_operator_types = [
         "WaitEvent",
         "RecordEvent",
+        "AclWorkspace",
         "data"
     ]
     if operator_type in ignore_operator_types:
@@ -270,9 +271,11 @@ class ExecutingOrder:
                 continue
             if len(node.get_output_memory_ids()) == 0:
                 graph.remove_node(node)
+                self._node_manager.update_first_node(node)
                 continue
             self._remove_memory_ids_for_ignore_nodes(node)
             graph.remove_node(node)
+            self._node_manager.update_first_node(node)
 
     def _set_nodes_feature(self):
         for node in self._node_manager.get_all_nodes():
