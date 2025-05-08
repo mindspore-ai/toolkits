@@ -94,6 +94,7 @@ class NodeManager:
     def __init__(self):
         self._max_node_id = 0  # 节点id最小值为1，这里记录最大值
         self._node_id_to_node: dict[int, Node] = {}
+        self._first_node_node_id = 1
 
     def add_node(self, node: Node):
         self._max_node_id += 1
@@ -113,8 +114,12 @@ class NodeManager:
             if node.get_line_num() == line_num:
                 return node
 
+    def update_first_node(self, ignore_node: Node):
+        if self.get_first_node() == ignore_node:
+            self._first_node_node_id += 1
+
     def get_first_node(self) -> Node:
-        return self.get_node_by_node_id(1)
+        return self.get_node_by_node_id(self._first_node_node_id)
     
     def get_virtual_node(self) -> Node:
         return self.get_node_by_operator_type(VIRTUAL_NODE_OPERATOR_TYPE)
