@@ -25,10 +25,10 @@ from utils.profiling.profile_prepare import profile_prepare
 from ndsearch.build_initial_spaces import build_initial_spaces
 from ndsearch.expert_filter_configs import expert_filter_configs
 
-__all__ = ['taylor_search_tool']
+__all__ = ['search_tool']
 
 
-def taylor_search_tool(para):
+def search_tool(para):
     """
     A function for find out optimal ND parallel configuration.
 
@@ -118,4 +118,4 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     para = InputParam(args)
-    taylor_search_tool(para)
+    search_tool(para)

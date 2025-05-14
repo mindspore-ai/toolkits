@@ -104,7 +104,7 @@ def budget_profile_config_generator(config, available_devices):
     basic_config.extend([offset, recompute, num_layers - 1])
     return basic_config
 
-def taylor_pp_adaptor(profile_info):
+def pp_adaptor(profile_info):
     layer_ratio = (profile_info['dense_fw']+profile_info['dense_bw'])/(profile_info['moe_fw']+profile_info['moe_bw'])
     backward_ratio = (profile_info['moe_bw']/profile_info['moe_fw'])
     return layer_ratio, backward_ratio
