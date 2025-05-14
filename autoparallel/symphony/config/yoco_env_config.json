@@ -1,0 +1,14 @@
+{
+    "MS_SIMULATION_LEVEL": "1",
+    "GLOG_v": "3",
+    "MS_DEV_RUNTIME_CONF": "memory_statistics:True,inline:true",
+    "MS_MEMORY_STATISTIC": "1",
+    "ENABLE_LAZY_INLINE_PIPELINE": "1",
+    "MS_DEV_DUMP_IR_PASSES": "hwopt_d_after_stream_assign,valid",
+    "MS_ALLOC_CONF": "memory_tracker:True",
+    "ENABLE_LESS_MEM_VPP": "1",
+    "MS_DEV_JIT_SYNTAX_LEVEL": "0",
+    "ENABLE_LESS_MEM_VPP": "1",
+    "HCCL_INTRA_PCIE_ENABLE": "0",
+    "HCCL_INTRA_ROCE_ENABLE": "1"
+}
