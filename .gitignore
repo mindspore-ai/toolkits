@@ -156,3 +156,13 @@ cython_debug/
 .vscode
 troubleshooter/troubleshooter/version.py
 test_feature
+
+# KernelGraphIdentity
+/KernelGraphIdentity/ui_history
+/KernelGraphIdentity/static/dst_graph.html
+/KernelGraphIdentity/static/src_graph.html
+/KernelGraphIdentity/static/src.ir
+/KernelGraphIdentity/static/dst.ir
+/KernelGraphIdentity/build/
+/KernelGraphIdentity/ExecutingOrderPreCheck.spec
+/KernelGraphIdentity/*.log
