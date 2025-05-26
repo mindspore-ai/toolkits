@@ -8,6 +8,16 @@
         <link rel="shortcut icon" href="{{ url_for('static', filename='icon.ico') }}">
     </head>
     <body>
+        <div id="loading-overlay" style="display: none;">
+            <div class="loading-content">
+                <div class="loading-spinner"></div>
+                <div id="progress-bar-container">
+                    <div id="progress-bar"></div>
+                    <div id="progress-text">0%</div>
+                </div>
+                <p id="progress-message">处理中...</p>
+            </div>
+        </div>
         <div id="graphs">
             <div class="graph">
                 <iframe id="src-graph-iframe"></iframe>
@@ -30,8 +40,12 @@
                     <input type="button" value="设置锚点行号" id="set-src-anchor-line-num-button">
                 </form>
                 <button id="set-src-anchor-button">设置锚点</button>
-                <button id="fuse-src-nodes-button">融合节点</button>
             </div>
+            <label for="src-node-info"></label>
+            <textarea id="src-node-info" rows="10" cols="50" readonly
+                placeholder="点击节点查看节点信息..."
+                style="white-space: pre; overflow-x: auto"
+                wrap="soft"></textarea>
             <div class="control-panel">
                 <button id="change-to-whole-graph-button">切换至整图</button>
                 <form>
@@ -40,9 +54,29 @@
                     <input type="button" value="设置层数" id="set-layer-num-button">
                 </form>
                 <button id="set-match-nodes-button">设置匹配节点</button>
-                <button id="compare-button">比较</button>
-                <button id="fuse-nodes-button">融合节点</button>
+                <button id="delete-match-nodes-button">删除匹配节点</button>
+                <button id="up-compare-button">向上比较</button>
+                <button id="down-compare-button">向下比较</button>
+                <button id="fuse-nodes-button">等价子图替换</button>
+                <button id="delete-nodes-button">删除节点</button>
+                <button id="delete-edges-button">删除边</button>
+                <form id="focus-node-form">
+                    <label for="focus-node-line-num"></label>
+                    <input type="number" id="focus-node-line-num" placeholder="输入节点行号" required min="1" step="3" />
+                    <label for="focus-node-graph"></label>
+                    <select id="focus-node-graph">
+                        <option value="src">左侧图</option>
+                        <option value="dst">右侧图</option>
+                    </select>
+                    <button type="submit">聚焦</button>
+                </form>
+                <button id="undo-button">撤销</button>
             </div>
+            <label for="dst-node-info"></label>
+            <textarea id="dst-node-info" rows="10" cols="50" readonly
+                placeholder="点击节点查看节点信息..."
+                style="white-space: pre; overflow-x: auto"
+                wrap="soft"></textarea>
             <div class="control-panel">
                 <form method="post" enctype="multipart/form-data" class="set-file-form">
                     <div class="set-file">
@@ -56,7 +90,6 @@
                     <input type="button" value="设置锚点行号" id="set-dst-anchor-line-num-button">
                 </form>
                 <button id="set-dst-anchor-button">设置锚点</button>
-                <button id="fuse-dst-nodes-button">融合节点</button>
             </div>
         </div>
         <script src="{{ url_for('static', filename='js/blank.js') }}"></script>

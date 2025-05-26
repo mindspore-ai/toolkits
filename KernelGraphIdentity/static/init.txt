@@ -1,3 +1,6 @@
-() = init(), task_info: 0, attrs {stream_id=0}
-    () <- ()
+(%1) = start(), task_info: 0, attrs {stream_id=0}
+    (Bool:[]) <- ()
+    #
+() = end(%1), task_info: 0, attrs {stream_id=0}
+    () <- (Bool:[])
     #
