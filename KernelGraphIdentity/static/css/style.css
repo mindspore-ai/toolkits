@@ -1,5 +1,13 @@
+button,
+input,
+textarea,
+select {
+    font-size: inherit;
+}
+
 body {
     font-family: Arial, sans-serif;
+    font-size: 10px;
     margin: 0;
     padding: 0;
     background-color: #f4f4f9;
@@ -9,7 +17,7 @@ body {
 
 #graphs {
     display: flex;
-    height: 85vh;
+    height: 70vh;
     width: 100%;
     overflow: hidden;
 }
@@ -31,10 +39,8 @@ body {
 #control-panels {
     display: flex;
     justify-content: space-around;
-    padding: 10px;
     background-color: #fff;
-    border-top: 1px solid #ddd;
-    height: 15vh;
+    height: 30vh;
     width: 100%;
     overflow: hidden;
 }
@@ -43,12 +49,11 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 5px;
     overflow: hidden;
 }
 
 .control-panel > * {
-    width: 100%; /* 修改: 统一设置子元素宽度为100% */
+    width: 100%;
 }
 
 .control-panel form {
@@ -81,5 +86,66 @@ body {
 
 .set-file input[type="file"] {
     flex-grow: 1;
-    margin-right: 10px;
+}
+
+#loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loading-content {
+    text-align: center;
+    padding: 20px;
+    background: white;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.loading-spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 10px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#progress-bar-container {
+    width: 200px;
+    height: 20px;
+    background: #eee;
+    margin: 10px 0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+#progress-bar {
+    width: 0%;
+    height: 100%;
+    background: #3498db;
+    transition: width 0.3s ease;
+}
+
+#progress-text {
+    text-align: center;
+    margin-top: 5px;
+}
+
+#progress-message {
+    margin-top: 10px;
+    color: #666;
 }
