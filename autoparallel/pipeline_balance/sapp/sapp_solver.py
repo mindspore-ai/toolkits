@@ -44,7 +44,6 @@ class PipelineMemoryConstraint:
     micro_batch: int
     memory_limit: int
 
-
 class SappSolver:
     """solver for pipeline balance"""
 
@@ -58,6 +57,7 @@ class SappSolver:
     MAX_STAGE_TIME = "max_stage_time"
     MAX_LAST_CHUNK = "max_last_chunk"
     LAYER_FRONTIER = "layer_frontier"
+    REC_FRONTIER = "recompute_frontier"
     PROP_PHASE = IntEnum("Propagation", ["FW", "BW"], start=0)
 
     def __init__(
@@ -393,14 +393,19 @@ class SappSolver:
 
     def add_stage_nb_layer_constraint(self, prob, variables, sorted_layers):
         """Constraints to respect the total number of layer"""
-        for layer in sorted_layers[Layer.type_enum.BODY]:
-            for i in range(self.num_of_interleave_):
-                for s in range(self.num_of_stage_):
-                    prob += (lpSolver.lpSum(variables[layer.name_][rec][i][s]
-                                            for rec in Recompute.TYPE
-                                            if self.recompute_considered_[rec])
-                             >= 1)
+        layer_type_num = len(sorted_layers[Layer.type_enum.BODY])
+        for i in range(self.num_of_interleave_):
+            for s in range(self.num_of_stage_):
+                if not ((i == 0 and s == 0) or (
+                    i == self.num_of_interleave_ - 1 and
+                    s == self.num_of_stage_ - 1)):
+                    prob += (lpSolver.lpSum(variables[
+                        sorted_layers[Layer.type_enum.BODY][ll].name_][rec][i][s]
+                        for rec in Recompute.TYPE
+                        if self.recompute_considered_[rec]
+                        for ll in range(layer_type_num)) >= 1)
         return prob
+
 
     def add_multimodal_sequence_constraint(self, prob, variables, sorted_layers):
         """Constraints to enforce a frontier between the types of BODY layers"""
@@ -431,6 +436,43 @@ class SappSolver:
                             prob += variables[layer][rec][v][s] <= (
                                 1 - variables[self.LAYER_FRONTIER][frontier - 1][v][s]
                                 ) * self.BIG_M
+        return prob
+
+    def add_multimodal_recompute_constraint(self, prob, variables, sorted_layers):
+
+        # if (self.recompute_considered_[Recompute.TYPE.FULL] and
+        #     self.recompute_considered_[Recompute.TYPE.FULL]):
+
+        considered = Recompute.get_used_list(self.recompute_considered_)
+        if len(considered) > 2:
+            logger.error("Careful: MindFormer does not allow a fine recomputation scheme "
+                         "for heterogeneous models. Pipeline balancing is currently unable to "
+                         "comply with MF constraint for more than 1 recomputation type.")
+            return prob
+
+        if len(considered) < 2:
+            # this constraint is unnecessary if there is no recomputation
+            return prob
+
+        most_rec = max(considered)
+        layer_type_num = len(sorted_layers[Layer.type_enum.BODY])
+        for v in range(self.num_of_interleave_):
+            for s in range(self.num_of_stage_):
+                for rec in Recompute.TYPE:
+                    if self.recompute_considered_[rec] and rec is not Recompute.TYPE.NONE:
+                        for l in range(0, layer_type_num-1):
+                            prob += variables[self.REC_FRONTIER][v][s][l] >= (
+                                lpSolver.lpSum(variables[sorted_layers[Layer.type_enum.BODY][ll].name_][most_rec][v][s]
+                                               for ll in range(l+1, layer_type_num)) ) / self.BIG_M
+
+        least_rec = min(considered)
+        for l in range(0, layer_type_num-1):
+            layer = sorted_layers[Layer.type_enum.BODY][l].name_
+            for v in range(0, self.num_of_interleave_):
+                for s in range(0, self.num_of_stage_):
+                    prob += variables[layer][least_rec][v][s] <= (
+                        1 - variables[self.REC_FRONTIER][v][s][l]
+                        ) * self.BIG_M
         return prob
 
     @staticmethod
@@ -524,14 +566,10 @@ class SappSolver:
                 for inter_f in range(self.num_of_interleave_):
                     for inter_b in range(self.num_of_interleave_):
                         prob += max_stage_time >= (
-                            self._max_stage_bound_i_fp(layers_sorted, i_stage, inter_f)
-                            + self._max_stage_bound_i_bp(
-                                layers_sorted, i_stage, inter_b
-                            )
-                            + self._max_stage_bound_head_tail(
-                                layers_sorted, i_stage, inter_f, inter_b
-                            )
-                        )
+                             self._max_stage_bound_i_fp(layers_sorted, i_stage, inter_f) +
+                             self._max_stage_bound_i_bp(layers_sorted, i_stage, inter_b) +
+                             self._max_stage_bound_head_tail(layers_sorted, i_stage,
+                                                             inter_f, inter_b))
 
         return max_stage_time
 
@@ -917,8 +955,10 @@ class SappSolver:
                 self.num_of_interleave_,
                 activation_nums
             ).value()
-
-            overhead = self.variables_[self.MEM_OVERHEAD_NAME][s].varValue * overhead_factors[s]
+            
+            overhead = 0
+            if self.num_of_stage_ != self.num_of_micro_batch_:
+                overhead = self.variables_[self.MEM_OVERHEAD_NAME][s].varValue * overhead_factors[s]
 
             total = param_mem + act_mem + overhead + self.constant_memory_
 
@@ -929,11 +969,12 @@ class SappSolver:
             logger.info(f"Constant Memory:      {self.constant_memory_:.2f}")
             logger.info(f"Total Theoretical Memory: {total:.2f}")
 
+
     def solve(self, time_limit=90, dump_folder=None):
         """Solve the problem and print the results"""
         logger.info("solve:out folder = %s", dump_folder)
         self.dump_problem(dump_folder)
-        solver = lpSolver.getSolver("PULP_CBC_CMD", timeLimit=time_limit)
+        solver = lpSolver.getSolver("GUROBI", timeLimit=time_limit)
         self.problem_.solve(solver)
 
         self.print_results()
@@ -981,6 +1022,7 @@ class SappSolver:
         self.add_total_nb_layer_constraint(prob, self.variables_, layers_sorted)
         self.add_stage_nb_layer_constraint(prob, self.variables_, layers_sorted)
         self.add_multimodal_sequence_constraint(prob, self.variables_, layers_sorted)
+        self.add_multimodal_recompute_constraint(prob, self.variables_, layers_sorted)
         self.add_performance_constraint(prob, layers_sorted, pipeline_total_time)
 
         constraint = PipelineMemoryConstraint(
@@ -1028,8 +1070,6 @@ class SappSolver:
         prev_diff_list = list(prev_diff_dict.values())
         variables[self.PREV_DIFF] = prev_diff_list
 
-        logger.debug(f" range({self.LAYER_FRONTIER}) = "
-                     f"{range(1, len(self.layers_sorted_[Layer.type_enum.BODY]))}")
         layer_frontier_dict = lpSolver.LpVariable.dicts(
             name=self.LAYER_FRONTIER,
             indices=(
@@ -1042,6 +1082,19 @@ class SappSolver:
         )
         layer_frontier_list = list(layer_frontier_dict.values())
         variables[self.LAYER_FRONTIER] = layer_frontier_list
+
+        rec_frontier_dict = lpSolver.LpVariable.dicts(
+            name=self.REC_FRONTIER,
+            indices=(
+                range(0, self.num_of_interleave_),
+                range(0, self.num_of_stage_),
+                range(0, len(self.layers_sorted_[Layer.type_enum.BODY])-1)),
+            lowBound=0,
+            upBound=1,
+            cat=lpSolver.LpBinary
+        )
+        rec_frontier_list = list(rec_frontier_dict.values())
+        variables[self.REC_FRONTIER] = rec_frontier_list
 
         variables[self.NEXT_DIFF] = lpSolver.LpVariable(
             self.NEXT_DIFF, 0, None, lpSolver.LpContinuous)
@@ -1203,13 +1256,18 @@ class SappSolver:
 
         bound = lpSolver.LpAffineExpression()
 
+        head_time = 0
+        for head in layers_sorted[Layer.type_enum.HEAD]:
+            head_time = head.time_
+
         prob += max_prev_stages[0] >= (self.micro_batch_time(
-            self.PROP_PHASE.FW, layers_sorted, v, 0))
+            self.PROP_PHASE.FW, layers_sorted, v, 0)) - head_time
 
         for stage in range(1, self.num_of_stage_):
             prob += max_prev_stages[stage] >= max_prev_stages[stage - 1]
             prob += max_prev_stages[stage] >= (self.micro_batch_time(
                 self.PROP_PHASE.FW, layers_sorted, v, stage))
+
 
             prob += diff_with_prev_stages[stage] >= (
                 max_prev_stages[stage - 1] - self.micro_batch_time(

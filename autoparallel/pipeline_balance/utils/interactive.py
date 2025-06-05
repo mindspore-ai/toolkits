@@ -21,7 +21,11 @@ from toolkit.pipeline_balance.utils.layer import Layer
 import toolkit.pipeline_balance.utils.recompute as Recompute
 from toolkit.pipeline_balance.sapp.sapp_pipeline import SappPipeline
 from toolkit.pipeline_balance.utils.logger import logger
-from toolkit.pipeline_balance.utils.config import print_dryrun_config, generate_solvable_config
+from toolkit.pipeline_balance.utils.config import (
+    print_dryrun_config,
+    generate_solvable_config,
+    convert_to_mf_format,
+)
 
 YES_OR_NO = "[y/n]? "
 
@@ -107,24 +111,28 @@ def make_layer(t: Layer.type_enum, model_name):
                  memory_parameter=memory_parameter,)
 
 
-def dryrun_guide():
+def dryrun_guide(extracted_params: dict = None):
     """offer dryrun guidance"""
     considered_rec = []
     stage_num = 0
     num_layers = 0
-    s = input("Please enter the pipeline stage number" + default_v(stage_num))
-    if not is_empty(s):
-        stage_num = int(s)
-        _check_in_bounds(stage_num, "Pipeline stage number", 1, 10000)
-    else:
-        return
+    if not extracted_params:  
+        s = input("Please enter the pipeline stage number" + default_v(stage_num))
+        if not is_empty(s):
+            stage_num = int(s)
+            _check_in_bounds(stage_num, "Pipeline stage number", 1, 10000)
+        else:
+            return
 
-    s = input("Please enter the number of layers" + default_v(num_layers))
-    if not is_empty(s):
-        num_layers = int(s)
-        _check_in_bounds(num_layers, "Micro batch number", 1, 10000)
+        s = input("Please enter the number of layers" + default_v(num_layers))
+        if not is_empty(s):
+            num_layers = int(s)
+            _check_in_bounds(num_layers, "Micro batch number", 1, 10000)
+        else:
+            return
     else:
-        return
+        stage_num = extracted_params['pipeline_stage']
+        num_layers = extracted_params['num_layers']
 
     s = input("Do you consider full recomputation?" + YES_OR_NO)
     if is_yes(s):
@@ -143,8 +151,8 @@ def dryrun_guide():
         considered_rec.append(Recompute.TYPE.COMM)
 
     offset_config_list, rec_config_list = generate_solvable_config(stage_num, num_layers, considered_rec)
-    print_dryrun_config(offset_config_list, rec_config_list)
-
+    print_dryrun_config(convert_to_mf_format(offset_config_list, rec_config_list))
+    return offset_config_list, rec_config_list
 
 def main():
     s = input(
