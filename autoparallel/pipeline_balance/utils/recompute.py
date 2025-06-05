@@ -78,9 +78,14 @@ def sums(rec_dict):
     return x
 
 
-def zero_if_none(v):
-    if v is not None:
-        return int(v)
+def zero_if_none_var(v, i, s):
+    if v is not None and v[i][s].varValue is not None:
+        return int(v[i][s].varValue)
+    return 0
+
+def zero_if_none(v, i, s):
+    if v is not None and v[i][s] is not None:
+        return int(v[i][s])
     return 0
 
 
@@ -104,11 +109,11 @@ def yaml_from_internal(vpp, pp, lp_variables, nass):
         for s in range(pp):
             gass_i_s = 0
             for r in TYPE:
-                gass_i_s += zero_if_none(lp_variables[r][i][s].varValue)
-            slct_is = zero_if_none(lp_variables[TYPE.SLCT][i][s].varValue)
-            comm_is = zero_if_none(lp_variables[TYPE.COMM][i][s].varValue)
-            both_is = zero_if_none(lp_variables[TYPE.BOTH][i][s].varValue)
-            full_is = zero_if_none(lp_variables[TYPE.FULL][i][s].varValue)
+                gass_i_s += zero_if_none_var(lp_variables[r], i, s)
+            slct_is = zero_if_none_var(lp_variables[TYPE.SLCT], i, s)
+            comm_is = zero_if_none_var(lp_variables[TYPE.COMM], i, s)
+            both_is = zero_if_none_var(lp_variables[TYPE.BOTH], i, s)
+            full_is = zero_if_none_var(lp_variables[TYPE.FULL], i, s)
             yaml[OFFSET][i].append(gass_i_s - nass[i][s])
             yaml[YAML_NAME[TYPE.FULL]][i].append(full_is)
             yaml[YAML_NAME[TYPE.SLCT]][i].append(slct_is + both_is + full_is)
@@ -144,9 +149,9 @@ def internal_from_yaml(vpp, pp, yaml, nass):
         for _, v in layer_per_recompute.items():
             v.append([])
         for s in range(pp):
-            slct_is = zero_if_none(yaml[YAML_NAME[TYPE.SLCT]][i][s])
-            comm_is = zero_if_none(yaml[YAML_NAME[TYPE.COMM]][i][s])
-            full_is = zero_if_none(yaml[YAML_NAME[TYPE.FULL]][i][s])
+            slct_is = zero_if_none(yaml[YAML_NAME[TYPE.SLCT]], i, s)
+            comm_is = zero_if_none(yaml[YAML_NAME[TYPE.COMM]], i, s)
+            full_is = zero_if_none(yaml[YAML_NAME[TYPE.FULL]], i, s)
             layer_per_recompute[TYPE.FULL][i].append(full_is)
             layer_per_recompute[TYPE.BOTH][i].append(
                 max(min(slct_is - full_is, comm_is - full_is), 0)

@@ -39,9 +39,9 @@ for((i=0; i<$PIPELINE_STAGES; i++))
 do
     export STAGE_ID=$i
     export RANK_ID=$(((i)*RANK_GAP))
-    mkdir -p ./$OUTPUT_FOLDER/log/stage${STAGE_ID}_$RANK_ID
+    mkdir -p ./$OUTPUT_FOLDER
     echo "start training for rank $RANK_ID, stage $STAGE_ID"
-    $EXECUTE_ORDER &> ./$OUTPUT_FOLDER/log/stage${STAGE_ID}_$RANK_ID/mindformer.log &
+    $EXECUTE_ORDER &> ./$OUTPUT_FOLDER/stage${STAGE_ID}_$RANK_ID.log &
 done
 
 shopt -u extglob

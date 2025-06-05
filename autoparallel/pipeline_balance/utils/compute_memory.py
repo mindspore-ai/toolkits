@@ -119,8 +119,7 @@ class ComputeMemory:
                 if stage.nb_layer_rec_[rec] > 0:
                     self.recompute_considered_[rec] = True
 
-    @staticmethod
-    def _compute_memory_parameter_local_(stage1: Stage, stage2: Stage) -> float:
+    def _compute_memory_parameter_local_(self, stage1: Stage, stage2: Stage) -> float:
         """
         Given 2 stages information with the same configuration, and different id,
         Compute the memory_parameter
@@ -430,22 +429,3 @@ class ComputeMemory:
             self.memory_tail_ = self._compute_memory_tail_()
         return self.memory_tail_
 
-
-def compute_memories(layers: list[Layer], memory_folder: str, number_of_stage: int) -> list[Layer]:
-    """compute memories"""
-    filename = ""
-    # Put some meta information in a predefine .json file like layers info?
-    with open(memory_folder + filename, encoding="utf-8"):
-        pass
-    cm = ComputeMemory(number_of_stage=number_of_stage, stages_A=[], stages_B=[])
-
-    for layer in layers:
-        if layer.type_ == Layer.type_enum.HEAD:
-            layer.memory_parameter_ = cm.get_memory_head()
-        elif layer.type_ == Layer.type_enum.TAIL:
-            layer.memory_parameter_ = cm.get_memory_tail()
-        elif layer.type_ == Layer.type_enum.BODY:
-            layer.memory_parameter_ = cm.get_memory_parameter()
-            for rec in Recompute.TYPE:
-                layer.memory_activation_rec_[rec] = cm.get_memory_activation(rec)
-    return layers

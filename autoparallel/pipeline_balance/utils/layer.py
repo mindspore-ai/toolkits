@@ -97,13 +97,11 @@ class Layer:
                 result += str(self.backward_time_rec_[r]) + '\n'
         return result
 
-    @staticmethod
-    def dump(dump_file: str):
+    def dump(self, dump_file: str):
         """Dump json file for this specific layer"""
         logger.error("dump file (%s) Not implemented yet!!!", dump_file)
 
-    @staticmethod
-    def to_json():
+    def to_json(self):
         """Generate json representation of this object"""
         logger.error("Not implemented yet!!!")
 
@@ -158,8 +156,7 @@ class Layer:
         self.time_ = layer_time.layer_with_cost_list.get(self.name_)
         self.compute_internal_time(force_fb=True)
 
-    @staticmethod
-    def compute_memory(memory_folder: str = './memory'):
+    def compute_memory(self, memory_folder: str = './memory'):
         """ "Compute the memory information from the (dry) run logs"""
         logger.error("compute_memory (%s) Not implemented yet!!!", memory_folder)
 

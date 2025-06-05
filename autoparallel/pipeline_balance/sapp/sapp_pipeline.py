@@ -55,7 +55,6 @@ class SappPipeline:
         self.extracted_training_params_ = extracted_training_params
         self.seq_split_num_ = seq_split_num
         self.seqpipe_ = self.seq_split_num_ > 1
-        # logger.output("seq chunk: %s",self.seq_split_num_)
 
         self.problem_ = None
         self.layers_ = layers
@@ -143,45 +142,43 @@ class SappPipeline:
             logger.output(yaml_results)
 
     def get_manual_memory_activation(self,
-                                     layer_per_recompute,
+                                     each_layer_per_recompute,
                                      interleave_num=1) -> list[float]:
         """
         Give the activation memory per stage for manual layer assignment without
         interleave for simulator.
         """
         memory_active = []
-        unused_rec = Recompute.get_unused_list(layer_per_recompute)
-        for layer in self.layers_sorted_[Layer.type_enum.BODY]:
-            if self.has_some_memory_info():
-                for inter in range(interleave_num):
-                    memory_active.append([])
-                    for stage in range(self.num_of_stage_):
-                        memory_active[inter].append(0)
-                        memory_active[inter][stage] = sum(
-                            layer_per_recompute[rec][inter][stage] *
-                            layer.memory_activation_rec_[rec]
-                            for rec in Recompute.TYPE if rec not in unused_rec
-                            and layer_per_recompute[rec][inter][stage] > 0)
+        if self.has_some_memory_info():
+            for inter in range(interleave_num):
+                memory_active.append([])
+                for stage in range(self.num_of_stage_):
+                    memory_active[inter].append(sum(
+                        each_layer_per_recompute[layer][rec][inter][stage] *
+                        layer.memory_activation_rec_[rec]
+                        for layer in self.layers_sorted_[Layer.type_enum.BODY]
+                        for rec in Recompute.TYPE
+                        if rec not in Recompute.get_unused_list(each_layer_per_recompute[layer])
+                        and each_layer_per_recompute[layer][rec][inter][stage] > 0))
         return memory_active
 
     def get_manual_memory_parameter(self,
-                                    layer_per_recompute,
+                                    each_layer_per_recompute,
                                     interleave_num=1) -> list[float]:
         """
         Give the parameter memory per stage for manual layer assignment
         without interleave for simulator.
         """
-        unused_rec = Recompute.get_unused_list(layer_per_recompute)
         memory_param_stage = [0] * self.num_of_stage_
-        for layer in self.layers_sorted_[Layer.type_enum.BODY]:
-            if layer.memory_parameter_ is not None:
-                for inter in range(interleave_num):
-                    for stage in range(self.num_of_stage_):
-                        memory_param_stage[stage] += sum(
-                            layer_per_recompute[rec][inter][stage] *
-                            layer.memory_parameter_ for rec in Recompute.TYPE
-                            if rec not in unused_rec
-                            and layer_per_recompute[rec][inter][stage] > 0)
+        for inter in range(interleave_num):
+            for stage in range(self.num_of_stage_):
+                memory_param_stage[stage] += sum(
+                    each_layer_per_recompute[layer][rec][inter][stage] *
+                    layer.memory_parameter_ for rec in Recompute.TYPE
+                    for layer in self.layers_sorted_[Layer.type_enum.BODY]
+                    if layer.memory_parameter_ is not None
+                    and rec not in Recompute.get_unused_list(each_layer_per_recompute[layer])
+                    and each_layer_per_recompute[layer][rec][inter][stage] > 0)
         for head in self.layers_sorted_[Layer.type_enum.HEAD]:
             if head.memory_parameter_ is not None:
                 memory_param_stage[0] += head.memory_parameter_
@@ -193,24 +190,24 @@ class SappPipeline:
         return memory_param
 
     def get_manual_time(self,
-                        layer_per_recompute,
+                        each_layer_per_recompute,
                         interleave_num=1) -> list[float]:
         """
         Get the time per stage for a naive layer assignment
         without interleave for simulator.
         """
         time = []
-        rec = Recompute.TYPE.NONE
+        r = Recompute.TYPE.NONE
         for i in range(interleave_num):
             time.append([])
             for s in range(self.num_of_stage_):
                 time[i].append(0)
                 for layer in self.layers_sorted_[Layer.type_enum.BODY]:
-                    for rec in Recompute.TYPE:
-                        if layer_per_recompute[rec][i][s] > 0:
-                            time[i][s] += layer_per_recompute[rec][i][s] * (
-                                layer.forward_time_ +
-                                layer.backward_time_rec_[rec])
+                    for r in Recompute.TYPE:
+                            if each_layer_per_recompute[layer][r][i][s] > 0:
+                                time[i][s] += each_layer_per_recompute[layer][r][i][s] * (
+                                    layer.forward_time_ +
+                                    layer.backward_time_rec_[r])
 
         for head in self.layers_sorted_[Layer.type_enum.HEAD]:
             time[0][0] += head.time_
@@ -219,24 +216,23 @@ class SappPipeline:
         return time
 
     def get_manual_fw_time(self,
-                           layer_per_recompute,
+                           each_layer_per_recompute,
                            interleave_num=1) -> list[float]:
         """
         Give the time per stage for a naive layer assignment
         without interleave for simulator.
         """
         time = []
-        rec = Recompute.TYPE.NONE
-        unused_rec = Recompute.get_unused_list(layer_per_recompute)
+        r = Recompute.TYPE.NONE
         for i in range(interleave_num):
             time.append([])
             for s in range(self.num_of_stage_):
                 time[i].append(0)
                 for layer in self.layers_sorted_[Layer.type_enum.BODY]:
-                    for rec in Recompute.TYPE:
-                        if rec not in unused_rec and layer_per_recompute[rec][
-                                i][s] > 0:
-                            time[i][s] += layer_per_recompute[rec][i][s] * (
+                    for r in Recompute.TYPE:
+                        if (r not in Recompute.get_unused_list(each_layer_per_recompute[layer])
+                            and each_layer_per_recompute[layer][r][i][s] > 0):
+                            time[i][s] += each_layer_per_recompute[layer][r][i][s] * (
                                 layer.forward_time_)
         for head in self.layers_sorted_[Layer.type_enum.HEAD]:
             time[0][0] += head.time_
@@ -245,7 +241,7 @@ class SappPipeline:
         return time
 
     def get_manual_recompute_time(self,
-                                  layer_per_recompute,
+                                  each_layer_per_recompute,
                                   interleave_num=1) -> list[float]:
         """
         Give the time per stage for a manual layer assignment
@@ -253,7 +249,6 @@ class SappPipeline:
         """
         time_all_rec = []
         time_no_rec = []
-        unused_rec = Recompute.get_unused_list(layer_per_recompute)
         for i in range(interleave_num):
             time_all_rec.append([])
             time_no_rec.append([])
@@ -261,12 +256,12 @@ class SappPipeline:
                 time_all_rec[i].append(0)
                 time_no_rec[i].append(0)
                 for layer in self.layers_sorted_[Layer.type_enum.BODY]:
-                    for rec in Recompute.TYPE:
-                        if rec not in unused_rec and layer_per_recompute[rec][
-                                i][s] > 0:
-                            time_all_rec[i][s] += layer_per_recompute[rec][i][
-                                s] * (layer.backward_time_rec_[rec])
-                            time_no_rec[i][s] += layer_per_recompute[rec][i][
+                    for r in Recompute.TYPE:
+                        if (r not in Recompute.get_unused_list(each_layer_per_recompute[layer])
+                            and each_layer_per_recompute[layer][r][i][s] > 0):
+                            time_all_rec[i][s] += each_layer_per_recompute[layer][r][i][
+                                s] * (layer.backward_time_rec_[r])
+                            time_no_rec[i][s] += each_layer_per_recompute[layer][r][i][
                                 s] * (layer.backward_time_rec_[
                                     Recompute.TYPE.NONE])
 
@@ -367,14 +362,16 @@ class SappPipeline:
 
     def simulate_yaml(self, yaml_format, show=True, interleave_num=1,
                       file_name=None, sub_fig=None):
+        layer_num = 0
         for layer in self.layers_sorted_[Layer.type_enum.BODY]:
-            layer_num = layer.nb_layer_
+            layer_num += layer.nb_layer_
         nass = self.naive_layer_per_stage(layer_num,
                                           num_of_interleave=interleave_num)
         layer_per_recompute = Recompute.internal_from_yaml(
             interleave_num, self.num_of_stage_, yaml_format, nass)
+        each_layer_per_recompute = self.split_layer_per_recompute(layer_per_recompute)
         return self.simulate_manual(
-            layer_per_recompute,
+            each_layer_per_recompute,
             show,
             interleave_num=interleave_num,
             file_name=file_name,
@@ -386,7 +383,7 @@ class SappPipeline:
     ##                      Print Solver Model                           ##
     ##                                                                   ##
     #######################################################################
-    def _calculate_activation_memory(self, layer_per_recompute, v, s):
+    def _calculate_activation_memory(self, each_layer_per_recompute, v, s):
         """Calculate activation memory for next and current stage"""
         act_mem_next = 0
         act_mem_curr = 0
@@ -394,22 +391,22 @@ class SappPipeline:
         for layer in self.layers_sorted_[Layer.type_enum.BODY]:
             for rec in Recompute.TYPE:
                 if self.problem_.recompute_considered_[rec]:
-                    if layer_per_recompute[rec][v + 1][s] > 0:  # next
-                        act_mem_next += (layer_per_recompute[rec][v + 1][s] *
+                    if each_layer_per_recompute[layer][rec][v + 1][s] > 0:  # next
+                        act_mem_next += (each_layer_per_recompute[layer][rec][v + 1][s] *
                                          layer.memory_activation_rec_[rec])
-                    if layer_per_recompute[rec][v][s] > 0:    # current
-                        act_mem_curr += (layer_per_recompute[rec][v][s] *
+                    if each_layer_per_recompute[layer][rec][v][s] > 0:    # current
+                        act_mem_curr += (each_layer_per_recompute[layer][rec][v][s] *
                                          layer.memory_activation_rec_[rec])
 
         return act_mem_next, act_mem_curr
 
-    def _compute_parameter_memory_manually_solver(self, layer_per_recompute, s, interleave_num=1):
+    def _compute_parameter_memory_manually_solver(self, each_layer_per_recompute, s, interleave_num=1):
         """Solver memory model: parameter memory"""
         param_mem = 0
         for layer in self.layers_sorted_[Layer.type_enum.BODY]:
             if layer.memory_parameter_ is not None:
                 param_mem += self._calculate_layer_parameter_memory(
-                    layer, layer_per_recompute, s, interleave_num)
+                    layer, each_layer_per_recompute[layer], s, interleave_num)
         return param_mem
 
     def _calculate_layer_parameter_memory(self, layer, layer_per_recompute, s, interleave_num):
@@ -422,21 +419,21 @@ class SappPipeline:
                         layer_mem += layer_per_recompute[rec][inter][s] * layer.memory_parameter_
         return layer_mem
 
-    def _calculate_activation_memory_solver(self, layer_per_recompute, s, interleave_num, activation_nums):
+    def _calculate_activation_memory_solver(self, each_layer_per_recompute, s, interleave_num, activation_nums):
         """Calculate activation memory for a given stage"""
         act_mem = 0
         for layer in self.layers_sorted_[Layer.type_enum.BODY]:
             for inter in range(interleave_num):
                 for rec in Recompute.TYPE:
                     if self.problem_.recompute_considered_[rec]:
-                        if layer_per_recompute[rec][inter][s] > 0:
-                            act_mem += (layer_per_recompute[rec][inter][s] *
+                        if each_layer_per_recompute[layer][rec][inter][s] > 0:
+                            act_mem += (each_layer_per_recompute[layer][rec][inter][s] *
                                         layer.memory_activation_rec_[rec] *
                                         activation_nums[inter][s])
         return act_mem
 
 
-    def debug_print_manual_theoretical_memory(self, layer_per_recompute, interleave_num=1):
+    def debug_print_manual_theoretical_memory(self, each_layer_per_recompute, interleave_num=1):
         """print solver theoretical memory model"""
         logger.info("%s Manual Theoretical Memory Analysis %s", "=" * 20, "=" * 20)
 
@@ -461,7 +458,7 @@ class SappPipeline:
         for s in range(self.num_of_stage_):
 
             # parameter memory
-            param_mem = self._compute_parameter_memory_manually_solver(layer_per_recompute, s, interleave_num)
+            param_mem = self._compute_parameter_memory_manually_solver(each_layer_per_recompute, s, interleave_num)
 
             # head memory
             if s == 0:
@@ -476,7 +473,7 @@ class SappPipeline:
                         param_mem += tail.memory_parameter_
 
             # act memory
-            act_mem = self._calculate_activation_memory_solver(layer_per_recompute, s,
+            act_mem = self._calculate_activation_memory_solver(each_layer_per_recompute, s,
                                                                interleave_num, activation_nums)
 
             # overhead
@@ -491,42 +488,75 @@ class SappPipeline:
             logger.info(f"Constant Memory:      {self.constant_memory_:.2f}")
             logger.info(f"Total Theoretical Memory: {total:.2f}")
 
+    def split_layer_per_recompute(self, layer_per_recompute):
+        each_layer_per_recompute = {}
+        for layer in self.layers_sorted_[Layer.type_enum.BODY]:
+            rest = layer.nb_layer_
+            each_layer_per_recompute[layer] = {r: [] for r in Recompute.TYPE}
+            for rec in Recompute.TYPE:
+                for i in range(self.num_of_interleave_):
+                    each_layer_per_recompute[layer][rec].append([0]*self.num_of_stage_)
+                    for s in range(self.num_of_stage_):
+                        substract = min(layer_per_recompute[rec][i][s], rest)
+                        layer_per_recompute[rec][i][s] -= substract
+                        rest -= substract
+                        each_layer_per_recompute[layer][rec][i][s] += substract
+        return each_layer_per_recompute
+
+    def fuse_layer_per_recompute(self, each_layer_per_recompute):
+        all_layers_per_recompute = {r: [] for r in Recompute.TYPE}
+        for rec in Recompute.TYPE:
+            for i in range(self.num_of_interleave_):
+                all_layers_per_recompute[rec].append([])
+                for s in range(self.num_of_stage_):
+                    all_layers_per_recompute[rec][i].append(sum(
+                        each_layer_per_recompute[layer][rec][i][s]
+                        for layer in self.layers_sorted_[Layer.type_enum.BODY]
+                    ))
+        return all_layers_per_recompute
+
+
     def simulate_manual(self,
-                        layer_per_recompute=None,
+                        each_layer_per_recompute=None,
                         show=True,
                         interleave_num=1,
                         file_name=None,
                         sub_fig=None):
         """Use simulator to visualize output."""
-        for layer in layer_per_recompute.values():
-            if len(layer) != interleave_num:
-                logger.error(
-                    f"number of list {len(layer)} does not match interleave number {interleave_num}"
-                )
-                return sys.maxsize
+        logger.output(f"Simulating given strategy: {each_layer_per_recompute}")
 
-        for rec in Recompute.TYPE:
-            if any(x < 0 for sublist in layer_per_recompute[rec]
-                   for x in sublist):
-                raise ValueError(
-                    f"in {Recompute.YAML_NAME[rec]}, there is strategy less than 0"
-                )
+        for layer in self.layers_sorted_[Layer.type_enum.BODY]:
+            for rec in Recompute.TYPE:
+                if len(each_layer_per_recompute[layer][rec]) != interleave_num:
+                    logger.error(
+                        f"For layer {layer} with recompute {rec}, "
+                        f"{len(each_layer_per_recompute[layer][rec])} does not "
+                        f"match interleave number {interleave_num}"
+                    )
+                    return sys.maxsize
 
-        logger.output(f"Simulating given strategy: {layer_per_recompute}")
+        for layer in self.layers_sorted_[Layer.type_enum.BODY]:
+            for rec in Recompute.TYPE:
+                if any(x < 0 for sublist in each_layer_per_recompute[layer][rec]
+                    for x in sublist):
+                    raise ValueError(
+                        f"for {rec}, there is strategy less than 0 in "
+                        f"{each_layer_per_recompute[layer][rec]}"
+                    )
 
-        forward_time = self.get_manual_fw_time(layer_per_recompute,
+        forward_time = self.get_manual_fw_time(each_layer_per_recompute,
                                                interleave_num)
         recompute_overhead = self.get_manual_recompute_time(
-            layer_per_recompute, interleave_num)
+            each_layer_per_recompute, interleave_num)
         stage_mem_par = 0
         stage_mem_act = 0
         if self.has_some_memory_info():
             stage_mem_par = self.get_manual_memory_parameter(
-                layer_per_recompute, interleave_num=interleave_num)
+                each_layer_per_recompute, interleave_num=interleave_num)
             stage_mem_act = self.get_manual_memory_activation(
-                layer_per_recompute, interleave_num=interleave_num)
+                each_layer_per_recompute, interleave_num=interleave_num)
 
-        self.debug_print_manual_theoretical_memory(layer_per_recompute, interleave_num)
+        self.debug_print_manual_theoretical_memory(each_layer_per_recompute, interleave_num)
 
         return self.simulation(
             forward_time,
