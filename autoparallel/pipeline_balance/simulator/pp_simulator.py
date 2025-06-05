@@ -292,7 +292,9 @@ class PipelineSimulator:
         r"""compute statistic info"""
         for p in range(self.pp):
             blocks = self.lines[p] if self._comm else self.blocks[p]
-            current_mem = self.constant_mem + blocks[0].mem_par
+            current_mem = self.constant_mem
+            if blocks[0].mem_par != None:
+                current_mem += blocks[0].mem_par
 
             for block in blocks:
                 if block.type == 'c' and block.state == 'f':

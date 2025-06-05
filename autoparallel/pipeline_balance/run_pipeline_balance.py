@@ -18,10 +18,10 @@ import sys
 import argparse
 
 from toolkit.pipeline_balance.utils.logger import logger
-from toolkit.pipeline_balance.utils.config import initialize_layer_json, get_stage_const_mem, parse_training_config
+from toolkit.pipeline_balance.utils.config import convert_init_to_sapp, get_stage_const_mem, parse_training_config
 from toolkit.pipeline_balance.utils.layer import generate_layers_list
-from toolkit.pipeline_balance.utils.compute_memory import compute_memories
 from toolkit.pipeline_balance.sapp.sapp_pipeline import SappPipeline
+from toolkit.pipeline_balance.utils.dryrun import auto_ppb
 import toolkit.pipeline_balance.utils.interactive as Interactive
 
 if __name__ == "__main__":
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     # Memory size
     parser.add_argument('-mem', '--max_memory', type=int, default=56000,
                         help="Maximum memory available (MB)")
-
+    # vpp schedule
     parser.add_argument('-lm', '--less_memory',
                         type=lambda x: (str(x).lower() in ['true', '1', 'yes']), default=False,
                         help="Compute Memory with 'Less Memory interleave' option")
@@ -74,23 +74,17 @@ if __name__ == "__main__":
                         type=lambda x: (str(x).lower() in ['true', '1', 'yes']), default=False,
                         help="Dump the layers")
 
-    # For Computation of memory
-    parser.add_argument('-mf', '--memory_folder', type=str, default="./memory/",
-                        help="Path to the profiler memory folder")
     # For Initialization
     parser.add_argument('-init', '--init', type=str, default=None,
                         help="Path to the init file")
 
     # Computation argument
-    parser.add_argument('-cm', '--compute_memory',  # type=bool,
-                        type=lambda x: (str(x).lower() in ['true', '1', 'yes']), default=False,
-                        help="Parse Mindspore log to generate MEMORY of the layer (unavailable)",)
     parser.add_argument('-exec', '--exec',  # type=bool,
                         type=lambda x: (str(x).lower() in ['true', '1', 'yes']), default=True,
                         help="Compute solver")
 
-    # Dryrun Config
-    parser.add_argument('-guide', '--guide', action='store_true', help="Help to instruct dryrun")
+    # Auto dryrun
+    parser.add_argument('-auto', '--auto_ppb', action='store_true', help="Fully automate pipeline balance")
     # Training Yaml configuration
     parser.add_argument('-train', '--training_config', type=str, default=None,
                         help="Path of training config (.ymal)")
@@ -101,19 +95,12 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    if args.guide:
-        Interactive.dryrun_guide()
-        sys.exit(0)
-
     if len(sys.argv) == 1:
         Interactive.main()
         sys.exit(0)
 
     layer_folder = args.layer_folder
-    memory_folder = args.memory_folder
     model_name = args.model_name
-    number_of_stage = args.stage
-    number_of_micro_batch = args.micro_batch
     time_limit = args.time_limit
     less_memory = args.less_memory
 
@@ -126,8 +113,20 @@ if __name__ == "__main__":
 
         if training_config_path.endswith('yaml') or training_config_path.endswith('yml'):
             extracted_training_params = parse_training_config(training_config_path)
+            logger.output("Extracted training parameters:")
+            for key, value in extracted_training_params.items():
+                logger.output("%s: %s", key, value)
+            number_of_stage = extracted_training_params["pipeline_stage"]
+            number_of_micro_batch = extracted_training_params["micro_batch_num"]
         else:
             logger.error("Training config file must be a YAML file")
+    if args.stage:
+        number_of_stage = args.stage
+    if args.micro_batch:
+        number_of_micro_batch = args.micro_batch
+
+    if args.auto_ppb:
+        auto_ppb(training_config_path, None, model_name)
 
     seq_split_num = args.seq
 
@@ -146,7 +145,7 @@ if __name__ == "__main__":
 
     if args.init:
         init_file = os.path.join(os.path.dirname(__file__), args.init)
-        initialize_layer_json(model_name, init_file)
+        convert_init_to_sapp(model_name, init_file)
 
     output_folder = os.path.join(os.path.dirname(__file__), args.output_folder)
     if not os.path.exists(output_folder):
@@ -165,9 +164,6 @@ if __name__ == "__main__":
     layers = generate_layers_list(layer_folder, model_name)
     constant_memory = get_stage_const_mem(layer_folder, model_name)
 
-    if args.compute_memory:
-        layers = compute_memories(layers=layers, memory_folder=memory_folder,
-                                  number_of_stage=number_of_stage)
     for layer in layers:
         logger.output("%s", layer)
 

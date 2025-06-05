@@ -26,7 +26,8 @@ from toolkit.pipeline_balance.utils.check_rules import check_yaml_depth_before_l
 from toolkit.pipeline_balance.utils.logger import logger
 from toolkit.pipeline_balance.sapp.sapp_solver import SappSolver
 from toolkit.pipeline_balance.utils.layer import Layer
-from toolkit.pipeline_balance.utils.compute_memory import Stage, ComputeMemory
+from toolkit.pipeline_balance.utils.compute_memory import ComputeMemory
+from toolkit.pipeline_balance.utils.stage import StagesBuilder
 import toolkit.pipeline_balance.utils.recompute as Recompute
 from toolkit.pipeline_balance.utils.computation_analyzer import ComputationAnalyzer
 
@@ -103,7 +104,7 @@ class ModelInfo:
         self.to_json_ = json_data
 
     def dump_json(self, file_name):
-        with open(file_name, "w") as json_file:
+        with open(file_name, "w+") as json_file:
             json.dump(self.to_json_, json_file, indent=4)
 
 
@@ -171,70 +172,6 @@ def time_parser(file_name: str, model_name: str):
     return head_time, body_time, tail_time
 
 
-def process_offset(offset, pipeline_num):
-    """process input offset"""
-    rounds = 1
-    if isinstance(offset, int) and offset == 0:
-        offset = [0] * pipeline_num
-    # if offset is list of lists (usually when pp=4)
-    elif isinstance(offset, list) and any(isinstance(item, list) for item in offset):
-        tmp_offset = []
-        for item in offset:
-            if isinstance(item, int) and item == 0:
-                tmp_offset.append([0] * pipeline_num)
-            elif not (isinstance(item, list) and len(item) == pipeline_num):
-                raise ValueError(f"Unsupported input format offset: {item},",
-                                 f"please check the length of your offset list and the pipeline number")
-            else:
-                tmp_offset.append(item)
-        offset = tmp_offset
-        rounds = len(offset)
-    elif not (isinstance(offset, list) and len(offset) == pipeline_num):
-        raise ValueError(f"Unsupported input format offset: {offset},",
-                         "please check the length of your offset list and the pipeline number")
-
-    return offset, rounds
-
-
-def process_rec_config(
-        layer_per_stage: int, pipeline_num: int, offset: list[int], rec_config
-):
-    """process recomputation config into a dict"""
-    if rec_config is None or offset is None:
-        return None
-    if isinstance(rec_config, bool):
-        if rec_config:
-            rec_config = [layer_per_stage] * pipeline_num
-            rec_config = [recom + bias for recom, bias in (rec_config, offset)]
-        else:
-            rec_config = [0] * pipeline_num
-        rec_config = [rec_config]
-    elif isinstance(rec_config, list) and len(rec_config) == pipeline_num:
-        # in order to be compatible with internal_from_yaml, change list into double list
-        rec_config = [rec_config]
-    else:
-        raise ValueError(f"Unsupported input format recompute: {rec_config}, please check the length of list")
-
-    return rec_config
-
-
-def instantiate_stage(stage_id, pipeline_num, nb_layer, layer_per_recompute, memory):
-    """instantiate a stage"""
-    stage = Stage(
-        sid=stage_id,
-        nb_stage=pipeline_num,
-        nb_layer=nb_layer,
-        nb_layer_rec={
-            Recompute.TYPE.COMM: layer_per_recompute[Recompute.TYPE.COMM][0][stage_id],
-            Recompute.TYPE.FULL: layer_per_recompute[Recompute.TYPE.FULL][0][stage_id],
-            Recompute.TYPE.SLCT: layer_per_recompute[Recompute.TYPE.SLCT][0][stage_id],
-            Recompute.TYPE.BOTH: layer_per_recompute[Recompute.TYPE.BOTH][0][stage_id],
-        },
-        memory_usage=memory,
-    )
-    return stage
-
-
 def memory_parser(file_name: str):
     """parse input given by yaml"""
     if file_name is None:
@@ -254,93 +191,30 @@ def memory_parser(file_name: str):
     pipeline_num = cfg_dict["pipeline_config"]["pipeline_num"]
     num_layer = cfg_dict["pipeline_config"]["num_layer"]
     offset = cfg_dict["pipeline_config"]["offset"]
-
-    offset, rounds = process_offset(offset, pipeline_num)
-
-    layer_per_stage = int(num_layer / pipeline_num)
-
-    # get recompute config
-    if rounds > 1:
-        layer_per_recompute = []
-        for i in range(rounds):
-            rec_config = {}
-            for rec in Recompute.YAML_NAME.values():
-                rec_list = cfg_dict["recompute_config"].get(rec)
-                if rec_list is None:
-                    continue
-                rec_config[rec] = process_rec_config(layer_per_stage, pipeline_num, offset[i], rec_list[i])
-            rec_config[Recompute.OFFSET] = [offset[i]]
-            layer_per_recompute.append(
-                Recompute.internal_from_yaml(1, pipeline_num, rec_config, [[layer_per_stage] * pipeline_num])
-            )
-    else:
-        rec_config = {}
-        for rec in Recompute.YAML_NAME.values():
-            rec_list = cfg_dict["recompute_config"].get(rec)
-            rec_config[rec] = process_rec_config(layer_per_stage, pipeline_num, offset, rec_list)
-        rec_config[Recompute.OFFSET] = [offset]
-        layer_per_recompute = Recompute.internal_from_yaml(1, pipeline_num, rec_config,
-                                                           [[layer_per_stage] * pipeline_num])
+    recompute_config = cfg_dict["recompute_config"]
     # get memory usage
-    stage_id = cfg_dict["memory_usage"]["body_memories"]["stage_id"]
+    stage_ids = cfg_dict["memory_usage"]["body_memories"]["stage_id"]
     mem_head_stage = cfg_dict["memory_usage"]["head_memory"]
     mem_tail_stage = cfg_dict["memory_usage"]["tail_memory"]
     body_memories = cfg_dict["memory_usage"]["body_memories"]["memories"]
-    stages_a = []
-    if rounds > 1:
-        for i in range(rounds):
-            for idx, sg_id in enumerate(stage_id[i]):
-                stages_a.append(
-                    instantiate_stage(
-                        sg_id, pipeline_num,
-                        layer_per_stage + offset[i][sg_id],
-                        layer_per_recompute[i], body_memories[i][idx],
-                    )
-                )
-        stages_a.append(
-            instantiate_stage(
-                0, pipeline_num, layer_per_stage + offset[i][0],
-                layer_per_recompute[i], mem_head_stage,
-            )
-        )
-        stages_a.append(
-            instantiate_stage(
-                pipeline_num - 1, pipeline_num,
-                layer_per_stage + offset[i][pipeline_num - 1],
-                layer_per_recompute[i], mem_tail_stage,
-            )
-        )
-    else:
-        for idx, sg_id in enumerate(stage_id):
-            stages_a.append(
-                instantiate_stage(
-                    sg_id, pipeline_num, layer_per_stage + offset[sg_id],
-                    layer_per_recompute, body_memories[idx],
-                )
-            )
-        stages_a.append(
-            instantiate_stage(
-                0, pipeline_num, layer_per_stage + offset[0],
-                layer_per_recompute, mem_head_stage,
-            )
-        )
-        stages_a.append(
-            instantiate_stage(
-                pipeline_num - 1, pipeline_num, layer_per_stage + offset[pipeline_num - 1],
-                layer_per_recompute, mem_tail_stage,
-            )
-        )
+
+    stage_builder = StagesBuilder(
+        pipeline_num,
+        num_layer,
+        recompute_config,
+        offset,
+        stage_ids,
+        mem_head_stage,
+        mem_tail_stage,
+        body_memories,
+    )
+    stages_a = stage_builder.build_stages()
 
     return pipeline_num, stages_a, num_layer
 
 
-def initialize_layer_json(model_name: str, file_name: str):
+def initialize_layer_json(model_info: ModelInfo, comp_mem: ComputeMemory, output_folder: str = "./layers" ):
     """initialize layer description json file"""
-    num_stage, stages_a, num_layer = memory_parser(file_name)
-    head_time, body_time, tail_time = time_parser(file_name, model_name)
-    comp_mem = ComputeMemory(number_of_stage=num_stage, stages_A=stages_a)
-    mi = ModelInfo(model_name, head_time, body_time, tail_time, num_layer)
-
     mem_act = {}
     for r in Recompute.TYPE:
         if comp_mem.recompute_considered_[r]:
@@ -352,7 +226,7 @@ def initialize_layer_json(model_name: str, file_name: str):
     if comp_mem.get_memory_const() is not None:
         mem_const = int(comp_mem.get_memory_const())
         logger.info(f"[INFO] memory_const       = {mem_const}")
-        mi.set_stage_const_mem(mem_const)
+        model_info.set_stage_const_mem(mem_const)
     mem_par = int(comp_mem.get_memory_parameter())
     mem_tail = int(comp_mem.get_memory_tail())
     mem_head = int(comp_mem.get_memory_head())
@@ -360,8 +234,17 @@ def initialize_layer_json(model_name: str, file_name: str):
     logger.info(f"[INFO] memory_tail       = {mem_tail}")
     logger.info(f"[INFO] memory_head       = {mem_head}")
 
-    mi.layer_memory_update(mem_act, mem_par, mem_head, mem_tail)
-    mi.dump_json(os.path.join("./layers", model_name + ".json"))
+    model_info.layer_memory_update(mem_act, mem_par, mem_head, mem_tail)
+    model_info.dump_json(os.path.join(output_folder, model_info.name + ".json"))
+
+
+def convert_init_to_sapp(model_name: str, file_name: str, output_folder: str = "./layer"):
+    """convert init file to sapp interface json file"""
+    num_stage, stages_a, num_layer = memory_parser(file_name)
+    head_time, body_time, tail_time = time_parser(file_name, model_name)
+    comp_mem = ComputeMemory(number_of_stage=num_stage, stages_A=stages_a)
+    mi = ModelInfo(model_name, head_time, body_time, tail_time, num_layer)
+    initialize_layer_json(mi, comp_mem, output_folder)
 
 
 def get_stage_const_mem(layer_folder: str, model_name: str):
@@ -449,12 +332,9 @@ def _get_coef_matrix(pp, layer_per_stage, offset_config_list, rec_config_list, c
     return None
 
 
-def print_dryrun_config(offset_config_list, rec_config_list):
-    """print generated config"""
-    logger.output(
-        f"Please dryrun following config, {len(offset_config_list)} round(s) is needed"
-    )
-
+def convert_to_mf_format(offset_config_list, rec_config_list):
+    """convert result to mf format"""
+    yaml_configs = []
     for round_, offset_config in enumerate(offset_config_list):
         yaml_config = {
             Recompute.OFFSET: [],
@@ -476,6 +356,17 @@ def print_dryrun_config(offset_config_list, rec_config_list):
         yaml_config[Recompute.YAML_NAME[Recompute.TYPE.COMM]] = [
             x + y + z for x, y, z in zip(comm, both, full)
         ]
+        yaml_configs.append(yaml_config)
+    return yaml_configs
+
+
+def print_dryrun_config(yaml_configs):
+    """print generated config"""
+    logger.output(
+        f"Please dryrun following config, {len(yaml_configs)} round(s) is needed"
+    )
+    for round_ in range(len(yaml_configs)):
+        yaml_config = yaml_configs[round_]
         yaml_results = f"for round {round_ + 1}, please dryrun config:"
         for y, v in yaml_config.items():
             yaml_results += f"\n\t{y}: {v}"
@@ -541,13 +432,13 @@ def parse_training_config(yaml_path):
             "seq_length": model_config["seq_length"],
             "batch_size": runner_config["batch_size"],
             "vocab_size": model_config["vocab_size"],
+            "num_layers": model_config["num_layers"],
             "data_parallel": parallel_config.get("data_parallel", 1),
             "model_parallel": parallel_config.get("model_parallel", 1),
             "context_parallel": parallel_config.get("context_parallel", 1),
+            "pipeline_stage": parallel_config.get("pipeline_stage", 1),
+            "micro_batch_num": parallel_config.get("micro_batch_num", 1)
         }
-        logger.output("Extracted training parameters:")
-        for key, value in extracted_params.items():
-            logger.output("%s: %s", key, value)
 
         return extracted_params
 
