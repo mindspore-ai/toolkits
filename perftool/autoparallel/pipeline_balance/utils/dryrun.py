@@ -20,6 +20,9 @@ import shutil
 import subprocess
 import re
 import time
+import copy
+import yaml
+
 
 import toolkit.pipeline_balance.utils.recompute as Recompute
 from toolkit.pipeline_balance.utils.logger import logger
@@ -27,6 +30,8 @@ from toolkit.pipeline_balance.utils.config import (
     convert_to_mf_format,
     parse_training_config,
     initialize_layer_json,
+    check_mem_results,
+    compare_mem_results,
     ModelInfo,
 )
 from toolkit.pipeline_balance.utils.interactive import dryrun_guide
@@ -38,7 +43,7 @@ from toolkit.pipeline_balance.utils.computation_analyzer import ComputationAnaly
 DRYRUN_CONFIG_PATH = "./dryrun_configs"
 RUN_MINDFORMER = "../../../run_mindformer.py"
 DRYRUN_SCRIPT = "./dryrun.sh"
-COMMAND_TEMPLATE = "python {run_mindformer} --config {config} --run_model train --use_parallel True"
+COMMAND_TEMPLATE = "python {run_mindformer} --config {config} --register_path research/deepseek3 --run_model train --use_parallel True"
 TRAINCALLBACK = "  - type: TrainCallBack\n    stop_step: 2\n"
 LLAMA_LAYER_LIST = {
     "pre_defined_layer": {
@@ -50,18 +55,19 @@ LLAMA_LAYER_LIST = {
 }
 
 
-def dump_config(config_file: str, yaml_configs):
+def dump_config(config_file: str, yaml_configs, output_path: str, validate_config=None):
     """dump dryrun config"""
-    dryrun_config_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), DRYRUN_CONFIG_PATH
-    )
-    os.makedirs(dryrun_config_path, exist_ok=True)
-
+    os.makedirs(output_path, exist_ok=True)
     dryrun_configs = []
     for i in range(len(yaml_configs)):
-        dryrun_config = f"{dryrun_config_path}/round_{i}.yaml"
+        dryrun_config = f"{output_path}/round_{i}.yaml"
         dryrun_configs.append(dryrun_config)
         shutil.copy(config_file, dryrun_config)
+        # 
+        if(validate_config):
+            update_validate_settings(dryrun_config, validate_config)
+        else:
+            delete_interleave_settings(dryrun_config)
         with open(dryrun_config, "r+") as f:
             lines = f.readlines()
             for line_idx, line in enumerate(lines):
@@ -94,10 +100,121 @@ def dump_config(config_file: str, yaml_configs):
                 for i, line in enumerate(lines):
                     if re.match(r"^(?:\s*)callbacks:.*$", line):
                         lines.insert(i + 1, TRAINCALLBACK)
+
         with open(dryrun_config, "w") as f:
             f.writelines(lines)
 
+
+        
+
     return dryrun_configs
+
+
+
+
+def delete_interleave_settings(config_path):
+    with open(config_path, 'r') as f:
+        lines = f.readlines()
+    
+    new_lines = []
+    in_pipeline_config = False
+    parent_indent = 0
+    
+    for line in lines:
+        current_indent = len(line) - len(line.lstrip())
+        
+        # Detect pipeline_config start
+        if line.strip() == 'pipeline_config:':
+            in_pipeline_config = True
+            parent_indent = current_indent
+            continue
+        
+        # Skip indented content under pipeline_config
+        if in_pipeline_config:
+            if current_indent > parent_indent:
+                continue
+            in_pipeline_config = False  # Exit pipeline_config block
+        
+        # Skip pp_interleave_num leaf
+        if line.strip().startswith('pp_interleave_num:'):
+            continue
+        
+        new_lines.append(line)
+    
+    with open(config_path, 'w') as f:
+        f.writelines(new_lines)
+
+
+def update_validate_settings(config_path, validate_settings):
+    with open(config_path, 'r') as f:
+        lines = f.readlines()
+    
+    needs_pipeline_config = True
+    settings_require = {"pipeline_interleave": True, 'pp_interleave_num': True,
+                        'micro_batch_num': True, 'pipeline_scheduler': True,
+                        'pipeline_stage': True}
+
+    validate_settings["pipeline_interleave"] = True
+    validate_settings["pipeline_scheduler"] = "1f1b"
+
+    # First pass: ensure pipeline_config exists and collect other info
+    for idx, line in enumerate(lines):
+        if line.strip() == 'pipeline_config:':
+            needs_pipeline_config = False
+        else:
+            key = line.split(':')[0].strip()
+            if key in settings_require:
+                lines[idx] = re.sub(
+                    rf'({key}:\s*)(&\w+\s+)?\d+',
+                    lambda m: f"{m.group(1)}{m.group(2) or ''}{validate_settings[key]}",
+                    line
+                )
+                settings_require[key] = False
+
+    
+    # Add pipeline_config if missing
+    if needs_pipeline_config:
+        for i, line in enumerate(lines):
+            if line.strip() == 'parallel:':
+                indent = len(line) - len(line.lstrip())
+                lines.insert(i+1, 
+                    f"{' '*(indent+2)}pipeline_config:\n"
+                    f"{' '*(indent+4)}pipeline_interleave: True\n"
+                    f"{' '*(indent+4)}pipeline_scheduler: '1f1b'\n")
+                
+                settings_require["pipeline_interleave"] = False
+                settings_require["pipeline_scheduler"] = False
+                break
+
+
+    # Add all required leaf nodes
+    for i, line in enumerate(lines):
+        if line.strip() == 'pipeline_config:':
+            idx = i
+            indent = len(line) - len(line.lstrip())
+            if settings_require["pipeline_interleave"]:
+                idx += 1
+                lines.insert(idx, 
+                    f"{' '*(indent+2)}pipeline_interleave: True\n")
+            if settings_require["pipeline_scheduler"]:
+                idx += 1
+                lines.insert(idx, 
+                    f"{' '*(indent+2)}pipeline_scheduler: '1f1b'\n")
+        elif line.strip() == 'parallel_config:':
+            indent = len(line) - len(line.lstrip())
+            idx = i
+            if(settings_require["micro_batch_num"]):
+                idx += 1
+                lines.insert(idx, f"{' '*(indent+2)}micro_batch_num: {validate_settings['micro_batch_num']}\n")
+            if(settings_require["pipeline_stage"]):
+                idx += 1
+                lines.insert(idx, f"{' '*(indent+2)}pipeline_stage: {validate_settings['pipeline_stage']}\n")
+        elif line.strip() == 'model_config:' and settings_require["pp_interleave_num"]:
+            indent = len(line) - len(line.lstrip())
+            lines.insert(i+1, f"{' '*(indent+2)}pp_interleave_num: {validate_settings['pp_interleave_num']}\n")
+    
+    with open(config_path, 'w') as f:
+        f.writelines(lines)
 
 
 def gather_mem_results(dryrun_folders: str, pp: int, timeout=30):
@@ -119,19 +236,20 @@ def gather_mem_results(dryrun_folders: str, pp: int, timeout=30):
             ) # sort files based on stage id
             for file in sorted_files:
                 file_path = os.path.join(dryrun_folder, file)
+                mem = -1
                 try:
                     with open(file_path, "r", encoding="utf-8") as f:
                         for line_num, line in enumerate(f, start=1):
                             if regex.search(line):
-                                mem_result.append(
-                                    int(re.search(r"(\d+)", line.strip()).group(1))
-                                )
+                                mem = int(re.search(r"(\d+)", line.strip()).group(1))
                 except (UnicodeDecodeError, OSError):
                     # igonre unreadble files
                     pass
+                if mem != -1:
+                    mem_result.append(mem)
             mem_results.append(mem_result)
         if all(len(mem_result) == pp for mem_result in mem_results):
-            logger.output(mem_results)
+            logger.output(f"Gathered memories: {mem_results}")
             return mem_results
         time.sleep(60)
 
@@ -141,7 +259,7 @@ def gather_mem_results(dryrun_folders: str, pp: int, timeout=30):
     return None
 
 
-def auto_dryrun(dryrun_configs, output_folder: str):
+def auto_dryrun(dryrun_configs, output_folder: str, validate_settings=None):
     """automatically dryrun"""
     if dryrun_configs is None:
         logger.error("dryrun configs cannot be NONE")
@@ -159,10 +277,13 @@ def auto_dryrun(dryrun_configs, output_folder: str):
     )
     dryrun_folders = []
     for i in range(len(dryrun_configs)):
-        dryrun_folder = os.path.join(output_folder + f"round_{i}")
+        dryrun_folder = os.path.join(output_folder, f"round_{i}")
         if os.path.exists(dryrun_folder):
             shutil.rmtree(dryrun_folder)
         os.makedirs(dryrun_folder, exist_ok=True)
+        if validate_settings:
+            vpp_str = '1' if validate_settings["lm"] else '0'
+            os.environ["ENABLE_LESS_MEM_VPP"] = vpp_str
         subprocess.run(
             [
                 "bash",
@@ -178,8 +299,9 @@ def auto_dryrun(dryrun_configs, output_folder: str):
     return dryrun_folders
 
 
-def convert_auto_to_sapp(yaml_configs, mem_results, num_layers, timeline_folder, model_name):
-    """convert auto ppb results to sapp interface"""
+
+
+def get_comp_mem(mem_results, yaml_configs, num_layers):
     num_stages = len(mem_results[0])
     rounds = len(mem_results)
     head_mem = mem_results[0][0]
@@ -214,32 +336,84 @@ def convert_auto_to_sapp(yaml_configs, mem_results, num_layers, timeline_folder,
     stages = stage_builder.build_stages()
     comp_mem = ComputeMemory(num_stages, stages)
 
-    head_time, body_time, tail_time = 0, 0, 0
-    LLAMA_LAYER_LIST["auto_partition_layer"].update({"LLamaDecodeLayer": num_layers})
-    analyzer = ComputationAnalyzer(timeline_folder, model_name, 8,LLAMA_LAYER_LIST)
-    cost_list = analyzer.layer_with_cost_list
-    for layer, time in cost_list.items():
-        if layer in LLAMA_LAYER_LIST["pre_defined_layer"] and LLAMA_LAYER_LIST["pre_defined_layer"][layer] == 0:
-            head_time += time
-        elif layer in LLAMA_LAYER_LIST["pre_defined_layer"] and LLAMA_LAYER_LIST["pre_defined_layer"][layer] == -1:
-            tail_time += time
-        else:
-            body_time += time
+    return comp_mem
 
+
+
+
+
+
+def convert_auto_to_sapp(yaml_configs, mem_results_list, layer_times, num_layers, model_name, output_folder):
+    """convert auto ppb results to sapp interface"""
+
+    comp_mem_list = []
+    for idx, mem_results in enumerate(mem_results_list):
+        comp_mem_list.append(get_comp_mem(mem_results, yaml_configs, num_layers[idx]))
+
+    # head_time, body_time, tail_time = 18, 10, 25
+    head_time, body_time, tail_time = layer_times
+    # DeekSeekV2DecodeLayer
+    body_layers_names = [e[0] for e in next(iter(body_time.values()))]
     mi = ModelInfo(model_name, head_time, body_time, tail_time, num_layers)
     layer_json = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "../layers"
+        output_folder, "../layers"
     )
-    initialize_layer_json(mi, comp_mem, layer_json)
+
+    initialize_layer_json(mi, comp_mem_list, body_layers_names, layer_json)
 
 
-def auto_ppb(config_path: str, timeline_folder: str, model_name: str):
+def auto_ppb(config_path: str, auto_ppb_config, output_folder: str):
+    model_name = auto_ppb_config["model_name"]
+    layer_times = auto_ppb_config["layer_times"]
     extracted_params = parse_training_config(config_path)
-    offset_config_list, rec_config_list = dryrun_guide(extracted_params)
-    num_layers = extracted_params['num_layers']
+    offset_config_list, rec_config_list = dryrun_guide(extracted_params, auto_ppb_config["model_type"])
+
+    if auto_ppb_config["model_type"] == "deepseek":
+        # TODO: num_layers = auto_ppb_config["training_config"]["body_layer_nums"]
+        num_layers = [extracted_params['num_layers'] - 3] # for deepseek
+
+    else:
+        num_layers = [extracted_params['num_layers']]
     pipeline_stage = extracted_params['pipeline_stage']
-    yaml_configs = convert_to_mf_format(offset_config_list, rec_config_list)
-    configs = dump_config(config_path, yaml_configs)
-    dryrun_folders = auto_dryrun(configs, "./output/")
+    yaml_configs_dryrun = convert_to_mf_format(offset_config_list, rec_config_list)
+    yaml_configs_compute = copy.deepcopy(yaml_configs_dryrun)
+    if auto_ppb_config["model_type"] == "deepseek":
+        for i in range(len(yaml_configs_dryrun)): # for deepseek
+            for _, value in yaml_configs_dryrun[i].items():
+                value[0] += 3
+    dryrun_config_path = os.path.join(
+        output_folder, DRYRUN_CONFIG_PATH
+    )
+    configs = dump_config(config_path, yaml_configs_dryrun, dryrun_config_path)
+    log_path = os.path.join(output_folder, "dryrun_log")
+    dryrun_folders = auto_dryrun(configs, log_path)
     mem_results = gather_mem_results(dryrun_folders, pipeline_stage)
-    convert_auto_to_sapp(yaml_configs, mem_results, num_layers, timeline_folder, model_name)
+    mem_results_list = [mem_results]
+    convert_auto_to_sapp(yaml_configs_compute, mem_results_list, layer_times, num_layers, model_name, output_folder)
+
+
+def auto_validate(config_path: str, auto_ppb_config, validate_settings, sapp_result, max_memory,
+                  mem_estimate, mem_simulate, output_folder: str):
+    extracted_params = parse_training_config(config_path)
+    sapp_configs_validate = [next(iter(sapp_result.values()))]
+    if auto_ppb_config["model_type"] == "deepseek":
+        for _, value in sapp_configs_validate[0].items(): # for deepseek
+            if isinstance(value[0], list): #interleave
+                value[0][0] += 3
+                value[-1][-1] += 1
+            else:
+                value[0] += 3
+                value[-1] += 1
+    logger.info(f"sapp_configs_validate: {sapp_configs_validate}")
+
+    validate_config_path = os.path.join(
+        output_folder, "validate_config"
+    )
+    configs = dump_config(config_path, sapp_configs_validate, validate_config_path, validate_settings)
+    log_path = os.path.join(output_folder, "validate_log")
+    dryrun_folders = auto_dryrun(configs, log_path, validate_settings)
+    mem_results = gather_mem_results(dryrun_folders, extracted_params['pipeline_stage'])[0]
+    if not check_mem_results(mem_results, max_memory):
+        logger.warning(f"Actual peak memory exceeds the max memory: {max_memory} in validation")
+    compare_mem_results(mem_estimate, mem_results, "Memory Estimated", "Actual Costs")
+    compare_mem_results(mem_simulate, mem_results, "Memory Simulated", "Actual Costs")

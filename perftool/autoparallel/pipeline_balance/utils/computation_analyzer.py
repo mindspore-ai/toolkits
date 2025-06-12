@@ -33,16 +33,14 @@ class ComputationAnalyzer:
 
     is_msprof_file = False
 
-    def __init__(self, timeline_folder_path, model_name, num_of_micro_batch, layer_list=None):
+    def __init__(self, timeline_folder_path, num_of_micro_batch, recompute_layers_ratio, layer_list):
         self.timeline_folder_path = timeline_folder_path
-        self.model_name = model_name
         self.num_of_micro_batch = num_of_micro_batch
         self.counted_steps = 0
         self.step_time = 0.0
-        if layer_list:
-            self.layer_list = layer_list
-        else:
-            self.layer_list = self._get_layer_list()
+        self.layer_list = layer_list
+        self.recompute_layers_ratio = recompute_layers_ratio
+        self.backward_recompute_coef = 0.0
         self.timeline_data = self._get_timeline_data()
         logger.info("parsing layer objs")
         self.auto_partition_layer_objects, self.pre_defined_layer_objects = (
@@ -53,18 +51,6 @@ class ComputationAnalyzer:
         self.layer_with_computation_time_list = (self.parse_layer_with_computation_time_list())
         logger.info("transform layer with cost list")
         self.layer_with_cost_list = self.transform_layer_with_cost_list()
-
-    def _get_layer_list(self):
-        """Return cfgs from model config file"""
-
-        model_config_file = os.path.join(os.getcwd(), "cfgs", "model_layers.json")
-        with open(model_config_file) as json_file:
-            model_layers_data = json.load(json_file)
-            for layer_list in model_layers_data:
-                if self.model_name in layer_list["name"]:
-                    return layer_list
-        logger.info("ERROR: Not found model in model config file")
-        return False
 
     def _get_timeline_data(self):
         """Return timeline objects from json file."""
@@ -105,7 +91,8 @@ class ComputationAnalyzer:
         self.step_time = step_time
         return (step_start, step_end)
 
-    def _load_json_data(self, file_path):
+    @staticmethod
+    def _load_json_data(file_path):
         with open(file_path) as json_file:
             return json.load(json_file)
 
@@ -114,11 +101,13 @@ class ComputationAnalyzer:
             step_start, step_end = self._parse_step_duration(timeline_data)
         return step_start, step_end
 
-    def _add_layer_object(self, objects_list, condition, obj):
+    @staticmethod
+    def _add_layer_object(objects_list, condition, obj):
         if condition and obj not in objects_list:
             objects_list.append(obj)
 
-    def _is_counted(self, default_table: list, step_start, step_end, cell_object):
+    @staticmethod
+    def _is_counted(default_table: list, step_start, step_end, cell_object):
         """Check if cell in under forward scope"""
         if float(cell_object["ts"]) < step_start or float(cell_object["ts"]) + float(cell_object["dur"]) > step_end:
             return False
@@ -137,6 +126,8 @@ class ComputationAnalyzer:
         logger.info("parsing forward scope")
         scope_pid = 3
         default_durations = []
+        recompute_durations = []
+        gradients_durations = []
         cell_durations = {}
         step_range = []
         op_name = ""
@@ -155,6 +146,16 @@ class ComputationAnalyzer:
                 start = float(obj["ts"])
                 end = float(obj["ts"]) + float(obj["dur"])
                 default_durations.append((start, end))
+                continue
+            if obj["name"] == ["recompute_Default"] and obj["tid"] != 0:
+                start = float(obj["ts"])
+                end = float(obj["ts"]) + float(obj["dur"])
+                recompute_durations.append((start, end))
+                continue
+            if obj["name"] == ["Gradients"] and obj["tid"] == 0:
+                start = float(obj["ts"])
+                end = float(obj["ts"]) + float(obj["dur"])
+                gradients_durations.append((start, end))
                 continue
             for layer_name in chain(self.layer_list["pre_defined_layer"], self.layer_list["auto_partition_layer"]):
                 if layer_name in obj["name"]:
@@ -175,6 +176,27 @@ class ComputationAnalyzer:
         else:
             select_step_start = step_range[min(len(step_range) - UNSTABLE_STEPS, UNSTABLE_STEPS)]
             select_step_end = step_range[-1]
+
+
+        recompute_sum = 0
+        gradient_sum = 0
+
+        for rd in recompute_durations:
+            if rd[0] >= select_step_start and rd[1] <= select_step_end:
+                recompute_sum += rd[1] - rd[0]
+
+        for gd in gradients_durations:
+            if gd[0] >= select_step_start and gd[1] <= select_step_end:
+                gradient_sum += gd[1] - gd[0]
+
+        gradient_sum = gradient_sum*self.recompute_layers_ratio
+        self.backward_recompute_coef = recompute_sum/(gradient_sum)
+
+        logger.info("gradient_sum: %f", gradient_sum)
+        logger.info("recompute_sum: %f", recompute_sum)
+        logger.info("recompute_coef: %f", self.backward_recompute_coef)
+
+
         logger.info("select_step_start: %f", select_step_start)
         logger.info("select_step_end: %f", select_step_end)
         self.counted_steps = max(len(step_range) - (UNSTABLE_STEPS + 1), 1)
@@ -259,10 +281,19 @@ class ComputationAnalyzer:
         for pre_defined_layer_name in self.layer_list["pre_defined_layer"]:
             transform_layer_with_cost_list[pre_defined_layer_name] = 0
 
+
         for auto_partition_layer_name in self.layer_list["auto_partition_layer"]:
-            total_cost_auto_partition_layer[auto_partition_layer_name] = 0
-            number_of_auto_partition_layer[auto_partition_layer_name] = 0
-            transform_layer_with_cost_list[auto_partition_layer_name] = 0
+            if auto_partition_layer_name in self.layer_list["auto_partition_ends"]:
+                num_slice = len(self.layer_list["auto_partition_ends"][auto_partition_layer_name])
+                for i in range(num_slice ):
+                    layer_name_part = f"{auto_partition_layer_name}_part_{i}"
+                    total_cost_auto_partition_layer[layer_name_part] = 0
+                    number_of_auto_partition_layer[layer_name_part] = 0
+                transform_layer_with_cost_list[auto_partition_layer_name] = []
+            else:
+                total_cost_auto_partition_layer[auto_partition_layer_name] = 0
+                number_of_auto_partition_layer[auto_partition_layer_name] = 0
+                transform_layer_with_cost_list[auto_partition_layer_name] = 0
 
         # test
         for layer_name in self.layer_with_computation_time_list:
@@ -274,30 +305,62 @@ class ComputationAnalyzer:
                         / self.num_of_micro_batch
                     )
                     transform_layer_with_cost_list[pre_defined_layer_name] += var_tmp
+
+
+            logger.info(f"transform: layer name: {layer_name}")
+
+
             for auto_partition_layer_name in self.layer_list["auto_partition_layer"]:
                 if auto_partition_layer_name in layer_name:
-                    # assuming that the duration time of a layer can not exceed 10% of step time
-                    # in order to
-                    # avoid some specific long time layers that caused from the error caused by
-                    # time_line.json
-                    if (not self.is_msprof_file and self.layer_with_computation_time_list[
-                            layer_name] > self.step_time / 1000 / 10):
-                        continue
-                    total_cost_auto_partition_layer[auto_partition_layer_name] += \
-                        self.layer_with_computation_time_list[layer_name]
-                    number_of_auto_partition_layer[auto_partition_layer_name] += 1
+                    if auto_partition_layer_name in self.layer_list["auto_partition_ends"]:
+                        layer_id = int(layer_name.split("-")[0])
+                        for i in range(len(self.layer_list["auto_partition_ends"][auto_partition_layer_name])):
+                            if(layer_id <= self.layer_list["auto_partition_ends"][auto_partition_layer_name][i]):
+                                layer_name_part = f"{auto_partition_layer_name}_part_{i}"
+                                total_cost_auto_partition_layer[layer_name_part] += \
+                                self.layer_with_computation_time_list[layer_name]
+                                number_of_auto_partition_layer[layer_name_part] += 1
+                                break
+                    else:
+                        # assuming that the duration time of a layer can not exceed 10% of step time
+                        # in order to
+                        # avoid some specific long time layers that caused from the error caused by
+                        # time_line.json
+                        if (not self.is_msprof_file and self.layer_with_computation_time_list[
+                                layer_name] > self.step_time / 1000 / 10):
+                            continue
+                        total_cost_auto_partition_layer[auto_partition_layer_name] += \
+                            self.layer_with_computation_time_list[layer_name]
+                        number_of_auto_partition_layer[auto_partition_layer_name] += 1
+
+
 
         for auto_partition_layer_name in self.layer_list["auto_partition_layer"]:
-            transform_layer_with_cost_list[auto_partition_layer_name] = (
-                total_cost_auto_partition_layer[auto_partition_layer_name] /
-                number_of_auto_partition_layer[auto_partition_layer_name] /
-                self.counted_steps / self.num_of_micro_batch)
+            if auto_partition_layer_name in self.layer_list["auto_partition_ends"]:
+                for i in range(len(self.layer_list["auto_partition_ends"][auto_partition_layer_name])):
+                    layer_name_part = f"{auto_partition_layer_name}_part_{i}"
+                    final_cost = (
+                    total_cost_auto_partition_layer[layer_name_part] /
+                    number_of_auto_partition_layer[layer_name_part] /
+                    self.counted_steps / self.num_of_micro_batch)
+                    transform_layer_with_cost_list[auto_partition_layer_name].append((layer_name_part, final_cost))
+
+            else:
+                final_cost = (
+                    total_cost_auto_partition_layer[auto_partition_layer_name] /
+                    number_of_auto_partition_layer[auto_partition_layer_name] /
+                    self.counted_steps / self.num_of_micro_batch)
+                transform_layer_with_cost_list[auto_partition_layer_name].append((f"{auto_partition_layer_name}_part_{0}", final_cost))
         return transform_layer_with_cost_list
+    
+
+
+
 
 
 if __name__ == "__main__":
     path = "/your/path/here"
     example_model_name = "LLaMA_prof"
-    comp1 = ComputationAnalyzer(path, example_model_name, 8)
+    comp1 = ComputationAnalyzer(path, 8)
     logger.info(comp1.layer_with_computation_time_list)
     logger.info(comp1.layer_with_cost_list)

@@ -18,10 +18,13 @@ import sys
 import argparse
 
 from toolkit.pipeline_balance.utils.logger import logger
-from toolkit.pipeline_balance.utils.config import convert_init_to_sapp, get_stage_const_mem, parse_training_config
+from toolkit.pipeline_balance.utils.config import (
+    convert_init_to_sapp, get_stage_const_mem, parse_training_config,
+    time_parser_auto, auto_ppb_config_parser
+)
 from toolkit.pipeline_balance.utils.layer import generate_layers_list
 from toolkit.pipeline_balance.sapp.sapp_pipeline import SappPipeline
-from toolkit.pipeline_balance.utils.dryrun import auto_ppb
+from toolkit.pipeline_balance.utils.dryrun import auto_ppb, auto_validate
 import toolkit.pipeline_balance.utils.interactive as Interactive
 
 if __name__ == "__main__":
@@ -68,8 +71,8 @@ if __name__ == "__main__":
                         help="Path of manual config")
 
     # Layer info
-    parser.add_argument('-lf', '--layer_folder', type=str, default="./layers/",
-                        help="Path to the layer folder")
+    parser.add_argument('-lf', '--layer_json', type=str, default="./layers/llama.json",
+                        help="Path to the layer json file")
     parser.add_argument('-dump', '--dump_layer',  # type=bool,
                         type=lambda x: (str(x).lower() in ['true', '1', 'yes']), default=False,
                         help="Dump the layers")
@@ -99,10 +102,16 @@ if __name__ == "__main__":
         Interactive.main()
         sys.exit(0)
 
-    layer_folder = args.layer_folder
+    layer_json = args.layer_json
     model_name = args.model_name
     time_limit = args.time_limit
     less_memory = args.less_memory
+
+    output_folder = os.path.join(os.path.dirname(__file__), args.output_folder)
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+
 
     extracted_training_params = None
     if args.training_config:
@@ -120,13 +129,24 @@ if __name__ == "__main__":
             number_of_micro_batch = extracted_training_params["micro_batch_num"]
         else:
             logger.error("Training config file must be a YAML file")
-    if args.stage:
-        number_of_stage = args.stage
+
     if args.micro_batch:
         number_of_micro_batch = args.micro_batch
 
+    if args.stage:
+        number_of_stage = args.stage
+
+
+    config_file = os.path.join(os.path.dirname(__file__), "cfgs/auto_ppb_config.yaml") 
+    auto_ppb_config = auto_ppb_config_parser(config_file)
+    auto_ppb_config["model_name"] = model_name
+    training_config_path = auto_ppb_config["training_config"]["training_config_path"]
     if args.auto_ppb:
-        auto_ppb(training_config_path, None, model_name)
+        layer_times = time_parser_auto(config_file) 
+        auto_ppb_config["layer_times"] = layer_times
+        auto_ppb(training_config_path, auto_ppb_config, output_folder)
+        # auto_ppb(training_config_path, model_name)
+        layer_json = os.path.join(output_folder, "../layers", model_name + ".json")
 
     seq_split_num = args.seq
 
@@ -143,13 +163,10 @@ if __name__ == "__main__":
                     seq_split_num = extracted_training_params['seq_length'] // 4096
                     logger.warning(f"To avoid affecting performance, seq_split_num has updated as {seq_split_num}")
 
-    if args.init:
-        init_file = os.path.join(os.path.dirname(__file__), args.init)
-        convert_init_to_sapp(model_name, init_file)
+    if not args.auto_ppb and args.init:
+        init_file = os.path.join(os.path.dirname(__file__), args.init)  
+        convert_init_to_sapp(model_name, init_file, training_config_path)
 
-    output_folder = os.path.join(os.path.dirname(__file__), args.output_folder)
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
 
     manual_config = None
     if args.manual_config:
@@ -161,8 +178,8 @@ if __name__ == "__main__":
     interleave_degree = args.interleave_degree
     optimization_level = args.optimization_level
 
-    layers = generate_layers_list(layer_folder, model_name)
-    constant_memory = get_stage_const_mem(layer_folder, model_name)
+    layers = generate_layers_list(layer_json)
+    constant_memory = get_stage_const_mem(layer_json)
 
     for layer in layers:
         logger.output("%s", layer)
@@ -206,3 +223,10 @@ if __name__ == "__main__":
             logger.output("time: %s", pipe.get_time())
             logger.output("mem_par: %s", pipe.get_memory_parameter())
             logger.output("mem_act: %s", pipe.get_memory_activation())
+
+        if auto_ppb_config["validate"]:
+            validate_settings = {"pp_interleave_num": interleave_degree, "lm": less_memory, "micro_batch_num": number_of_micro_batch,
+                                 "pipeline_stage": number_of_stage}
+            auto_validate(training_config_path, auto_ppb_config, validate_settings,
+                          pipe.get_yaml_results(), max_memory,
+                          pipe.problem_.mem_estimate_, pipe.mem_simulate, output_folder)

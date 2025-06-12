@@ -25,6 +25,7 @@ import toolkit.pipeline_balance.simulator.pp_simulator as sim
 from toolkit.pipeline_balance.sapp.sapp_solver import SappSolver
 from toolkit.pipeline_balance.utils.layer import Layer, filter_layer_type
 import toolkit.pipeline_balance.utils.recompute as Recompute
+from toolkit.pipeline_balance.utils.recompute import  OFFSET, YAML_NAME, TYPE
 
 
 class SappPipeline:
@@ -57,6 +58,7 @@ class SappPipeline:
         self.seqpipe_ = self.seq_split_num_ > 1
 
         self.problem_ = None
+        self.mem_simulate = None
         self.layers_ = layers
         self.layers_sorted_ = {
             Layer.type_enum.HEAD: filter_layer_type(layers,
@@ -140,6 +142,58 @@ class SappPipeline:
             for y, v in yaml_format.items():
                 yaml_results += f"\n\t{y}: {v}"
             logger.output(yaml_results)
+    
+    def get_yaml_results(self) -> dict[str, dict[str, list]]:
+        results = {}
+        if len(self.layers_sorted_[Layer.type_enum.BODY]) > 1:
+            return self.intergrate_body_layer_results(self.layers_sorted_[Layer.type_enum.BODY])
+        else:
+            for layer in self.layers_sorted_[Layer.type_enum.BODY]:
+                    nass = self.naive_layer_per_stage(layer.nb_layer_,
+                                                    self.num_of_interleave_)
+                    yaml_format = Recompute.yaml_from_internal(
+                        self.num_of_interleave_,
+                        self.num_of_stage_,
+                        self.problem_.variables_[layer.name_],
+                        nass,
+                    )
+                    results[layer.name_] = yaml_format 
+        return results
+    
+    def intergrate_body_layer_results(self, body_layers):
+        num_layer_total = 0
+        intergrated_layer =  {
+            OFFSET: [[0]*self.num_of_stage_ for _ in range(self.num_of_interleave_)],
+            YAML_NAME[TYPE.FULL]: [[0]*self.num_of_stage_ for _ in range(self.num_of_interleave_)],
+            YAML_NAME[TYPE.SLCT]: [[0]*self.num_of_stage_ for _ in range(self.num_of_interleave_)],
+            YAML_NAME[TYPE.COMM]: [[0]*self.num_of_stage_ for _ in range(self.num_of_interleave_)],
+        }
+        offset_layers = [[0]*self.num_of_stage_ for _ in range(self.num_of_interleave_)]
+        for layer in body_layers:
+            num_layer_total += layer.nb_layer_
+            nass = self.naive_layer_per_stage(layer.nb_layer_,
+                                            self.num_of_interleave_)
+            yaml_format = Recompute.yaml_from_internal(
+                self.num_of_interleave_,
+                self.num_of_stage_,
+                self.problem_.variables_[layer.name_],
+                nass,
+            )
+            offset_layers = add_two_list_list(offset_layers, yaml_format[OFFSET])
+            offset_layers = add_two_list_list(offset_layers, nass)
+            intergrated_layer[YAML_NAME[TYPE.FULL]] = add_two_list_list(intergrated_layer[YAML_NAME[TYPE.FULL]],\
+                                                                   yaml_format[YAML_NAME[TYPE.FULL]])
+            intergrated_layer[YAML_NAME[TYPE.SLCT]] = add_two_list_list(intergrated_layer[YAML_NAME[TYPE.SLCT]],\
+                                                                   yaml_format[YAML_NAME[TYPE.SLCT]])
+            intergrated_layer[YAML_NAME[TYPE.COMM]] = add_two_list_list(intergrated_layer[YAML_NAME[TYPE.COMM]],\
+                                                                   yaml_format[YAML_NAME[TYPE.COMM]])
+            
+        nass_intergrated = self.naive_layer_per_stage(num_layer_total,
+                                            self.num_of_interleave_)
+        intergrated_layer[OFFSET] = sub_two_list_list(offset_layers, nass_intergrated)
+
+        return intergrated_layer
+        
 
     def get_manual_memory_activation(self,
                                      each_layer_per_recompute,
@@ -618,6 +672,8 @@ class SappPipeline:
             simulator.save(file_name)
         if show:
             simulator.show()
+
+        self.mem_simulate = simulator.peak_memory
         return simulator.end_time
 
     def _construct_problem_pulp_(self) -> SappSolver:
@@ -683,3 +739,18 @@ def flatten(inter_stage_list):
         for stage, _ in enumerate(inter_stage_list[inter]):
             stage_list[stage] += inter_stage_list[inter][stage]
     return stage_list
+
+
+def add_two_list_list(list_a, list_b):
+    add_elements = lambda a, b: a + b
+    result = [
+        list(map(add_elements, sub1, sub2))for sub1, sub2 in zip(list_a, list_b)
+    ]
+    return result
+
+def sub_two_list_list(list_a, list_b):
+    sub_elements = lambda a, b: a - b
+    result = [
+        list(map(sub_elements, sub1, sub2)) for sub1, sub2 in zip(list_a, list_b)
+    ]
+    return result

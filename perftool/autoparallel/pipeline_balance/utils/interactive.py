@@ -111,7 +111,7 @@ def make_layer(t: Layer.type_enum, model_name):
                  memory_parameter=memory_parameter,)
 
 
-def dryrun_guide(extracted_params: dict = None):
+def dryrun_guide(extracted_params: dict = None, model_type="llama"):
     """offer dryrun guidance"""
     considered_rec = []
     stage_num = 0
@@ -132,7 +132,10 @@ def dryrun_guide(extracted_params: dict = None):
             return
     else:
         stage_num = extracted_params['pipeline_stage']
-        num_layers = extracted_params['num_layers']
+        if(model_type == "deepseek"):
+            num_layers = extracted_params['num_layers'] - 2 # for deepseek
+        else:
+            num_layers = extracted_params['num_layers']
 
     s = input("Do you consider full recomputation?" + YES_OR_NO)
     if is_yes(s):

@@ -41,7 +41,7 @@ do
     export RANK_ID=$(((i)*RANK_GAP))
     mkdir -p ./$OUTPUT_FOLDER
     echo "start training for rank $RANK_ID, stage $STAGE_ID"
-    $EXECUTE_ORDER &> ./$OUTPUT_FOLDER/stage${STAGE_ID}_$RANK_ID.log &
+    $EXECUTE_ORDER &> $OUTPUT_FOLDER/stage${STAGE_ID}_$RANK_ID.log &
 done
 
 shopt -u extglob
