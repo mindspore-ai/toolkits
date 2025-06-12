@@ -1,0 +1,45 @@
+profiling_config:
+  micro_batch_num: 8
+  folder_path: "/your/path/here"
+
+
+  head_layers: ["LlamaEmbedding"]
+  body_layers: ["DeepSeekV2DecodeLayer"]
+  tail_layers: ["lm_head-Linear"]
+
+  body_layers_ends: ""
+
+  recompute: True
+  recompute_layers_ratio: 0.5
+
+
+
+time_config:
+  llama:
+    head: 90
+    body:
+      LLamaDecodeLayer: [90]
+    tail: 180
+
+  deepseek:
+    head: 7
+    body:
+      DeepSeekV2DecodeLayer: [17]
+    tail: 20
+
+backward_coef:
+  full: 0.5
+  select: 0.04
+  both: 0.165
+  comm: 0.125
+
+
+validate: True
+
+
+
+training_config:
+  training_config_path: "/your/path/here"
+  body_layer_nums: ""
+
+model_type: "deepseek"

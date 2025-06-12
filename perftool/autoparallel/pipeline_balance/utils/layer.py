@@ -97,11 +97,13 @@ class Layer:
                 result += str(self.backward_time_rec_[r]) + '\n'
         return result
 
-    def dump(self, dump_file: str):
+    @staticmethod
+    def dump(dump_file: str):
         """Dump json file for this specific layer"""
         logger.error("dump file (%s) Not implemented yet!!!", dump_file)
 
-    def to_json(self):
+    @staticmethod
+    def to_json():
         """Generate json representation of this object"""
         logger.error("Not implemented yet!!!")
 
@@ -151,12 +153,13 @@ class Layer:
 
     def compute_timer(self, timeline_folder: str = './timeline', tmp_layer_info=None):
         """Compute the time information from the timeline logs"""
-        layer_time = ComputationAnalyzer(timeline_folder, self.model_name_, num_of_stage=0,
+        layer_time = ComputationAnalyzer(timeline_folder, num_of_stage=0,
                                          layer_list=tmp_layer_info)
         self.time_ = layer_time.layer_with_cost_list.get(self.name_)
         self.compute_internal_time(force_fb=True)
 
-    def compute_memory(self, memory_folder: str = './memory'):
+    @staticmethod
+    def compute_memory(memory_folder: str = './memory'):
         """ "Compute the memory information from the (dry) run logs"""
         logger.error("compute_memory (%s) Not implemented yet!!!", memory_folder)
 
@@ -164,10 +167,9 @@ class Layer:
 # Helper functions on layer list
 
 
-def generate_layers_list(layer_folder: str, model_name: str) -> list[Layer]:
+def generate_layers_list(json_layer: str) -> list[Layer]:
     """ "Parse layer_folder/model_name.json to generate a list of layer"""
     layers = []
-    json_layer = os.path.join(layer_folder, model_name + '.json')
     with open(json_layer, encoding="utf-8") as json_file:
         layer_data_json = json.load(json_file)
         if "layers_description" in layer_data_json:

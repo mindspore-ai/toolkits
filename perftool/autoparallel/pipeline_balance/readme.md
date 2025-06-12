@@ -7,31 +7,49 @@
 使用工具的总体流程如下：
 ![sequence](./figures/sequence.png "流程图")
 
-用户需要给工具提供一个yaml文件用以描述模型的内存和时间信息（下文将介绍如何填写yaml文件），工具基于这些信息自动构建线性规划问题，通过全局求解给出一个最优的重计算和负载偏置（offset）策略。
+1.用户修改工具配置文件提供模型的profiling数据或者timeline信息
+2.工具自动解析profiling数据或者直接读取timeline信息
+3.工具拉起dryrun并解析模型内存信息
+4.工具基于这些信息自动构建线性规划问题，通过全局求解给出一个最优的重计算和负载偏置（offset）策略
+
 
 ## 使用指南
 
-### 操作步骤
 
-注：当pp=2或pp=4的时候可以参考[快速调优](#手工快速调优手册)。
+### 一键启动
 
-Step.1 收集模型的Profiling信息，可参考下文[使用Profiling获取性能数据](#使用profiling获取性能数据)。完成了Profiling会在ASCNED_PROFILER_OUTPUT下自动生成名为trace_view.json的timeline文件。为了有效分析模型的时间信息，至少要有头尾两个stage和中间任意一个stage的Profiling信息。将这些stage的trace_view.json文件统一放置在任意文件夹中，此处记为`/timeline/path`。
+step1. 使用工具前需修改配置文件`toolkit\pipeline_balance\cfgs\auto_ppb_config.yaml`。 通常需要修改的配置为`profiling_config`，`training_config`，和`model_type`。详细介绍见[工具配置文件](./doc/auto_ppb_config.md)。
 
-例如，在8张卡上执行stage数为4的模型，把0卡、2卡和7卡的trace_view.json统一放到文件夹`/timeline/path`下即可。
 
-```bash
-ls /timeline/path
-
-trace_view0.json trace_view2.json trace_view7.json
-```
-
-Step.2 工具需要多个stage的峰值显存进行模型内存分解。执行：
+step2. 环境变量PYTHONPATH中添加MindFormers根目录的绝对路径。
 
 ```bash
-python run_pipeline_balance.py --guide
+export PYTHONPATH=<MindFormers_dir>
 ```
 
-此时会进入交互。工具会询问流水线stage数和模型层数，以及调优涉及的重计算，随后返回用户需要执行的配置并得到各个stage的峰值内存。例如，对于一个96层的模型，假设流水线stage数为16，调优时考虑选择重计算和通信重计算，且二者可能重叠的时候，工具会给出如下包含了offset和重计算的配置。
+在toolkit/pipeline_balance目录下执行
+
+```bash
+python run_pipeline_balance.py -auto -m <model_name> -mb <micro_barch_num> -mem <max_mem> -s <stage_num> -i <vpp_num> -seq <seq_split_num> -lm <1/0> -t <time_limit> -o <output_path>
+```
+
+参数含义：
+
+| 参数 | 含义 | 取值范围 |
+| :----: |----|:----:|
+| `-auto` | 开启全自动模式 |  |
+| `-m` | 模型名称（自定义），auto_ppb_config分析后存成一个同名json文件提供给算法接口 | str，默认"model_name" |
+| `-mb` | micro batch数 | int，默认4 |
+| `-mem` | 最大可用显存，单位为mb | int，默认56000 |
+| `-s` |流水线stage数| int，默认4 |
+| `-seq` |seq流水线中的sequence切分数| int，默认1 |
+| `-i` |pipeline interleave数 |int，默认1|
+| `-lm` |大小内存 | int, 仅在pipeline interleave > 1的时候生效，0为大内存，1为小内存，二者为两种不同的流水线调度方式，小内存方案的调度方式可以节省更多的峰值内存。默认为大内存。|
+| `-t` | 求解器搜索时间的上限，以秒为单位，达到时间上限后求解器停止搜索 | int，默认90 |
+| `-o` | 输出文件夹， 包括dryrun，validate的日志和配置文件，算法结果，和运行日志 | str, 默认`./output` |
+
+
+step3. 运行上述命令后会进入交互。 工具会询问流水线stage数和模型层数，以及调优涉及的重计算，随后返回自动dryrun的配置并得到各个stage的峰值内存。例如，对于一个96层的模型，假设流水线stage数为16，调优时考虑选择重计算和通信重计算，且二者可能重叠的时候，工具会给出如下包含了offset和重计算的配置。
 
 注意：layer层数不能等于stage数。
 
@@ -50,102 +68,10 @@ Do you consider extra communication recomputation?[y/n]? y
         select_comm_recompute: [0, 5, 0, 1, 1, 4, 2, 2, 1, 3, 2, 6, 4, 5, 5, 1]
 ```
 
-此时将模型配置文件中的offset和重计算字段对应的值改成工具输出的值。建议通过[dryrun](#使用dryrun获取内存数据)的方式去执行。当流水线的stage数较少的时候可能需要[执行不止一轮](#需要运行多轮的情形)。
 
-Step3. 完成了以上两步之后，仅需在一个init文件（该文件采取yaml格式，下面是一个init文件的样例）中填写对应字段即可使用SAPP流水线负载均衡工具。
+step4. 交互完成后会进入全自动流程。工具会自动dryrun获取内存数据， 日志保存在输出文件夹中。 成功获取多个stage的峰值显存数据后，工具会进行模型内存分解，自动执行算法，在输出结果中可以看到推荐策略，以及这个策略的流水线bubble：
 
-```yaml
-# pipeline_config
-pipeline_config:
-  pipeline_num: 16
-  num_layer: 96
-  offset: [0, 0, -4, -2, 2, -2, -2, 10, -2, -2, -2, 0, 2, 2, 0, 0]
 
-profiling_config:
-  micro_batch_num: 8
-  head_layers: "LlamaEmbedding" # optional
-  body_layers: "LLamaDecodeLayer" # optional
-  tail_layers: ["lm_head-Linear", "LlamaRMSNorm"] # optional
-  folder_path: "/timeline/path"
-
-# recompute_config
-recompute_config:
-  recompute: false
-  select_recompute: [5, 5, 2, 1, 4, 3, 2, 14, 4, 4, 4, 6, 1, 5, 5, 6]
-  select_comm_recompute: [0, 5, 0, 1, 1, 4, 2, 2, 1, 3, 2, 6, 4, 5, 5, 1]
-
-# head memory and tail memory are necessary.
-# num of body memories = type of recompute + 2 --> the influence of implicit constant memory is not considered
-# num of body memories >= type of recompute + 3 --> the influence of implicit constant memory is considered
-memory_usage:
-  head_memory: 96643
-  tail_memory: 23531
-  body_memories:
-    stage_id: [1,2,3,4,5,6,7,8,9,10,11,12,13,14]
-    memories: [60854,27620,54533,100631,31713,38874,146986,31713,24553,24553,28484,45016,33763,20463]
-```
-
-`pipeline_config`中填写的是流水线的基本配置。其中`offset`字段请填写Step2中工具给出的offset配置。
-
-`profiling_config`中填写的是Step1中进行profiling时的信息，需要提供micro batch数以及timeline文件的目录路径。head_layers、body_layers、tail_layers是head、body和tail对应的算子名，当不填的时候按llama处理。
-
-`recompute_config`和`offset`类似，填写Step2中给出的重计算配置。
-
-`memory_usage`中填写的是Step2中运行得到的不同stage的峰值内存。如果执行了不止一轮的话`head_memory`和`tail_memory`填第一轮的头尾两个stage的结果。
-
-yaml中的各个字段详细含义和填写规则如下：
-
-| 参数名 | 含义 | 取值范围 |
-|  :----:  | ----  | ---- |
-| `pipeline_config` | 流水线的基本配置 |
-| `pipeline_num` | 流水线并行的stage数 | int |
-| `num_layer` | 模型层数 | int |
-| `offset` | 配置的负载偏置 | 支持list、list of lists以及数字0作为输入。list中的数表示每个stage的偏置。list of lists用于[需要运行多轮的情形](#需要运行多轮的情形)。0表示没有负载偏置。 |
-| `profiling_config` | profiling相关信息 |
-| `micro_batch_num` | profiling时的micro batch数 | int |
-| `head_layers` | head算子名 | str或字符串列表 |
-| `body_layers` | body算子名 | str或字符串列表 |
-| `tail_layers` | tail算子名 | str或字符串列表 |
-| `folder_path` | timeline文件的存放路径 | str |
-| `recompute` | 完全重计算配置 | 支持list，bool或list of lists作为输入。|
-| `select_recompute` | 选择重计算配置 | 支持list，bool或list of lists作为输入|
-| `select_comm_recompute` | 通信重计算配置 | 支持list，bool或list of lists作为输入|
-| `memory_usage` | 模型运行结束后得到显存占用 |
-| `head_memory` | 第一个stage的显存占用，单位为MB | int |
-| `tail_memory` | 最后一个stage的显存占用，单位为MB | int |
-| `body_memories` | 中间stage的显存占用 |
-| `stage_id` | 被选定用于内存分解计算的stage的序号, 选择的stage数量应大于等于 3 + 纳入建模的重计算种类（如完全重计算、选择重计算就是两种不同的重计算） | 支持list或list of lists |
-|`memories`| stage_id中对应stage的显存占用 |支持list或list of lists |
-
-Step4. 有了这个yaml文件后，在环境变量PYTHONPATH中添加MindFormers根目录的绝对路径。
-
-```bash
-export PYTHONPATH=<MindFormers_dir>
-```
-
-随后执行：
-
-```bash
-python run_pipeline_balance.py --init <init_file> -m <model_name> -mb <micro_barch_num> -mem <max_mem> -s <stage_num> -i <vpp_num> -seq <seq_split_num> -lm <1/0> -t <time_limit>
-```
-
-工具涉及的参数含义如下：
-
-| 参数 | 含义 | 取值范围 |
-| :----: |----|:----:|
-| `--init` | init文件的相对位置 | str，使用该参数时必须要提供文件路径 |
-| `-m` | 模型名称（自定义），init分析后存成一个同名json文件提供给算法接口 | str，默认"model_name" |
-| `-mb` | micro batch数 | int，默认4 |
-| `-mem` | 最大可用显存，单位为mb | int，默认56000 |
-| `-s` |流水线stage数| int，默认4 |
-| `-seq` |seq流水线中的sequence切分数| int，默认1 |
-| `-i` |pipeline interleave数 |int，默认1|
-| `-lm` |大小内存 | int, 仅在pipeline interleave > 1的时候生效，0为大内存，1为小内存，二者为两种不同的流水线调度方式，小内存方案的调度方式可以节省更多的峰值内存。默认为大内存。|
-| `-t` | 求解器搜索时间的上限，以秒为单位，达到时间上限后求解器停止搜索 | int，默认90 |
-| `-naive` | 是否对naive配置进行模拟（详见下文[比较不同的策略](#比较不同的策略)） | 0或1，默认关闭 |
-| `-manual` | 手工并行策略配置的路径（详见下文[比较不同的策略](#比较不同的策略)） | str，默认关闭 |
-
-Step5. 在输出结果中可以看到推荐策略，以及这个策略的流水线bubble：
 
 ```plain
 To put in yaml configuration:
@@ -169,32 +95,53 @@ bubble一栏各项所表达的含义如下：
 
 `recompute`为重计算引入的bubble。
 
-### 需要运行多轮的情形
 
-注意，由于工具的内存算法基于方程组求解（详见[内存分解原理](#内存分解原理)），当运行一次提供不了足够的stage数据的时候就需要运行多轮。以pp=4为例可以按如下方式提供，需要关注offset、recompute和memory中的部分字段改成了list of lists的格式。对应的值具体怎么填写通过`python run_pipeline_balance.py --guide`获取：
 
-```yaml
-# pipeline_config
-pipeline_config:
-  pipeline_num: 4
-  num_layer: 80
-  offset: [[0,1,-1,0],[0,-1,1,0]] #通过list of lists的方式提供两轮数据
 
-# recompute_config
-recompute_config:
-  recompute: [[1,2,1,1],[1,3,4,1]]
-  select_recompute: [false,false]
-  select_comm_recompute: [false,false]
+### 策略快捷生成
 
-memory_usage:
-  head_memory: 66502
-  tail_memory: 25599
-  body_memories:
-    stage_id: [[1,2],[1,2]]
-    memories: [[52536,35595],[45439,35700]]
+
+成功执行[一键启动](#一键启动)流程后， 工具会在`layers`文件夹下生成一个json文件， 用于记录模型的信息分析结果。 若模型的时间信息不变，可直接使用这个时间信息运行策略快捷。
+
+
+在toolkit/pipeline_balance目录下执行
+
+```bash
+python run_pipeline_balance.py  -lf <layer_file> -mb <micro_barch_num> -mem <max_mem> -s <stage_num> -i <vpp_num> -seq <seq_split_num> -lm <1/0> -t <time_limit> -o <output_path>
 ```
 
-## 比较不同的策略
+新增参数含义：
+
+| 参数 | 含义 | 取值范围 |
+| :----: |----|:----:|
+| `-lf` | 模型时间信息解析json文件地址 | str|
+
+
+执行上述命令后，工具会跳过和[一键启动](#一键启动)流程中解析模型的时间信息的部分，直接读取模型时间信息并进入后续流程。
+
+
+
+## 精确调优
+
+### 使用Profiling提供精确性能数据
+
+<!-- 注：当pp=2或pp=4的时候可以参考[快速调优](#手工快速调优手册)。 -->
+
+Step.1 收集模型的Profiling信息，可参考下文[使用Profiling获取性能数据](#使用profiling获取性能数据)。完成了Profiling会在ASCNED_PROFILER_OUTPUT下自动生成名为trace_view.json的timeline文件。为了有效分析模型的时间信息，至少要有头尾两个stage和中间任意一个stage的Profiling信息。将这些stage的trace_view.json文件统一放置在任意文件夹中，此处记为`/timeline/path`。一个stage最多只能放置一个文件。
+
+例如，在8张卡上执行stage数为4的模型，把0卡、2卡和7卡的trace_view.json统一放到文件夹`/timeline/path`下即可。
+
+```bash
+ls /timeline/path
+
+trace_view0.json trace_view2.json trace_view7.json
+```
+
+Step.2 在`auto_ppb_config` 中修改 `profiling_config`，使其与收集的Profiling数据匹配。在执行[一键启动](#一键启动)后，若提供的Profiling数据完整，工具会自动使用Profiling数据分析模型的时间信息来替代`auto_ppb_config`中提供的`time_config`。
+
+
+
+### 比较不同的策略
 
 为了在调优时判断SAPP工具生成的策略是否较优，我们提供了接口对不同策略进行模拟，并生成模拟结果以供比较。工具可生成两种结果作为对照：一种是基于两个naive策略的结果，另一种是基于用户提供的手工策略的结果。二者可同时与工具结果进行比较。
 
@@ -247,9 +194,13 @@ manual1:
 |:-------------------------:|:-------------------------:|
 |![All recomputation](./figures/result_naive_all_recomp.png)|![No recomputation](./figures/result_naive_no_recomp.png)|
 
+
+
+
 ## 内存数据和性能数据的收集
 
 在调优过程中，profiling可以给出模型执行的性能数据，而DryRun可以给出具体Device的内存数据。这两项技术对于调优有重大意义，这里简述使用方法。
+
 
 ### 使用Profiling获取性能数据
 
@@ -300,6 +251,9 @@ MindSpore memory base address: 0
 Used peak memory usage (without fragments): 48874M
 Actual peak memory usage (with fragments): 48874M
 ```
+
+
+
 
 ## 算法原理
 

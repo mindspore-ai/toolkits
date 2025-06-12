@@ -85,6 +85,7 @@ class SappSolver:
         self.optimization_level_ = optimization_level
         self.layers_ = layers
         self.layers_sorted_ = layers_sorted
+        self.mem_estimate_ = []
 
         self.recompute_considered_ = self.find_recompute_considered(
             layers_sorted)
@@ -713,9 +714,6 @@ class SappSolver:
                     self.constant_memory_)
         else:
             for s in range(num_of_stage):
-                prob += variables[self.MEM_OVERHEAD_NAME][s] >= (
-                    self.init_overhead_variables(variables, s)
-                )
                 prob += memory_limit >= (
                     self.stage_param_memory(
                         variables, layers_sorted, s, num_of_stage, num_of_interleave
@@ -723,7 +721,6 @@ class SappSolver:
                     + self.stage_active_memory(
                         variables, layers_sorted, s, num_of_interleave, activation_nums
                     )
-                    + variables[self.MEM_OVERHEAD_NAME][s]
                     + self.constant_memory_
                 )
 
@@ -957,10 +954,8 @@ class SappSolver:
             ).value()
             
             overhead = 0
-            if self.num_of_stage_ != self.num_of_micro_batch_:
-                overhead = self.variables_[self.MEM_OVERHEAD_NAME][s].varValue * overhead_factors[s]
-
             total = param_mem + act_mem + overhead + self.constant_memory_
+            self.mem_estimate_.append(total)
 
             logger.info("Stage %d Solver Memory Analysis:", s)
             logger.info(f"Parameter Memory:     {param_mem:.2f}")
