@@ -30,6 +30,7 @@ from toolkit.pipeline_balance.utils.compute_memory import ComputeMemory
 from toolkit.pipeline_balance.utils.stage import StagesBuilder
 import toolkit.pipeline_balance.utils.recompute as Recompute
 from toolkit.pipeline_balance.utils.computation_analyzer import ComputationAnalyzer
+from toolkit.pipeline_balance.utils.recompute import DEFAULT_COEF
 
 random.seed()
 
@@ -46,13 +47,14 @@ class LayersDescription:
     memory_parameter: int
 
     def __init__(
-            self, layer_type: Layer.type_enum, time: int, nb_layer: int, model_name: str
+            self, name:str, layer_type: Layer.type_enum, time: int, nb_layer: int, model_name: str
     ):
         self.type = layer_type.name
         self.time = time
-        self.name = layer_type.name
+        self.name = name
         self.nb_layer = nb_layer
         self.model_name = model_name
+        self.memory_parameter = None
 
 
 @dataclass
@@ -66,20 +68,30 @@ class ModelInfo:
     def __init__(self, model_name, head_time, body_time, tail_time, nb_layer):
         self.name = model_name
         self.stage_const_mem = 0
+        self.body_layer_names =[]
         self.layers_description = []
         self.layers_description.append(
-            LayersDescription(Layer.type_enum.HEAD, head_time, 1, model_name)
+            LayersDescription("HEAD", Layer.type_enum.HEAD, head_time, 1, model_name)
         )
+        for layer_name in body_time:
+            for idx, bt in enumerate(body_time[layer_name]):
+                layer_name_part = bt[0]
+                self.layers_description.append(
+                    LayersDescription(layer_name_part, Layer.type_enum.BODY, bt[1], nb_layer[idx], model_name)
+                )
         self.layers_description.append(
-            LayersDescription(Layer.type_enum.BODY, body_time, nb_layer, model_name)
-        )
-        self.layers_description.append(
-            LayersDescription(Layer.type_enum.TAIL, tail_time, 1, model_name)
+            LayersDescription("TAIL", Layer.type_enum.TAIL, tail_time, 1, model_name)
         )
 
     def get_layer_by_type(self, layer_type: Layer.type_enum):
         for layer in self.layers_description:
             if layer.type == layer_type.name:
+                return layer
+        return None
+    
+    def get_layer_by_name(self, layer_name):
+        for layer in self.layers_description:
+            if layer.name == layer_name:
                 return layer
         return None
 
@@ -101,14 +113,40 @@ class ModelInfo:
             for layer in json_data["layers_description"]:
                 if layer["type"] == Layer.type_enum.BODY.name:
                     layer[Recompute.JSON_MEMORY_NAME[rec]] = rec_mem
+            layer["memory_parameter"] = mem_par
         self.to_json_ = json_data
+
+
+    def layer_memory_update_head_tail(self, mem_head, mem_tail):
+        """update input memories to layer description"""
+        self.get_layer_by_type(Layer.type_enum.HEAD).memory_parameter = mem_head
+        self.get_layer_by_type(Layer.type_enum.TAIL).memory_parameter = mem_tail
+
+        json_data = asdict(self)
+        self.to_json_ = json_data
+
+
+    def layer_memory_update_body(self, mem_act, mem_par, body_name:str):
+        """update input memories to layer description"""
+
+
+        json_data = self.to_json_
+        for layer in json_data["layers_description"]:
+            if layer["name"] == body_name:
+                for rec in Recompute.TYPE:
+                    rec_mem = mem_act.get(rec)
+                    if rec_mem is None:
+                        continue
+
+                    layer[Recompute.JSON_MEMORY_NAME[rec]] = rec_mem
+                layer["memory_parameter"] = mem_par
 
     def dump_json(self, file_name):
         with open(file_name, "w+") as json_file:
             json.dump(self.to_json_, json_file, indent=4)
 
 
-def time_parser(file_name: str, model_name: str):
+def time_parser(file_name: str):
     """parse time given by yaml"""
     if file_name is None:
         logger.error("input file cannot be none")
@@ -129,47 +167,164 @@ def time_parser(file_name: str, model_name: str):
     tail_time = 0
 
     if "time_config" in cfg_dict:
-        head_time = cfg_dict["time_config"].get("head")
-        body_time = cfg_dict["time_config"].get("body")
-        tail_time = cfg_dict["time_config"].get("tail")
+        head_time = cfg_dict["time_config"].get("head", None)
+        body_time = cfg_dict["time_config"].get("body", None)
+        tail_time = cfg_dict["time_config"].get("tail", None)
         if all(key in cfg_dict["time_config"] for key in ["head", "body", "tail"]):
             return head_time, body_time, tail_time
 
     if cfg_dict.get("profiling_config"):
-        head_layers = cfg_dict["profiling_config"].get("head_layers", ["LlamaEmbedding"])
-        body_layers = cfg_dict["profiling_config"].get("body_layers", ["LLamaDecodeLayer"])
-        tail_layers = cfg_dict["profiling_config"].get("tail_layers", ["lm_head-Linear", "LlamaRMSNorm"])
-        if isinstance(head_layers, str):
-            head_layers = [head_layers]
-        if isinstance(tail_layers, str):
-            tail_layers = [tail_layers]
-        if isinstance(body_layers, str):
-            body_layers = [body_layers]
-
-        num_layer = cfg_dict["pipeline_config"]["num_layer"]
-        micro_batch_num = cfg_dict["profiling_config"]["micro_batch_num"]
-        timeline_folder_path = cfg_dict["profiling_config"]["folder_path"]
-        layer_list = {"pre_defined_layer": {}, "auto_partition_layer": {}}
-        for layer in head_layers:
-            layer_list["pre_defined_layer"].update({layer: 0})
-        for layer in tail_layers:
-            layer_list["pre_defined_layer"].update({layer: -1})
-        for layer in body_layers:
-            layer_list["auto_partition_layer"].update({layer: num_layer})
-        analyzer = ComputationAnalyzer(timeline_folder_path, model_name, micro_batch_num, layer_list)
-        cost_list = analyzer.layer_with_cost_list
-        logger.info(cost_list)
-        for layer, time in cost_list.items():
-            if layer in layer_list["pre_defined_layer"] and layer_list["pre_defined_layer"][layer] == 0:
-                head_time += time
-            elif layer in layer_list["pre_defined_layer"] and layer_list["pre_defined_layer"][layer] == -1:
-                tail_time += time
-            else:
-                body_time += time
+        head_time, body_time, tail_time = profiler_parser(cfg_dict)
 
     logger.info(f"head_time: {head_time}, body_time: {body_time}, tail_time: {tail_time}")
 
     return head_time, body_time, tail_time
+
+
+
+def profiler_parser(cfg_dict):
+
+    model_type = cfg_dict["model_type"]
+
+    head_layers = cfg_dict["profiling_config"].get("head_layers", ["LlamaEmbedding"])
+
+    layer_list = {"pre_defined_layer": {}, "auto_partition_layer": {}, "auto_partition_ends":{}}
+
+    if model_type == "deepseek":
+        body_layers = cfg_dict["profiling_config"].get("body_layers", ["DeepSeekV2DecodeLayer"])
+        tail_layers = cfg_dict["profiling_config"].get("tail_layers", ["lm_head-Linear"])
+        for layer_name in body_layers:
+            if layer_name in cfg_dict["profiling_config"]["body_layers_ends"]:
+                layer_list["auto_partition_ends"][layer_name] =  cfg_dict["profiling_config"]["body_layers_ends"][layer_name]
+
+    else:
+        body_layers = cfg_dict["profiling_config"].get("body_layers", ["LLamaDecodeLayer"])
+        tail_layers = cfg_dict["profiling_config"].get("tail_layers", ["lm_head-Linear", "LlamaRMSNorm"])  
+    if isinstance(head_layers, str):
+        head_layers = [head_layers]
+    if isinstance(tail_layers, str):
+        tail_layers = [tail_layers]
+    if isinstance(body_layers, str):
+        body_layers = [body_layers]
+
+    micro_batch_num = cfg_dict["profiling_config"]["micro_batch_num"]
+    timeline_folder_path = cfg_dict["profiling_config"]["folder_path"]
+    recompute_layers_ratio = cfg_dict["profiling_config"]["recompute_layers_ratio"]
+
+
+    for layer in head_layers:
+        layer_list["pre_defined_layer"].update({layer: 0})
+    for layer in tail_layers:
+        layer_list["pre_defined_layer"].update({layer: -1})
+    for layer in body_layers:
+        layer_list["auto_partition_layer"].update({layer: 1})
+
+
+    analyzer = ComputationAnalyzer(timeline_folder_path, micro_batch_num, recompute_layers_ratio, layer_list)
+    cost_list = analyzer.layer_with_cost_list
+    logger.info(cost_list)
+
+    # Update COEF if recompute used in profiling
+    if cfg_dict["profiling_config"]["recompute"]:
+        DEFAULT_COEF[Recompute.TYPE.FULL] = analyzer.backward_recompute_coef
+        logger.info(f"Updated recompute coef: {DEFAULT_COEF}")
+
+    head_time = 0
+    body_time = {}
+    tail_time = 0
+
+    for layer, time in cost_list.items():
+        if layer in layer_list["pre_defined_layer"] and layer_list["pre_defined_layer"][layer] == 0:
+            head_time += time
+        elif layer in layer_list["pre_defined_layer"] and layer_list["pre_defined_layer"][layer] == -1:
+            tail_time += time
+        else:
+            body_time[layer] = time
+                
+
+    return head_time, body_time, tail_time
+
+
+def time_parser_auto(file_name: str):
+
+    """parse time given by yaml"""
+    if file_name is None:
+        logger.error("input file cannot be none")
+        raise ValueError("input file cannot be none")
+
+    if not file_name.endswith("yaml") and not file_name.endswith("yml"):
+        logger.error("Only accept yaml as input format")
+        raise ValueError(f"Only accept yaml as input format. not {file_name}")
+
+    filepath = os.path.realpath(file_name)
+    with open(filepath, encoding="utf-8") as fp:
+        check_yaml_depth_before_loading(fp)
+        fp.seek(0)
+        cfg_dict = yaml.safe_load(fp)
+
+    if cfg_dict.get("profiling_config"):
+        head_time, body_time, tail_time = profiler_parser(cfg_dict)
+        logger.info(f"head_time: {head_time}, body_time: {body_time}, tail_time: {tail_time}")
+        return head_time, body_time, tail_time
+
+    
+    head_time = 0
+    body_time = 0
+    tail_time = 0
+
+    model_type = cfg_dict["model_type"]
+
+    if "time_config" in cfg_dict and model_type in cfg_dict["time_config"]:
+        head_time = cfg_dict["time_config"][model_type].get("head", None)
+        body_time = cfg_dict["time_config"][model_type].get("body", None)
+        tail_time = cfg_dict["time_config"][model_type].get("tail", None)
+
+        if body_time:
+            body_time_return = {}
+            for body_layer_name in body_time:
+                body_time_return[body_layer_name] = []
+                for i in range(len(body_time[body_layer_name])):
+                    body_layer_name_part = f"{body_layer_name}_part_{i}"
+                    body_time_return[body_layer_name].append((body_layer_name_part, body_time[body_layer_name][i]))
+            body_time = body_time_return
+
+        if all(key in cfg_dict["time_config"][model_type] for key in ["head", "body", "tail"]):
+            logger.info(f"head_time: {head_time}, body_time: {body_time}, tail_time: {tail_time}")
+            return head_time, body_time, tail_time
+
+    logger.info(f"head_time: {head_time}, body_time: {body_time}, tail_time: {tail_time}")
+
+    return head_time, body_time, tail_time
+
+
+def auto_ppb_config_parser(file_name: str):
+    """parse time given by yaml"""
+    if file_name is None:
+        logger.error("input file cannot be none")
+        raise ValueError("input file cannot be none")
+
+    if not file_name.endswith("yaml") and not file_name.endswith("yml"):
+        logger.error("Only accept yaml as input format")
+        raise ValueError(f"Only accept yaml as input format. not {file_name}")
+
+    filepath = os.path.realpath(file_name)
+    with open(filepath, encoding="utf-8") as fp:
+        check_yaml_depth_before_loading(fp)
+        fp.seek(0)
+        cfg_dict = yaml.safe_load(fp)
+    
+    if "backward_coef" in cfg_dict:
+        for coe_key in DEFAULT_COEF:
+            if coe_key in cfg_dict["backward_coef"]:
+                DEFAULT_COEF[coe_key] = cfg_dict["backward_coef"]
+    else:
+        logger.info("Cannot find backward coefficient, use default value")
+    
+    logger.info(f"backward_coef: {DEFAULT_COEF}")
+
+    return cfg_dict
+
+
 
 
 def memory_parser(file_name: str):
@@ -213,8 +368,25 @@ def memory_parser(file_name: str):
     return pipeline_num, stages_a, num_layer
 
 
-def initialize_layer_json(model_info: ModelInfo, comp_mem: ComputeMemory, output_folder: str = "./layers" ):
-    """initialize layer description json file"""
+def update_body_layer_memory(model_info: ModelInfo, comp_mem, body_layer_name):
+
+    mem_act = {}
+    for r in Recompute.TYPE:
+        if comp_mem.recompute_considered_[r]:
+            mem_act[r] = int(comp_mem.get_memory_activation(r))
+            logger.info(
+                "[INFO] %s = %f", Recompute.JSON_MEMORY_NAME[r],
+                int(comp_mem.get_memory_activation(r))
+            )
+    mem_par = int(comp_mem.get_memory_parameter())
+    logger.info(f"[INFO] memory_parameter  = {mem_par}")
+    model_info.layer_memory_update_body(mem_act, mem_par, body_layer_name)
+
+
+
+def update_head_tail_layer_memory(model_info: ModelInfo, comp_mem):
+
+
     mem_act = {}
     for r in Recompute.TYPE:
         if comp_mem.recompute_considered_[r]:
@@ -227,29 +399,44 @@ def initialize_layer_json(model_info: ModelInfo, comp_mem: ComputeMemory, output
         mem_const = int(comp_mem.get_memory_const())
         logger.info(f"[INFO] memory_const       = {mem_const}")
         model_info.set_stage_const_mem(mem_const)
-    mem_par = int(comp_mem.get_memory_parameter())
     mem_tail = int(comp_mem.get_memory_tail())
     mem_head = int(comp_mem.get_memory_head())
-    logger.info(f"[INFO] memory_parameter  = {mem_par}")
     logger.info(f"[INFO] memory_tail       = {mem_tail}")
     logger.info(f"[INFO] memory_head       = {mem_head}")
 
-    model_info.layer_memory_update(mem_act, mem_par, mem_head, mem_tail)
+    model_info.layer_memory_update_head_tail(mem_head, mem_tail)
+
+
+
+def initialize_layer_json(model_info: ModelInfo, comp_mem_list: list[ComputeMemory], body_layer_names, output_folder: str = "./layers" ):
+    """initialize layer description json file"""
+    update_head_tail_layer_memory(model_info, comp_mem_list[0])
+    for comp_mem, body_layer_name in zip(comp_mem_list, body_layer_names):
+        update_body_layer_memory(model_info, comp_mem, body_layer_name)
+
     model_info.dump_json(os.path.join(output_folder, model_info.name + ".json"))
 
 
 def convert_init_to_sapp(model_name: str, file_name: str, output_folder: str = "./layer"):
     """convert init file to sapp interface json file"""
     num_stage, stages_a, num_layer = memory_parser(file_name)
-    head_time, body_time, tail_time = time_parser(file_name, model_name)
+    head_time, body_time, tail_time = time_parser(file_name)
     comp_mem = ComputeMemory(number_of_stage=num_stage, stages_A=stages_a)
     mi = ModelInfo(model_name, head_time, body_time, tail_time, num_layer)
     initialize_layer_json(mi, comp_mem, output_folder)
 
 
-def get_stage_const_mem(layer_folder: str, model_name: str):
+
+
+def check_mem_results(mem_results, max_memory: int):
+    for mem in mem_results:
+        if mem > max_memory:
+            return False
+    return True
+
+
+def get_stage_const_mem(json_layer: str):
     """ Get stage constant memory from layer_folder/model_name.json"""
-    json_layer = os.path.join(layer_folder, model_name + '.json')
     with open(json_layer, encoding="utf-8") as json_file:
         json_data = json.load(json_file)
         if "stage_const_mem" in json_data:
@@ -360,6 +547,7 @@ def convert_to_mf_format(offset_config_list, rec_config_list):
     return yaml_configs
 
 
+
 def print_dryrun_config(yaml_configs):
     """print generated config"""
     logger.output(
@@ -371,6 +559,20 @@ def print_dryrun_config(yaml_configs):
         for y, v in yaml_config.items():
             yaml_results += f"\n\t{y}: {v}"
         logger.output(yaml_results)
+
+
+def compare_mem_results(mem_list1, mem_list2, mem_name1, mem_name2):
+    if len(mem_list1) != len(mem_list2):
+        raise ValueError(f"{mem_name1} and {mem_name2} length not equal.")
+    comparisons = []
+    for idx, (val1, val2) in enumerate(zip(mem_list1, mem_list2)):
+        diff_pct = (val1 - val2) /val2 * 100
+        comparisons.append(
+            f"stage {idx}: {val1} vs {val2} -> {diff_pct:+.2f}%"
+        )
+    header = f"Memory Comparison: {mem_name1} vs {mem_name2}"
+    logger.output("\n".join([header, *comparisons]))
+    
 
 
 def generate_solvable_config(pp: int, num_layers: int, considered_rec: list):
