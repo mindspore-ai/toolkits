@@ -1,0 +1,111 @@
+# Copyright 2024 Huawei Technologies Co., Ltd
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ============================================================================
+
+import os
+import csv
+import yaml
+import time
+
+from utils.logger import logger
+
+class ResultCsv:
+    def __init__(self, output_file='pipeline_output', name='test_result'):
+        self.header = ['test', 'layers', 'micro', 'dp', 'tp', 'pp', 'ep', 'vp','dense:moe', '反向:正向',
+                       '重计算增加比率', 'mtp+head', 'moe时长', 'low_mem', '目标值', 'cost', 'x', 'offset',
+                       'ra', '内存信息', '内存上限(GB)', '求解器', 'GAP', 'solution_status', 'model_status',
+                       '求解耗时/s', 'dryrun_check']
+        self.name = name
+        timestamp = time.strftime("%Y%m%d%H%M%S")
+        csv_dir = os.path.join(os.getcwd(), output_file)
+        if not os.path.exists(csv_dir):
+            os.mkdir(csv_dir)
+        self.path = os.path.join(csv_dir, f'{self.name}_{timestamp}.csv')
+        self.create_csv_file()
+
+    def create_csv_file(self):
+        with open(self.path, 'w', encoding='utf-8-sig') as file:
+            header = ','.join(self.header) + '\n'
+            file.write(header)
+        logger.info (f'Successfully created {self.name}')
+
+    def config_to_csv(self, candidate, low_mem, solver_name):
+        new_row = ['']*len(self.header)
+        h = self.header
+        new_row[h.index('test')] = candidate.yaml_path
+        new_row[h.index('求解器')] = solver_name
+        new_row[h.index('low_mem')] = low_mem
+        new_row[h.index('dense:moe')] = candidate.profiling_info.dmratio
+        new_row[h.index('反向:正向')] = candidate.profiling_info.bfratio
+        new_row[h.index('重计算增加比率')] = candidate.profiling_info.re_grow_ration
+        new_row[h.index('mtp+head')] = candidate.profiling_info.hratio
+        new_row[h.index('moe时长')] = candidate.profiling_info.moe_fw
+        self.yaml_to_row(candidate.yaml_path, new_row)
+        with open(self.path, 'a', newline='', encoding='utf-8-sig') as file:
+            writer = csv.writer(file)
+            writer.writerows([new_row])
+
+    def yaml_to_row(self, yaml_file, row):
+        with open(yaml_file, 'r', encoding='utf-8') as file:
+            data = yaml.safe_load(file)
+            h = self.header
+            row[h.index('layers')] = data['model']['model_config']['num_layers']
+            if 'mtp_depth' in data['model']['model_config']:
+                row[h.index('layers')] += data['model']['model_config']['mtp_depth']
+            row[h.index('micro')] = data['parallel_config']['micro_batch_num']
+            row[h.index('dp')] = data['parallel_config']['data_parallel']
+            row[h.index('tp')] = data['parallel_config']['model_parallel']
+            row[h.index('pp')] = data['parallel_config']['pipeline_stage']
+            if 'expert_parallel' in data['parallel_config']:
+                row[h.index('ep')] = data['parallel_config']['expert_parallel']
+            else:
+                row[h.index('ep')] = 1
+            if 'pp_interleave_num' in data['model']['model_config']:
+                row[h.index('vp')] = data['model']['model_config']['pp_interleave_num']
+            else:
+                row[h.index('vp')] = 1
+
+    def result_to_csv(self, solution):
+        row_cost =[]
+        row_no_cost = []
+        with open(self.path, 'r', newline='', encoding='utf-8-sig') as file:
+            reader = csv.reader(file)
+            h = self.header
+            for row in reader:
+                if row[h.index('test')] == str(solution.init_config.yaml_file):
+                    row[h.index('内存信息')] = solution.init_config.memory.get_mem()
+                    row[h.index('内存上限(GB)')] = solution.init_config.memory.mem_lim / 1024
+                    row[h.index('求解耗时/s')] = solution.run_time
+                    row[h.index('solution_status')] = solution.solution_status
+                    row[h.index('model_status')] = solution.model_status
+                    if solution.solution_status != 'None':
+                        row[h.index('目标值')] = solution.object_value
+                        row[h.index('x')] = solution.layer_dis.tolist()
+                        row[h.index('offset')] = solution.offset.tolist()
+                        row[h.index('ra')] = solution.ra_dis.tolist()
+                        row[h.index('GAP')] = solution.gap
+                        row[h.index('cost')] = solution.object_value * float(row[h.index('moe时长')])
+                        row[h.index('dryrun_check')] = solution.check_peak_mem
+                if row[h.index('cost')]:
+                    row_cost.append(row)
+                else:
+                    row_no_cost.append(row)
+                sorted_rows = sorted(row_cost[1:], key=lambda x: float(x[self.header.index('cost')]))
+                sorted_rows = [self.header] + sorted_rows + row_no_cost
+        with open(self.path, 'w', newline='', encoding='utf-8-sig') as file:
+            writer = csv.writer(file)
+            writer.writerows(sorted_rows)
+
+if __name__ == '__main__':
+    csv = ResultCsv()
