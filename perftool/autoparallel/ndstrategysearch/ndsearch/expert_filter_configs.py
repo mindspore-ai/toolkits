@@ -18,9 +18,9 @@ from utils.logger import logger
 
 
 class ExpertFilterManager:
-    def __init__(self, mindformers_args, gbs):
+    def __init__(self, input_args, gbs):
         self.expert_filters = []
-        self.mindformers_args = mindformers_args
+        self.input_args = input_args
         self.gbs = gbs
 
     @staticmethod
@@ -66,10 +66,10 @@ class ExpertFilterManager:
         return self.gbs
 
     def get_num_layers(self):
-        return self.mindformers_args.model.model_config.num_layers
+        return self.input_args.num_layers
 
     def get_mbn(self):
-        return self.mindformers_args.parallel_config.micro_batch_num
+        return self.input_args.mbn
 
     def add_experience(self, experience_function):
         """
@@ -146,21 +146,23 @@ def select_profile_config(valid_configs):
         ret.append([[config_par1, part2], True])
     return ret
 
-def expert_filter_configs(search_spaces, mindformers_args, gbs):
+def expert_filter_configs(search_spaces, input_args, gbs):
     """
 
     :param search_spaces: 初始搜索空间 [[(dp, tp, cp, pp), (ep, op, vp, mbs)], sp]
-    :param mindformers_args: yaml配置信息
+    :param input_args: 用户输入模型配置信息
+    :param gbs: global batch size
     :return: 使用专家经验剪枝搜索空间后得到的配置 [[(dp, tp, cp, pp), (ep, op, vp, mbs)], sp]
     """
-    expert_manager = ExpertFilterManager(mindformers_args, gbs)
+    expert_manager = ExpertFilterManager(input_args, gbs)
     expert_manager.add_experience(expert_manager.cp_for_deepseek_expert)
     expert_manager.add_experience(expert_manager.tp_for_910c_expert)
     expert_manager.add_experience(expert_manager.ep_for_910c_expert)
     expert_manager.add_experience(expert_manager.sp_for_lm_expert)
     expert_manager.add_experience(expert_manager.pp_for_mbs_expert)
     expert_manager.add_experience(expert_manager.gbs_for_dp_expert)
-    expert_manager.add_experience(expert_manager.pp_for_deepseek)
+    if input_args.expert_num != 0:
+        expert_manager.add_experience(expert_manager.pp_for_deepseek)
     # add for 768die
     expert_manager.add_experience(expert_manager.pp_for_768die)
     expert_manager.add_experience(expert_manager.tp_for_910c_768die)

@@ -15,32 +15,42 @@
 
 import argparse
 
-from utils.logger import logger
 from utils.ppc_input import ParallelInput
 from utils.logger import logger
-
 from pipeline_conductor.pipeline_parallel import pipeline_proc
+from pipeline_conductor import pp_util
 
 
 if __name__ == '__main__':
     logger.info('start to run pipeline tool')
     # 用户输入profiling结果，候选配置等信息，流水线工具给出配置cost排序
     parser = argparse.ArgumentParser(description='Run taylor pipeline_search_tool with user input parameters')
-    parser.add_argument('--yaml_path', type=str, default='./output/dryrun_yaml/',
+    parser.add_argument('--yaml_path', type=str, default=None,
                         help='Path to the YAML file directory')
-    parser.add_argument('--mindformers_dir', type=str,
-                        default='./mindformers/run_mindformer.py',
+    parser.add_argument('--shell_path', type=str, default=None,
+                        help="Path of training config (.sh)")
+    parser.add_argument('--mindformers_dir', type=str, default=None,
                         help='Directory of mindformers')
+    parser.add_argument('--mindspeed_dir', type=str, default=None,
+                        help="Absolute path of posttrain_gpt (.py)")
     parser.add_argument('--profile_data_dir', type=str, default='./profile_data/',
                         help='Directory of profile data')
     parser.add_argument('--solver_name', type=str, default='HIGHS',
                         help='Name of the solver')
     parser.add_argument('--parser_result', type=str, default=None,
                         help='Profiling parser result file')
-    parser.add_argument('--gbs', type=int, default=1024,
-                        help='Global batch size')
     parser.add_argument('--nd_path', type=str, default='./config/nd_result.csv',
                         help='Path to nd result file')
+    parser.add_argument('--env_config_json', type=str, required=True,
+                        default='./config/boss_env_config.json', help="Path of environment config (.json)")
+    parser.add_argument('--register_path', type=str,default='research/jiutian',
+                        help="Path of register")
+    parser.add_argument('--dryrun_lim',  type=pp_util.str2int, default=16,
+                        help="The number of dryrun at once")
+    parser.add_argument('--dryrun', type=pp_util.str2bool, default=True,
+                        help="Is auto dryrun")
+    parser.add_argument('--check', type=pp_util.str2bool, default=True,
+                        help="Is double check")
 
     args = parser.parse_args()
     pipeline_input = ParallelInput(args)

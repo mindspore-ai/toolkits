@@ -189,12 +189,19 @@ class FitMem:
     def is_over_mem(self):
         over_mem = self.get_over_mem(self.cur_solution)
         if all(over_mem[stage] == 0 for stage in range(len(over_mem))):
-            recompute_config = pp_util.build_recompute_config(True, True, self.cur_solution.
-                                                              rs_dis.tolist(), self.cur_solution.ra_dis.tolist())
-            pp_util.write_config_to_yaml(recompute_config, self.cur_solution.offset.tolist(), self.init_config.
-                                         yaml_file)
-            logger.info(f'The result is available for training, config has write to '
-                        f'{self.init_config.yaml_file}!')
+            if dryrun.DryRun.is_write_to_file:
+                if dryrun.DryRun.config_file_type == 0:
+                    recompute_config = pp_util.build_recompute_config(True, True, self.cur_solution.
+                                                                      rs_dis.tolist(), self.cur_solution.ra_dis.tolist())
+                    pp_util.write_config_to_yaml(recompute_config, self.cur_solution.offset.tolist(), self.init_config.
+                                                 config_file)
+                elif dryrun.DryRun.config_file_type == 1:
+                    pp_util.write_config_to_shell(self.cur_solution.offset.tolist(), self.init_config.
+                                                 config_file)
+                else:
+                    raise TypeError(dryrun.dryrun_config_error)
+                logger.info(f'The result is available for training, config has write to '
+                            f'{self.init_config.config_file}!')
             return over_mem, False
         else:
             return over_mem, True
@@ -212,7 +219,7 @@ class FitMem:
     def set_peak_mem_by_dryrun(self, cur_solution: solution.Solution):
         init_config = cur_solution.init_config
         expert_input = init_config.expert_input
-        dry_run = dryrun.DryRun(expert_input.yaml_file, expert_input.mind_former_file,
+        dry_run = dryrun.DryRun(expert_input.config_file, expert_input.ms_adapter_file,
                                 expert_input.double_check_dryrun_filename)
         recompute_config = pp_util.build_recompute_config(True, True, cur_solution.rs_dis.
                                                           tolist(), cur_solution.ra_dis.tolist())

@@ -1,0 +1,11 @@
+{
+    "CUDA_DEVICE_MAX_CONNECTIONS": "1",
+    "PYTHON_NPU_ALLOC_CONF": "expandable_segments:True",
+    "MS_ALLOC_CONF": "enable_vmm:True",
+    "MS_DEV_RUNTIME_CONF": "multi_stream:True,memory_statistics:True,compile_statistics:True",
+    "MS_DEV_LAZY_FUSION_FLAGS": "--opt_level=1 --disable_ops=AdamW",
+    "ENABLE_NO_INIT_WEIGHTS": "0",
+    "MS_SIMULATION_LEVEL": "1",
+    "MS_DRY_RUN": "1",
+    "MYNODE_RANK": "0"
+}

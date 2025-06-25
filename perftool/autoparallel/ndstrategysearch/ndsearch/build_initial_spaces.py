@@ -41,8 +41,8 @@ def find_ep(dp, tp, expert_num):
             ep_list.append(i)
     return ep_list
 
-def build_initial_spaces(mindformers_args):
-    world_size = cal_world_size(mindformers_args)
+def build_initial_spaces(input_args):
+    world_size = cal_world_size(input_args)
     # part1. 求[dp, tp, cp, pp]的取值范围
     # 找到 world_size 的所有因子
     factors = cal_factor(world_size)
@@ -64,12 +64,12 @@ def build_initial_spaces(mindformers_args):
     # vp是 < ceil(总层数/pp)的任意整数
     # mbs 取值(1， 2， 4)中
     part2_combinations = []
-    num_layers = cal_model_layers_num(mindformers_args)
+    num_layers = input_args.num_layers
     for world_size_config in part1_combinations:
         op_options = cal_factor(world_size_config[0])
         vp_options = find_integers_less_than_ceil(num_layers, world_size_config[3])
         mbs_options = [1, 2, 4]
-        ep_options = find_ep(world_size_config[0], world_size_config[1], mindformers_args.moe_config.expert_num)
+        ep_options = find_ep(world_size_config[0], world_size_config[1], input_args.expert_num)
         result = list(itertools.product(ep_options, op_options, vp_options, mbs_options))
 
         dp = world_size_config[0]

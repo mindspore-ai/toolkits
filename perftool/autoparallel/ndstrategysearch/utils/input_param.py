@@ -19,9 +19,9 @@ from utils.logger import logger
 class InputParam:
     PARAM_MAPPING = {
         "ENV_JSON" : "env_json",
-        "SMALL_DATASET" : "small_dataset",
         "DATASET" : "dataset",
         "YAML_PATH" : "yaml_path",
+        "SHELL_PATH" : "shell_path",
         "MINDFORMERS_DIR" : "mindformers_dir",
         "DRYRUN_DATA_DIR" : "dryrun_data_dir",
         "PROFILE_DATA_DIR" : "profile_data_dir",
@@ -32,6 +32,8 @@ class InputParam:
         "MAX_EXPERT_PARALLEL": "max_expert_parallel",
         "OUTPUT_PATH": "output_path",
         "GBS": "gbs",
+        "SELECT_RECOMPUTE": "select_recompute",
+        "ALG_PHASE": "alg_phase",
     }
 
     def __init__(self, args):

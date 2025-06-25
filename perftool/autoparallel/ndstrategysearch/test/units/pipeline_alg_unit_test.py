@@ -60,24 +60,9 @@ class PipeTestCase(unittest.TestCase):
         model_input.memory.mem_lim_last = 46621.0
         model_input.memory.print_mem()
         cur_solution = pipeline_parallel.solve_problem(model_input)
-        self.assertLessEqual(cur_solution.object_value, 1132.67)
-        self.assertGreaterEqual(cur_solution.object_value, 1132.65)
-
-    def test768_8k(self):
-        yaml_file = self.get_yaml_path('layers62_micro160_dp24_tp8_pp4_vp1_ep32.yaml')
-        mind_former_file = '~/mindformers/run_mindformer.py'
-        expert_input = ExpertInput(yaml_file, mind_former_file)
-        expert_input.solver_name = 'HIGHS'
-        expert_input.is_dryrun = True
-        expert_input.is_double_check = True
-        expert_input.time_limit = 3 * 60
-        expert_input.backward_ratio = 1.627
-        expert_input.layer_ratio = 0.71
-        expert_input.head_loss = 1.5
-        expert_input.recompute_ratio = 0.71
-        output_file = 'dryrun_output'
-        pipeline_parallel.pp_calculator(expert_input)
-        dryrun.all_rank_dryrun(yaml_file, mind_former_file, output_file)
+        object_value = 1132.66
+        self.assertLessEqual(cur_solution.object_value, object_value + 0.01)
+        self.assertGreaterEqual(cur_solution.object_value, object_value - 0.01)
 
     def test768_4k_gp(self):
         yaml_file = self.get_yaml_path('768die4k_gp.yaml')
@@ -91,13 +76,36 @@ class PipeTestCase(unittest.TestCase):
         expert_input.backward_ratio = 1.627
         expert_input.recompute_ratio = 0.246
         expert_input.head_loss = 1.493
-        output_file = 'dryrun_output_7684k_vp4'
-        # pipeline_parallel.pp_calculator(expert_input)
-        dryrun.all_rank_dryrun(yaml_file, mind_former_file, output_file)
+        # dryrun.DryRun.env_config_json = self.get_yaml_path('deepseek_env_config.json')
+        # dryrun.DryRun.register_path = '~/research/deepseek3'
+        # cur_solution = pipeline_parallel.pp_calculator(expert_input)
+        model_input = InitConfig(expert_input)
+        model_input.memory.select_mem0 = 416.0
+        model_input.memory.select_mem12 = 416.0
+        model_input.memory.select_mem = 674.0
+        model_input.memory.re_comp_mem0 = 46.0
+        model_input.memory.re_comp_mem12 = 46.0
+        model_input.memory.re_comp_mem = 158.0
+        model_input.memory.act_mem0 = 494.0
+        model_input.memory.act_mem12 = 494.0
+        model_input.memory.act_mem = 673.0
+        model_input.memory.layer_mem012 = 1010.0
+        model_input.memory.layer_mem = 2644.0
+        model_input.memory.static_mem0 = 4243.0
+        model_input.memory.static_mem = 2279.0
+        model_input.memory.lm_head_mem = 8468.0
+        model_input.memory.mem_lim_stage0 = 53101.0
+        model_input.memory.mem_lim_others = 55065.0
+        model_input.memory.mem_lim_last = 48876.0
+        model_input.memory.print_mem()
+        cur_solution = pipeline_parallel.solve_problem(model_input)
+        object_value = 3603.39
+        self.assertLessEqual(cur_solution.object_value, object_value + 0.01)
+        self.assertGreaterEqual(cur_solution.object_value, object_value - 0.01)
 
     def test512_8k(self):
         yaml_file = self.get_yaml_path('layers62_micro960_dp4_tp8_pp16_vp1_ep32.yaml')
-        mind_former_file = '~/mindformers/run_mindformer.py'
+        mind_former_file = ''
         expert_input = ExpertInput(yaml_file, mind_former_file)
         expert_input.solver_name = 'HIGHS'
         expert_input.is_dryrun = False
@@ -107,11 +115,112 @@ class PipeTestCase(unittest.TestCase):
         expert_input.backward_ratio = 1.627
         expert_input.recompute_ratio = 0.246
         expert_input.head_loss = 1.493
-        # model_input = InitConfig(yaml_file, mind_former_file, is_dryrun, layer_ratio, backward_ratio)
-        output_file = 'dryrun_output_5128k_t1_vp2'
-        # pipeline_parallel.pp_calculator(expert_input)
-        dryrun.all_rank_dryrun(yaml_file, mind_former_file, output_file)
+        # dryrun.DryRun.env_config_json = self.get_yaml_path('deepseek_env_config.json')
+        # dryrun.DryRun.register_path = '~/research/deepseek3'
+        # cur_solution = pipeline_parallel.pp_calculator(expert_input)
+        model_input = InitConfig(expert_input)
+        model_input.memory.select_mem0 = 480.0
+        model_input.memory.select_mem12 = 480.0
+        model_input.memory.select_mem = 737.0
+        model_input.memory.re_comp_mem0 = 78.0
+        model_input.memory.re_comp_mem12 = 78.0
+        model_input.memory.re_comp_mem = 190.0
+        model_input.memory.act_mem0 = 614.0
+        model_input.memory.act_mem12 = 614.0
+        model_input.memory.act_mem = 738.0
+        model_input.memory.layer_mem012 = 130.0
+        model_input.memory.layer_mem = 7230.0
+        model_input.memory.static_mem0 = 5789.0
+        model_input.memory.static_mem = 3210.0
+        model_input.memory.lm_head_mem = 7939.0
+        model_input.memory.mem_lim_stage0 = 51555.0
+        model_input.memory.mem_lim_others = 54134.0
+        model_input.memory.mem_lim_last = 49405.0
+        model_input.memory.print_mem()
+        cur_solution = pipeline_parallel.solve_problem(model_input)
+        object_value = 10943.91
+        self.assertLessEqual(cur_solution.object_value, object_value + 0.01)
+        self.assertGreaterEqual(cur_solution.object_value, object_value - 0.01)
 
+    def test512_8k_no_swap(self):
+        yaml_file = self.get_yaml_path('512_8k_no_swap.yaml')
+        mind_former_file = '~/mindformers/run_mindformer.py'
+        expert_input = ExpertInput(yaml_file, mind_former_file)
+        expert_input.solver_name = 'HIGHS'
+        expert_input.is_dryrun = False
+        expert_input.is_double_check = False
+        expert_input.time_limit = 5 * 60
+        expert_input.layer_ratio = 0.71
+        expert_input.backward_ratio = 1.627
+        expert_input.recompute_ratio = 0.246
+        expert_input.head_loss = 1.493
+        # dryrun.DryRun.env_config_json = self.get_yaml_path('swap_env_config.json')
+        # dryrun.DryRun.register_path = '~/research/deepseek3'
+        # cur_solution = pipeline_parallel.pp_calculator(expert_input)
+        model_input = InitConfig(expert_input)
+        model_input.memory.select_mem0 = 832.0
+        model_input.memory.select_mem12 = 832.0
+        model_input.memory.select_mem = 1347.0
+        model_input.memory.re_comp_mem0 = 92.0
+        model_input.memory.re_comp_mem12 = 92.0
+        model_input.memory.re_comp_mem = 316.0
+        model_input.memory.act_mem0 = 988.0
+        model_input.memory.act_mem12 = 988.0
+        model_input.memory.act_mem = 1346.0
+        model_input.memory.layer_mem012 = 1109.0
+        model_input.memory.layer_mem = 3670.0
+        model_input.memory.static_mem0 = 5618.0
+        model_input.memory.static_mem = 2667.0
+        model_input.memory.lm_head_mem = 12405.0
+        model_input.memory.mem_lim_stage0 = 49678.0
+        model_input.memory.mem_lim_others = 52629.0
+        model_input.memory.mem_lim_last = 42891.0
+        model_input.memory.print_mem()
+        cur_solution = pipeline_parallel.solve_problem(model_input)
+        object_value = 5661.55
+        self.assertLessEqual(cur_solution.object_value, object_value + 0.01)
+        self.assertGreaterEqual(cur_solution.object_value, object_value - 0.01)
+
+    def test512_4k(self):
+        yaml_file = self.get_yaml_path('layers62_micro60_dp32_tp4_pp4_vp1_ep128.yaml')
+        mind_former_file = '~/mindformers/run_mindformer.py'
+        expert_input = ExpertInput(yaml_file, mind_former_file)
+        expert_input.solver_name = 'HIGHS'
+        expert_input.is_dryrun = False
+        expert_input.is_double_check = False
+        expert_input.time_limit = 3 * 60
+        expert_input.backward_ratio = 1.627
+        expert_input.layer_ratio = 0.71
+        expert_input.head_loss = 1.5
+        expert_input.recompute_ratio = 0.71
+        # dryrun.DryRun.env_config_json = self.get_yaml_path('deepseek_env_config.json')
+        # dryrun.DryRun.register_path = '~/research/deepseek3'
+        # cur_solution = pipeline_parallel.pp_calculator(expert_input)
+        model_input = InitConfig(expert_input)
+        model_input.memory.select_mem0 = 415.0
+        model_input.memory.select_mem12 = 415.0
+        model_input.memory.select_mem = 672.0
+        model_input.memory.re_comp_mem0 = 30.0
+        model_input.memory.re_comp_mem12 = 30.0
+        model_input.memory.re_comp_mem = 142.0
+        model_input.memory.act_mem0 = 493.0
+        model_input.memory.act_mem12 = 493.0
+        model_input.memory.act_mem = 673.0
+        model_input.memory.layer_mem012 = 869.0
+        model_input.memory.layer_mem = 2111.0
+        model_input.memory.static_mem0 = 6704.0
+        model_input.memory.static_mem = 2377.0
+        model_input.memory.lm_head_mem = 7986.0
+        model_input.memory.mem_lim_stage0 = 48592.0
+        model_input.memory.mem_lim_others = 52919.0
+        model_input.memory.mem_lim_last = 47310.0
+        model_input.memory.print_mem()
+        cur_solution = pipeline_parallel.solve_problem(model_input)
+        object_value = 5868.49
+        self.assertLessEqual(cur_solution.object_value, object_value + 0.01)
+        self.assertGreaterEqual(cur_solution.object_value, object_value - 0.01)
+
+    # 此用例运行时间较长，大概40分钟
     def test512_8k_swap(self):
         yaml_file = self.get_yaml_path('512_8k_swap.yaml')
         mind_former_file = '~/mindformers/run_mindformer.py'
@@ -119,52 +228,43 @@ class PipeTestCase(unittest.TestCase):
         expert_input.solver_name = 'HIGHS'
         expert_input.is_dryrun = False
         expert_input.is_double_check = False
-        expert_input.time_limit = 2 * 60
+        expert_input.time_limit = 1 * 60
         expert_input.layer_ratio = 0.71
         expert_input.backward_ratio = 1.627
         expert_input.recompute_ratio = 0.246
         expert_input.head_loss = 1.493
-        output_file = 'dryrun_output_5128k_swap_modify'
-        # pipeline_parallel.pp_calculator(expert_input)
-        dryrun.all_rank_dryrun(yaml_file, mind_former_file, output_file)
-
-    def test512_8k_no_swap(self):
-        yaml_file = self.get_yaml_path('512_8k_no_swap.yaml')
-        mind_former_file = '~/mindformers/run_mindformer.py'
-        expert_input = ExpertInput(yaml_file, mind_former_file)
-        expert_input.solver_name = 'HIGHS'
-        expert_input.is_dryrun = True
-        expert_input.is_double_check = False
-        expert_input.time_limit = 5 * 60
-        expert_input.layer_ratio = 0.71
-        expert_input.backward_ratio = 1.627
-        expert_input.recompute_ratio = 0.246
-        expert_input.head_loss = 1.493
-        output_file = 'dryrun_output_5128k_no_swap'
-        # pipeline_parallel.pp_calculator(expert_input)
-        dryrun.all_rank_dryrun(yaml_file, mind_former_file, output_file)
-
-    def test512_4k(self):
-        yaml_file = self.get_yaml_path('layers62_micro60_dp32_tp4_pp4_vp1_ep128.yaml')
-        mind_former_file = '~/mindformers/run_mindformer.py'
-        expert_input = ExpertInput(yaml_file, mind_former_file)
-        expert_input.solver_name = 'HIGHS'
-        expert_input.is_dryrun = True
-        expert_input.is_double_check = True
-        expert_input.time_limit = 3 * 60
-        expert_input.backward_ratio = 1.627
-        expert_input.layer_ratio = 0.71
-        expert_input.head_loss = 1.5
-        expert_input.recompute_ratio = 0.71
-        # model_input = InitConfig(yaml_file, mind_former_file, is_dryrun, layer_ratio, backward_ratio)
-        output_file = 'dryrun_output'
-        pipeline_parallel.pp_calculator(expert_input)
-        dryrun.all_rank_dryrun(yaml_file, mind_former_file, output_file)
-
+        # dryrun.DryRun.env_config_json = self.get_yaml_path('swap_env_config.json')
+        # dryrun.DryRun.register_path = '~/research/deepseek3'
+        # cur_solution = pipeline_parallel.pp_calculator(expert_input)
+        model_input = InitConfig(expert_input)
+        model_input.memory.select_mem0 = 832.0
+        model_input.memory.select_mem12 = 832.0
+        model_input.memory.select_mem = 1347.0
+        model_input.memory.re_comp_mem0 = 92.0
+        model_input.memory.re_comp_mem12 = 92.0
+        model_input.memory.re_comp_mem = 316.0
+        model_input.memory.act_mem0 = 988.0
+        model_input.memory.act_mem12 = 988.0
+        model_input.memory.act_mem = 1346.0
+        model_input.memory.layer_mem012 = 1109.0
+        model_input.memory.layer_mem = 3670.0
+        model_input.memory.static_mem0 = 5438.0
+        model_input.memory.static_mem = 2664.0
+        model_input.memory.lm_head_mem = 12402.0
+        model_input.memory.mem_lim_stage0 = 49858.0
+        model_input.memory.mem_lim_others = 52632.0
+        model_input.memory.mem_lim_last = 42894.0
+        model_input.memory.print_mem()
+        cur_solution = pipeline_parallel.solve_problem(model_input)
+        # object_value = 5562.66 # optimal
+        # object_value = 5769.88 # windows
+        object_value = 6019.33  # linux
+        self.assertLessEqual(cur_solution.object_value, object_value + 20)
+        self.assertGreaterEqual(cur_solution.object_value, object_value - 20)
 
 if __name__ == '__main__':
     # unittest.main()
     suite = unittest.TestSuite()
-    suite.addTest(PipeTestCase('test_micro64_dp16_tp4_pp16_vp1_ep8'))
+    suite.addTest(PipeTestCase('test512_8k'))
     runner = unittest.TextTestRunner()
     runner.run(suite)

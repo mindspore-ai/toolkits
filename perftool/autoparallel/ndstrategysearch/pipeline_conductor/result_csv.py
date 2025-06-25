@@ -19,6 +19,8 @@ import yaml
 import time
 
 from utils.logger import logger
+from pipeline_conductor import pp_util
+from pipeline_conductor.dryrun import DryRun, dryrun_config_error
 
 class ResultCsv:
     def __init__(self, output_file='pipeline_output', name='test_result'):
@@ -38,12 +40,12 @@ class ResultCsv:
         with open(self.path, 'w', encoding='utf-8-sig') as file:
             header = ','.join(self.header) + '\n'
             file.write(header)
-        logger.info (f'Successfully created {self.name}')
+        logger.info (f'Successfully created {self.path}')
 
     def config_to_csv(self, candidate, low_mem, solver_name):
         new_row = ['']*len(self.header)
         h = self.header
-        new_row[h.index('test')] = candidate.yaml_path
+        new_row[h.index('test')] = candidate.config_path
         new_row[h.index('求解器')] = solver_name
         new_row[h.index('low_mem')] = low_mem
         new_row[h.index('dense:moe')] = candidate.profiling_info.dmratio
@@ -51,7 +53,12 @@ class ResultCsv:
         new_row[h.index('重计算增加比率')] = candidate.profiling_info.re_grow_ration
         new_row[h.index('mtp+head')] = candidate.profiling_info.hratio
         new_row[h.index('moe时长')] = candidate.profiling_info.moe_fw
-        self.yaml_to_row(candidate.yaml_path, new_row)
+        if DryRun.config_file_type == 0:
+            self.yaml_to_row(candidate.config_path, new_row)
+        elif DryRun.config_file_type == 1:
+            self.shell_to_row(candidate.config_path, new_row)
+        else:
+            raise TypeError(dryrun_config_error)
         with open(self.path, 'a', newline='', encoding='utf-8-sig') as file:
             writer = csv.writer(file)
             writer.writerows([new_row])
@@ -76,6 +83,17 @@ class ResultCsv:
             else:
                 row[h.index('vp')] = 1
 
+    def shell_to_row(self, shell_file, row):
+        h = self.header
+        configs, unparses = pp_util.parse_shell(shell_file)
+        row[h.index('layers')] = configs.get('NUM_LAYERS')
+        row[h.index('micro')] = configs.get('GBS') // (configs.get('MBS') * configs.get('DP'))
+        row[h.index('dp')] = configs.get('DP')
+        row[h.index('tp')] = configs.get('TP')
+        row[h.index('pp')] = configs.get('PP')
+        row[h.index('ep')] = configs.get('EP', 1)
+        row[h.index('vp')] = configs.get('VPP', 1)
+
     def result_to_csv(self, solution):
         row_cost =[]
         row_no_cost = []
@@ -83,7 +101,7 @@ class ResultCsv:
             reader = csv.reader(file)
             h = self.header
             for row in reader:
-                if row[h.index('test')] == str(solution.init_config.yaml_file):
+                if row[h.index('test')] == str(solution.init_config.config_file):
                     row[h.index('内存信息')] = solution.init_config.memory.get_mem()
                     row[h.index('内存上限(GB)')] = solution.init_config.memory.mem_lim / 1024
                     row[h.index('求解耗时/s')] = solution.run_time

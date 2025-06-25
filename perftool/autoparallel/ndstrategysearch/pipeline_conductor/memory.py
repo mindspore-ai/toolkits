@@ -2,20 +2,20 @@ from utils.logger import logger
 
 
 class Memory:
-    select_mem0 = 761.3
-    select_mem12 = 761.3
-    select_mem = 775.7
-    re_comp_mem0 = 31.1
-    re_comp_mem12 = 31.1
-    re_comp_mem = 51.5
-    act_mem0 = 796.6
-    act_mem12 = 796.6
-    act_mem = 790.7
-    layer_mem012 = 3493.1
-    layer_mem = 3406.1
-    static_mem0 = 7340.6
-    static_mem = 1160.65
-    lm_head_mem = 6904.4
+    select_mem0 = 76
+    select_mem12 = 76
+    select_mem = 77
+    re_comp_mem0 = 3
+    re_comp_mem12 = 3
+    re_comp_mem = 5
+    act_mem0 = 79
+    act_mem12 = 79
+    act_mem = 79
+    layer_mem012 = 349
+    layer_mem = 340
+    static_mem0 = 734
+    static_mem = 116
+    lm_head_mem = 690
 
     def __init__(self, mem_lim):
         self.mem_lim = mem_lim

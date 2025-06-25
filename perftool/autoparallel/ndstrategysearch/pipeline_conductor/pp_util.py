@@ -13,24 +13,25 @@
 # limitations under the License.
 # ============================================================================
 
-from utils.logger import logger
 import numpy as np
 import time
 import re
 import sys
-
 import subprocess
 import argparse
-
 import chardet
-
 import highspy
-
 import yaml
-
 import ast
 import os
+import shlex
 
+from utils.logger import logger
+
+pipeline_output_file = 'pipeline_output'
+dryrun_yaml_dir = 'dryrun_yaml'
+dryrun_shell_dir = 'dryrun_shell'
+dryrun_error = 'Dryrun failed, please check the mindspore environment!'
 
 def update_yaml_value(yaml_file, key, value):
     with open(yaml_file, 'r', encoding='utf-8') as file:
@@ -104,6 +105,14 @@ def write_config_to_yaml(recompute_config, offset, yaml_file):
         yaml.dump(data, file, default_flow_style=False, indent=4)
 
 
+def write_config_to_shell(offset, shell_file):
+    configs, unparses = parse_shell(shell_file)
+    layer_num = configs.get('NUM_LAYERS') // configs.get('PP')
+    layer_list = flatten_to_str(offset, layer_num)
+    configs['NUM_LAYERS_LIST'] = layer_list
+    configs_to_shell(shell_file, configs, unparses)
+
+
 def str2bool(v):
     if isinstance(v, bool):
         return v
@@ -122,6 +131,15 @@ def str2list(v):
         return ast.literal_eval(v)
     else:
         raise argparse.ArgumentTypeError('List value expected.')
+
+
+def str2int(v):
+    if isinstance(v, int):
+        return v
+    if isinstance(int(v), int):
+        return int(v)
+    else:
+        raise argparse.ArgumentTypeError('Int value expected.')
 
 
 def build_new_config_yaml(args):
@@ -153,6 +171,21 @@ def build_new_config_yaml(args):
         yaml.dump(data, file, default_flow_style=False, indent=4)
     logger.info(f'build new yaml {new_yaml}')
     return new_yaml
+
+
+def build_new_config_shell(args):
+    configs, unparses = parse_shell(args.shell)
+    layer_num = configs.get('NUM_LAYERS') // configs.get('PP')
+    layer_list = flatten_to_str(args.offset, layer_num)
+    configs['NUM_LAYERS_LIST'] = layer_list
+    logger.info(f'change offset to {args.offset}')
+    file_name, file_ext = os.path.splitext(os.path.basename(args.shell))
+    shell_path = os.path.dirname(os.path.abspath(args.shell))
+    timestamp = time.strftime("%Y%m%d%H%M%S")
+    new_shell = os.path.join(shell_path, f'{file_name}_{timestamp}.sh')
+    configs_to_shell(new_shell, configs, unparses)
+    logger.info(f'build new shell {new_shell}')
+    return new_shell
 
 
 def build_recompute_config(is_select_recompute, is_recompute, select_recompute_layers, recompute_layers):
@@ -262,6 +295,15 @@ def get_ranks_stages(yaml_file):
     return rank_size, pipeline_stage
 
 
+def get_shell_ranks_stages(shell_file):
+    configs, unparses = parse_shell(shell_file)
+    pipeline_stage = configs.get('PP')
+    model_parallel = configs.get('TP')
+    data_parallel = configs.get('DP')
+    rank_size = pipeline_stage * model_parallel * data_parallel
+    return rank_size, pipeline_stage
+
+
 def get_layers_distribution(offset, num_layers, num_stages, num_vpp):
     layers_stage_vpp = [[0 for _ in range(num_vpp)] for _ in range(num_stages)]
     for stage in range(num_stages):
@@ -296,7 +338,7 @@ def extract_peak_memory(file_path):
         if result_content:
             return int(result_content.group(1))
         else:
-            raise ValueError(f"There is not match content in {file_path}")
+            raise ValueError(dryrun_error)
 
 
 def extract_actual_peak_memory(file_path):
@@ -311,7 +353,7 @@ def extract_actual_peak_memory(file_path):
         if result_content:
             return int(result_content.group(1))
         else:
-            raise ValueError(f"There is not match content in {file_path}")
+            raise ValueError(dryrun_error)
 
 
 def get_peak_batch(micro_batch_num, num_stage, num_vpp, low_mem, offset, num_layers):
@@ -343,3 +385,129 @@ def build_coe_array(peak_num_act, peak_num_select_recom, peak_num_recompute, x, 
         coe_a[stage - stage_range[0]][4] = peak_num_select_recom[stage]
     return coe_a
 
+
+def bulid_yaml(old_yaml_file, recompute_config, offset, num_layers, num_vpp, num_stage, dense_layers, micro):
+    with open(old_yaml_file, 'r', encoding='utf-8') as file:
+        data = yaml.safe_load(file)
+        data['recompute_config'] = recompute_config
+        data['model']['model_config']['offset'] = offset
+        if 'mtp_depth' in data['model']['model_config']:
+            mtp_depth = data['model']['model_config']['mtp_depth']
+            num_layers -= mtp_depth
+        data['model']['model_config']['num_layers'] = num_layers
+        if 'moe_config' in data:
+            if 'first_k_dense_replace' in data['moe_config']:
+                data['moe_config']['first_k_dense_replace'] = dense_layers
+        data['parallel_config']['pipeline_stage'] = num_stage
+        data['parallel_config']['micro_batch_num'] = micro
+        if 'pp_interleave_num' in data['model']['model_config']:
+            data['model']['model_config']['pp_interleave_num'] = num_vpp
+    pipeline_output = os.path.join(os.getcwd(), pipeline_output_file)
+    if not os.path.exists(pipeline_output):
+        os.mkdir(pipeline_output)
+    new_file = os.path.join(pipeline_output, dryrun_yaml_dir)
+    if not os.path.exists(new_file):
+        os.mkdir(new_file)
+    timestamp = time.strftime("%Y%m%d%H%M%S")
+    new_yaml_name = os.path.join(new_file, f'{timestamp}.yaml')
+    with open(new_yaml_name, 'w', encoding='utf-8') as file:
+        yaml.dump(data, file, default_flow_style=False, indent=4)
+    return new_yaml_name
+
+
+def bulid_shell(old_shell_file, offset, num_layers, num_vpp, num_stage, dense_layers, micro):
+    configs, unparses = parse_shell(old_shell_file)
+    layer_num = num_layers//num_stage
+    layer_list = flatten_to_str(offset, layer_num)
+    configs['NUM_LAYERS_LIST'] = layer_list
+    # 内存不够，重计算全开
+    if 'RECOMPUTE_NUM_LAYERS' in configs:
+        configs['RECOMPUTE_NUM_LAYERS'] = max(layer_list)
+    if 'FIRST_K_DENSE_REPLACE' in configs:
+        configs['FIRST_K_DENSE_REPLACE'] = dense_layers
+    configs['PP'] = num_stage
+    configs['VPP'] = num_vpp
+    configs['MBS'] = 1
+    configs['GBS'] = micro * configs.get('MBS') * configs.get('DP')
+    configs['NUM_LAYERS'] = num_layers
+    pipeline_output = os.path.join(os.getcwd(), pipeline_output_file)
+    if not os.path.exists(pipeline_output):
+        os.mkdir(pipeline_output)
+    new_file = os.path.join(pipeline_output, dryrun_shell_dir)
+    if not os.path.exists(new_file):
+        os.mkdir(new_file)
+    timestamp = time.strftime("%Y%m%d%H%M%S")
+    new_shell_name = os.path.join(new_file, f'{timestamp}.sh')
+    configs_to_shell(new_shell_name, configs, unparses)
+    return new_shell_name
+
+
+def parse_shell(shell_file):
+    with open(shell_file, 'r', encoding='utf-8') as f:
+        content = f.read()
+    lexer = shlex.shlex(content, posix=True)
+    lexer.whitespace_split = True
+    lexer.whitespace = '\n'
+    lexer.escape = ''
+    configs = {}
+    unparses = ''
+    for token in lexer:
+        if '=' in token:
+            key, value = token.split('=', 1)
+            key = key.strip()
+            try:
+                value = int(value)
+            except ValueError:
+                pass
+            configs[key] = value
+        else:
+            unparses += token + '\n'
+    return configs, unparses
+
+
+def parse_shell_config(config_value):
+    parts = config_value.split('--')
+    paras = {}
+    for part in parts:
+        part_split = part.strip().split(maxsplit=1)
+        if part_split:
+            key = part_split[0].strip()
+            value = part_split[1].strip(' \n\\') if len(part_split)>1 else ''
+            try:
+                value = int(value)
+            except ValueError:
+                pass
+            paras[key] = value
+    return paras
+
+
+def change_shell_config(configs_dict, config, para, value):
+    config_value = configs_dict[config]
+    parse_config_value = parse_shell_config(config_value)
+    parse_config_value[para] = value
+    content = '\n'
+    for key, value in parse_config_value.items():
+        content += f'   --{key} {value} \\\n'
+    configs_dict[config] = content
+
+
+def configs_to_shell(shell_name, configs, unparses):
+    with open(shell_name, 'w', encoding='utf-8') as f:
+        for key, value in configs.items():
+            if isinstance(value, int) or value[0] == '$':
+                f.write(f'{key}={value}\n')
+            else:
+                f.write(f'{key}="{value}"\n')
+        f.write(unparses)
+
+
+def flatten_to_str(lst, num=0):
+    items = []
+    for item in lst:
+        if isinstance(item, list):
+            items.append(flatten_to_str(item, num))
+        elif isinstance(item, int):
+            items.append(str(item + num))
+        else:
+            item.append(str(item))
+    return ','.join(items)

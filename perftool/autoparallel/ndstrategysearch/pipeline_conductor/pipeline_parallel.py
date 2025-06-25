@@ -23,6 +23,7 @@ from pipeline_conductor import solution
 from pipeline_conductor import fitting
 from utils.ppc_input import ParallelInput
 from pipeline_conductor.result_csv import ResultCsv
+from pipeline_conductor.dryrun import DryRun, dryrun_config_error
 
 mps_dir_name = 'model_mps'
 sol_dir_name = 'sol_output'
@@ -62,14 +63,19 @@ def pipeline_proc(pipeline_input: ParallelInput):
         raise ValueError('There is no candidate configs!')
     is_low_mem = pipeline_input.is_lowmem
     solver_name = pipeline_input.solver_name
-    mindformers_dir = pipeline_input.mindformers_dir
+    ms_adapter_file = pipeline_input.ms_adapter_file
+    DryRun.env_config_json = pipeline_input.env_config_json
+    DryRun.register_path = pipeline_input.register_path
+    DryRun.dryrun_lim = pipeline_input.dryrun_lim
+    ExpertInput.is_dryrun = pipeline_input.dryrun
+    ExpertInput.is_double_check = pipeline_input.check
     result_csv = ResultCsv(pipeline_output_file)
     num_all = len(pipeline_input.candidate_configs)
     num_cur = 0
     for candidate in pipeline_input.candidate_configs:
         result_csv.config_to_csv(candidate, is_low_mem, solver_name)
     for candidate in pipeline_input.candidate_configs:
-        candidate_input = ExpertInput(candidate.yaml_path, mindformers_dir)
+        candidate_input = ExpertInput(candidate.config_path, ms_adapter_file)
         candidate_input.low_mem = is_low_mem
         candidate_input.solver_name = solver_name
         candidate_input.layer_ratio = candidate.profiling_info.dmratio
@@ -77,12 +83,12 @@ def pipeline_proc(pipeline_input: ParallelInput):
         candidate_input.head_loss = candidate.profiling_info.hratio
         candidate_input.recompute_ratio = candidate.profiling_info.re_grow_ration
         num_cur += 1
-        logger.info(f'---------------------- Testing {num_cur}/{num_all}:{candidate.yaml_path} ----------------------')
+        logger.info(f'---------------------- Testing {num_cur}/{num_all}:{candidate.config_path} ----------------------')
         try:
             cur_solution = pp_calculator(candidate_input)
             result_csv.result_to_csv(cur_solution)
         except Exception as e:
-            logger.error(f'{candidate.yaml_path} error: {e}. Continue to next one')
+            logger.error(f'{candidate.config_path} error: {e}. Continue to next one')
 
 
 def solve_problem(init_config: InitConfig):
@@ -134,9 +140,13 @@ if __name__ == '__main__':
     # Training Yaml configuration
     parser.add_argument('-yaml', '--train_yaml', type=str, default=None,
                         help="Path of training config (.yaml)")
+    parser.add_argument('-shell', '--train_shell', type=str, default=None,
+                        help="Path of training config (.sh)")
     # mindformers location
     parser.add_argument('-mindformers', '--mindformers_loc', type=str, default=None,
                         help="Absolute path of run_mindformers (.py)")
+    parser.add_argument('-mindspeed', '--mindspeed_loc', type=str, default=None,
+                        help="Absolute path of posttrain_gpt (.py)")
     # solver name
     parser.add_argument('-solver', '--solver_name', type=str, default=HIGHS_NAME,
                         help="The solver name")
@@ -161,6 +171,8 @@ if __name__ == '__main__':
     # 是否自动check
     parser.add_argument('-check', '--check', type=pp_util.str2bool, default=True,
                         help="IS double check")
+    parser.add_argument('-is_write', '--is_write', type=pp_util.str2bool, default=True,
+                        help="IS write solution to config file")
     # fit level，0：超内存时直接减少内存上限求解；1：超内存时线性回归拟合内存信息求解
     parser.add_argument('-fit', '--fit_level', type=int, default=0,
                         help="Fit memory when the result is over the limit: 0-reduce the memory limit;"
@@ -169,32 +181,50 @@ if __name__ == '__main__':
     parser.add_argument('-extract', '--extract', type=pp_util.str2bool, default=False,
                         help="Extract solution file separately")
     parser.add_argument('-solution', '--solution', default=None, help="The solution file")
+    # env_config_json
+    parser.add_argument('-env', '--env_config_json', type=str, required=True,
+                        default='./config/boss_env_config.json', help="Path of environment config (.json)")
+    parser.add_argument('-register', '--register_path', type=str, default='research/jiutian',
+                        help="Path of register")
+    parser.add_argument('-dryrun_lim', '--dryrun_lim',  type=pp_util.str2int, default=16,
+                        help="The number of dryrun at once")
 
     args = parser.parse_args()
-    if len(sys.argv) == 1:
-        logger.error('The yaml location and mindformers location are essential, please config!')
-        parser.print_help()
-        sys.exit(0)
+    if args.train_yaml and args.mindformers_loc:
+        config_file = args.train_yaml
+        ms_adapter_file = args.mindformers_loc
+        DryRun.config_file_type = 0
+        ExpertInput.is_full_recomp = True
+    elif args.train_shell and args.mindspeed_loc:
+        config_file = args.train_shell
+        ms_adapter_file = args.mindspeed_loc
+        DryRun.config_file_type = 1
+        ExpertInput.is_full_recomp = False
+    else:
+        raise TypeError(dryrun_config_error)
 
     if args.extract:
         solution.extract_solution_file(args.train_yaml, args.solution)
         sys.exit(0)
 
-    expert_input = ExpertInput(yaml_file=args.train_yaml, mind_former_file=args.mindformers_loc)
+    expert_input = ExpertInput(config_file=config_file, ms_adapter_file=ms_adapter_file)
     expert_input.solver_name = args.solver_name
     expert_input.llm_class = int(args.llm_class)
     expert_input.time_limit = int(args.time_limit)
     if args.time_limit < sys.maxsize:
         logger.warning(f'You have configured the time limit parameter! The solution may be not optimal!')
-
     expert_input.is_dryrun = args.dryrun
     expert_input.is_double_check = args.check
     expert_input.fit_level = args.fit_level
-
     expert_input.layer_ratio = args.layer_ratio
     expert_input.backward_ratio = args.backward_ratio
     expert_input.head_loss = args.head_loss
     expert_input.recompute_ratio = args.recompute_ratio
+
+    DryRun.env_config_json = args.env_config_json
+    DryRun.register_path = args.register_path
+    DryRun.dryrun_lim = args.dryrun_lim
+    DryRun.is_write_to_file = args.is_write
 
     pp_calculator(expert_input)
 

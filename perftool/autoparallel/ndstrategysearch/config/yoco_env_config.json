@@ -8,7 +8,6 @@
     "MS_ALLOC_CONF": "memory_tracker:True",
     "ENABLE_LESS_MEM_VPP": "1",
     "MS_DEV_JIT_SYNTAX_LEVEL": "0",
-    "ENABLE_LESS_MEM_VPP": "1",
     "HCCL_INTRA_PCIE_ENABLE": "0",
     "HCCL_INTRA_ROCE_ENABLE": "1"
 }

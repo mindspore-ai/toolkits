@@ -19,7 +19,7 @@ import math
 import csv
 from collections import defaultdict
 from utils.logger import logger
-from utils.common import cal_model_layers_num, generate_files, initial_offset
+from utils.common import cal_model_layers_num, generate_files, initial_offset, offset_for_dualpipe, is_dualpipe_open
 from utils.dryrun_manage import launch_dryrun, read_dryrun_info
 
 
@@ -99,30 +99,38 @@ def find_power_of_two(m):
         return int(power)
     return None
 
-def filter_oom_by_dryrun(search_space, mindformers_args, para):
+def filter_oom_by_dryrun(search_space, input_args, para):
     # 生成要做dryrun的配置
-    care_part_configs = select_dry_config(search_space)
+    care_part_configs = select_dry_config(search_space, input_args)
     test_ep = (8, 16)
-    dry_config = generate_dry_config(care_part_configs, mindformers_args, test_ep)
+    dry_config = generate_dry_config(care_part_configs, input_args, test_ep)
     dryrun_exe_switch = False if para.DRYRUN_DATA_DIR else True
     if dryrun_exe_switch:
         logger.info("need auto dryrun process")
-        dryrun_yaml_dir = os.path.abspath(para.OUTPUT_PATH) + os.sep + 'dryrun_yaml' + os.sep
-        generate_files(dry_config, dryrun_yaml_dir, "dryrun", para)
+        dryrun_dir_name = 'dryrun_yaml' if para.YAML_PATH else 'dryrun_shell'
+        dryrun_file_dir = os.path.abspath(para.OUTPUT_PATH) + os.sep + dryrun_dir_name + os.sep
+        file_task = "dryrun_yaml" if para.YAML_PATH else "dryrun_shell"
+        generate_files(dry_config, dryrun_file_dir, file_task, para, input_args)
         dryrun_data_dir = os.path.join(os.path.abspath(para.OUTPUT_PATH), "dryrun_output")
-        launch_dryrun(mindformers_args, dryrun_yaml_dir, dryrun_data_dir, para)
+        if input_args.expert_num != 0:
+            # deepseek模型才做dryrun
+            launch_dryrun(input_args, dryrun_file_dir, dryrun_data_dir, para)
     else:
         dryrun_data_dir = para.DRYRUN_DATA_DIR
 
-    dryrun_info = read_dryrun_info(dryrun_data_dir)
-    candidate_configs = grey_box_memory_prune(mindformers_args, dryrun_info, test_ep, para.MAX_EXPERT_PARALLEL)
-    generate_csv(para.OUTPUT_PATH, candidate_configs)
+    if input_args.expert_num != 0:
+        dryrun_info = read_dryrun_info(dryrun_data_dir)
+        candidate_configs = grey_box_memory_prune(input_args, dryrun_info, test_ep, para.MAX_EXPERT_PARALLEL)
+    else:
+        candidate_configs = dry_config
+    generate_csv(para.OUTPUT_PATH, candidate_configs, input_args)
     return candidate_configs
 
-def select_dry_config(valid_configs):
+def select_dry_config(valid_configs, input_args):
     """
 
     :param valid_configs: [[(dp, tp, cp, pp), (ep, op, vp, mbs)], sp]
+    :param input_args: 配置文件参数
     :return: [[(dp, tp, cp, pp), (ep, op, vp, mbs)], sp]
              其中vp=1, mbs=1, sp=true  每个(dp, tp, cp, pp)，对应ep最大的配置列表
     """
@@ -134,6 +142,12 @@ def select_dry_config(valid_configs):
         current_first = config[0][0]
         current_ep = config[0][1][0]
         current_op = config[0][1][1]
+        pp = config[0][0][3]
+        num_layers = input_args.num_layers
+
+        # todo: dualpipe兼容方案不支持，如果是兼容方案，这里直接false
+        if is_dualpipe_open(input_args) and pp * 2 >= num_layers:
+            continue
 
         if current_first == first:
             if current_ep > max_ep:
@@ -149,9 +163,12 @@ def select_dry_config(valid_configs):
     logger.info(f"Dryrun candidate config size: {len(ans)}")
     return ans
 
-def generate_csv(output_path, dryrun_config):
+def generate_csv(output_path, dryrun_config, input_args):
     # 表头
-    headers = ['dp', 'tp', 'pp', 'ep', 'evaluate_mem']
+    if input_args.expert_num != 0:
+        headers = ['dp', 'tp', 'pp', 'ep', 'evaluate_mem']
+    else:
+        headers = ['dp', 'tp', 'pp']
 
     # 写入 CSV 文件
     try:
@@ -166,23 +183,32 @@ def generate_csv(output_path, dryrun_config):
     except Exception as e:
         logger.info(f"write CSV file fail: {e}")
 
-def generate_dry_config(care_part_configs, mindformers_args, test_ep):
+def generate_dry_config(care_part_configs, input_args, test_ep):
     """
 
     :param test_ep: 要做dryrun的ep
     :param care_part_configs: [[(dp, tp, cp, pp), (ep, op, vp, mbs)], sp]
-    :param mindformers_args:
-    :return: [dp, tp, pp, ep, offset] 其中ep = {4, 8}
+    :param input_args:
+    :return: [dp, tp, pp, ep, offset] 或 [dp, tp, pp]
     """
     dry_run_config = []
-    layers_num = cal_model_layers_num(mindformers_args)
+    layers_num = input_args.num_layers
     for config in care_part_configs:
         dp, tp, _, pp = config[0][0]
-        for ep in test_ep:
-            # mindformers的约束
-            if dp * tp % ep != 0:
-                continue
-            new_config = [dp, tp, pp, ep, initial_offset(pp, layers_num)]
+        # 若为deepseek模型
+        if input_args.expert_num > 0:
+            for ep in test_ep:
+                # mindformers的约束
+                if input_args.mf_args is not None and dp * tp % ep != 0:
+                    continue
+
+                use_zero_bubble_v = is_dualpipe_open(input_args)
+
+                offset_calculator = offset_for_dualpipe if use_zero_bubble_v else initial_offset
+                new_config = [dp, tp, pp, ep, offset_calculator(pp, layers_num)]
+                dry_run_config.append(new_config)
+        else:
+            new_config = [dp, tp, pp]
             dry_run_config.append(new_config)
 
     logger.info(f"Dryrun config size: {len(dry_run_config)}")

@@ -20,6 +20,8 @@ from typing import List
 from pathlib import Path
 
 from utils.profiling.profile_info import ProfileInfo
+from pipeline_conductor.start_service import ExpertInput
+from pipeline_conductor.dryrun import DryRun, dryrun_config_error
 
 class ParallelConfig:
     def __init__(self, gbs, config):
@@ -31,9 +33,9 @@ class ParallelConfig:
         self.micro = gbs / self.dp
 
 class PipelineInputConfig:
-    def __init__(self, profiling_info: ProfileInfo, yaml_path):
+    def __init__(self, profiling_info: ProfileInfo, config_path):
         self.profiling_info = profiling_info
-        self.yaml_path = yaml_path
+        self.config_path = config_path
 
 
 class ParallelInput:
@@ -43,7 +45,17 @@ class ParallelInput:
 
         self.is_lowmem = int(os.getenv('ENABLE_LESS_MEM_VPP', 0))
         self.solver_name = args.solver_name
-        self.mindformers_dir = args.mindformers_dir
+        self.env_config_json = args.env_config_json
+        self.register_path = args.register_path
+        self.dryrun_lim = args.dryrun_lim
+        self.dryrun = args.dryrun
+        self.check = args.check
+        if DryRun.config_file_type == 0:
+            self.ms_adapter_file = args.mindformers_dir
+        elif DryRun.config_file_type == 1:
+            self.ms_adapter_file = args.mindspeed_dir
+        else:
+            raise TypeError(dryrun_config_error)
 
     @staticmethod
     def parse_results_by_csv(csv_file):
@@ -58,16 +70,26 @@ class ParallelInput:
         return result_dict
 
     def init_configs_info(self, args):
-        directory = Path(args.yaml_path)
-        yaml_files = directory.glob('*.yaml')
+        if args.yaml_path and args.mindformers_dir:
+            directory = Path(args.yaml_path)
+            config_files = directory.glob('*.yaml')
+            DryRun.config_file_type = 0
+            ExpertInput.is_full_recomp = True
+        elif args.shell_path and args.mindspeed_dir:
+            directory = Path(args.shell_path)
+            config_files = directory.glob('*.sh')
+            DryRun.config_file_type = 1
+            ExpertInput.is_full_recomp = False
+        else:
+            raise TypeError(dryrun_config_error)
         csv_result = {}
         # 若用户直接输入profiling解析信息---csv文件，则从文件中读入
         if args.parser_result is not None:
             csv_result = self.parse_results_by_csv(args.parser_result)
 
-        for yaml_file in yaml_files:
+        for config_file in config_files:
             pattern = re.compile(r'DP(\d+)_TP(\d+)_PP(\d+)_EP(\d+)')
-            match = pattern.search(yaml_file.name)
+            match = pattern.search(config_file.name)
             if match:
                 dp_num, tp_num, pp_num, ep_num = map(int, match.groups())
                 config = [dp_num, tp_num, pp_num, ep_num]
@@ -78,5 +100,5 @@ class ParallelInput:
                     profile_list = []
                # todo: profiling解析的输入有待确认,例如rank
                 profile_info = ProfileInfo(args.profile_data_dir, profile_list)
-                pipeline_input_config = PipelineInputConfig(profile_info, yaml_file)
+                pipeline_input_config = PipelineInputConfig(profile_info, config_file)
                 self.candidate_configs.append(pipeline_input_config)

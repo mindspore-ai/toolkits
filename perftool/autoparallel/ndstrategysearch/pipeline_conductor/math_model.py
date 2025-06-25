@@ -13,8 +13,6 @@
 # limitations under the License.
 # ============================================================================
 
-import re
-
 import numpy as np
 import sys
 from ortools.linear_solver import pywraplp
@@ -142,9 +140,12 @@ class Model:
         if self.input.expert_input.is_head_loss_input:
             head_loss = self.input.expert_input.head_loss
         else:
-            head_loss = ((self.input.vocab_size / 2 / self.input.hidden_size) /
+            try:
+                head_loss = ((self.input.vocab_size / 2 / self.input.hidden_size) /
                          (1 + 1 + 3 * self.input.intermediate_size / 2 / self.input.hidden_size + self.input.seq_length
                           / self.input.hidden_size) * 1.6)
+            except TypeError:
+                head_loss = 1
 
         for stage in range(self.input.pipeline_stage):
             for vpp in range(self.input.pp_interleave_num):
@@ -270,8 +271,9 @@ class Model:
         self.solver.Add(layers_type2 == self.input.num_layers_type2)
         self.solver.Add(indicator_total >= self.input.pipeline_stage * self.input.pp_interleave_num)
         self.solver.Add(indicator_total <= self.input.pipeline_stage * self.input.pp_interleave_num + 1)
-        for s in range(self.input.pipeline_stage):
-            self.solver.Add(self.stable_dur >= self.forward_s[s][0][-1][0][0] - self.forward_s[s][0][-2][0][0])
+        if self.input.parts > 1:
+            for s in range(self.input.pipeline_stage):
+                self.solver.Add(self.stable_dur >= self.forward_s[s][0][-1][0][0] - self.forward_s[s][0][-2][0][0])
         logger.info(f"Number of constraints = {self.solver.NumConstraints()}")
 
     def define_obj(self):

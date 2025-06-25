@@ -16,19 +16,22 @@
 import argparse
 import csv
 import time
-from utils.input_config import InputConfig
+
+from ndsearch.para_for_nd_search import ParaForNd
 from utils.input_param import InputParam
 from utils.logger import logger
 
 from ndsearch.memory_model import filter_oom_by_dryrun
+from utils.profiling.profile_launch import ProfileLaunch
+from utils.profiling.profile_parser import ProfileExe
 from utils.profiling.profile_prepare import profile_prepare
 from ndsearch.build_initial_spaces import build_initial_spaces
 from ndsearch.expert_filter_configs import expert_filter_configs
 
-__all__ = ['search_tool']
+__all__ = ['taylor_search_tool']
 
 
-def search_tool(para):
+def taylor_search_tool(para):
     """
     A function for find out optimal ND parallel configuration.
 
@@ -41,27 +44,36 @@ def search_tool(para):
     start_time = time.time()
     para.print_params()
 
-    mindformers_args = InputConfig(para.YAML_PATH)
+    input_args = ParaForNd(para)
 
-    initial_configs = build_initial_spaces(mindformers_args)
+    initial_configs = build_initial_spaces(input_args)
     logger.info(f"Initial Search space size: {len(initial_configs)}")
 
-    expert_prune_search_space = expert_filter_configs(initial_configs, mindformers_args, para.GBS)
+    expert_prune_search_space = expert_filter_configs(initial_configs, input_args, para.GBS)
     logger.info(f"Expert Prune Search space size: {len(expert_prune_search_space)}")
 
     # [dp, tp, pp, ep, evaluate_peak_mem]
-    dryrun_prune_space = filter_oom_by_dryrun(expert_prune_search_space, mindformers_args, para)
+    dryrun_prune_space = filter_oom_by_dryrun(expert_prune_search_space, input_args, para)
     logger.info(f"Dryrun Prune Search space size: {len(dryrun_prune_space)}, format: [dp, tp, pp, ep, evaluate_peak_mem]")
     print(*(config for config in dryrun_prune_space), sep='\n')
-    write_result_to_csv(dryrun_prune_space)
+    # write_result_to_csv(dryrun_prune_space)
     logger.info('%s', '\n'.join(str(item) for item in dryrun_prune_space))
 
     end_time = time.time()
     elapsed_time = end_time - start_time
     logger.info(f"program before profiling cost time: {elapsed_time} s")
 
-    profile_prepare(dryrun_prune_space, para)
+    profile_configs, profile_file_dir = profile_prepare(dryrun_prune_space, para, input_args)
 
+    # todo:自动执行profile
+    profile_launch = ProfileLaunch(profile_configs, para)
+    profile_launch.profile_launch(profile_file_dir)
+    # 自动profile解析
+    profile_exe = ProfileExe()
+    # profile_exe.config_anal(profile_configs, ranks)
+
+
+# 把profile结果写入csv
 def write_result_to_csv(dryrun_prune_space):
     headers = ['dp', 'tp', 'pp', 'ep', 'dmratio', 'bfratio', 'hratio', 'moe_bw']
     # 写入 CSV 文件
@@ -80,9 +92,10 @@ def write_result_to_csv(dryrun_prune_space):
 if __name__ == '__main__':
     logger.info('start to run parallel tool')
     parser = argparse.ArgumentParser(description='Run taylor_search_tool with user input parameters')
-    parser.add_argument(f"--{InputParam.PARAM_MAPPING['YAML_PATH']}", type=str,
-                        default='./config/pretrain_deepseek3_671b.yaml',
+    parser.add_argument(f"--{InputParam.PARAM_MAPPING['YAML_PATH']}", type=str, nargs='?', default='',
                         help='Path to the YAML file')
+    parser.add_argument(f"--{InputParam.PARAM_MAPPING['SHELL_PATH']}", type=str, nargs='?', default='./config/pretrain_llama2_7b_ptd.sh',
+                        help='Path to the SHELL type config file')
     parser.add_argument(f"--{InputParam.PARAM_MAPPING['MINDFORMERS_DIR']}", type=str,
                         default='./mindformers',
                         help='Directory of mindformers')
@@ -93,15 +106,12 @@ if __name__ == '__main__':
                         help='Directory of profile data')
     parser.add_argument(f"--{InputParam.PARAM_MAPPING['PARALLEL_NUM']}", type=int, default=2,
                         help='Number of parallel processes')
-    parser.add_argument(f"--{InputParam.PARAM_MAPPING['RANK_NUM']}", type=int, default=64,
+    parser.add_argument(f"--{InputParam.PARAM_MAPPING['RANK_NUM']}", type=int, default=8,
                         help='Number of available device number')
     parser.add_argument(f"--{InputParam.PARAM_MAPPING['SOLVER_NAME']}", type=str, default='HIGHS',
                         help='Name of the solver')
     parser.add_argument(f"--{InputParam.PARAM_MAPPING['REGISTER_PATH']}", type=str, default='./register/',
                         help='Path of register')
-    parser.add_argument(f"--{InputParam.PARAM_MAPPING['SMALL_DATASET']}", type=str,
-                        default='./config/dataset/wiki4096.mindrecord',
-                        help='Directory of small dataset')
     parser.add_argument(f"--{InputParam.PARAM_MAPPING['DATASET']}", type=str,
                         default='./config/dataset/wiki103-4k.mindrecord',
                         help='Directory of dataset')
@@ -115,7 +125,11 @@ if __name__ == '__main__':
                         help='Environment variable config json file')
     parser.add_argument(f"--{InputParam.PARAM_MAPPING['GBS']}", type=int, default=1024,
                         help='Global batch size')
+    parser.add_argument(f"--{InputParam.PARAM_MAPPING['SELECT_RECOMPUTE']}", type=bool, default=True,
+                        help='Whether search select recompute')
+    parser.add_argument(f"--{InputParam.PARAM_MAPPING['ALG_PHASE']}", type=int, default=1,
+                        help='Phase of parallel strategy search algorithm')
 
     args = parser.parse_args()
     para = InputParam(args)
-    search_tool(para)
+    taylor_search_tool(para)

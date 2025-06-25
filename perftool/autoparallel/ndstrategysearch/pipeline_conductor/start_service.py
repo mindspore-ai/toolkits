@@ -14,15 +14,11 @@
 # ============================================================================
 
 import os
-import sys
-
-from utils.logger import logger
-
 import re
-
 import numpy as np
 import yaml
 
+from utils.logger import logger
 from pipeline_conductor import dryrun, pp_util
 from pipeline_conductor import micro
 from pipeline_conductor.memory import Memory
@@ -39,8 +35,8 @@ model_class = 0
 
 # 专家输入：专家可根据环境变化更改
 class ExpertInput:
-    yaml_file = ''
-    mind_former_file = ''
+    config_file = ''
+    ms_adapter_file = ''
 
     solver_name = HIGHS_NAME
     llm_class = model_class
@@ -66,11 +62,11 @@ class ExpertInput:
     output_file_dir = os.path.join(os.getcwd(), output_file)
     double_check_dryrun_filename = double_check_dryrun_filename
 
-    def __init__(self, yaml_file, mind_former_file):
+    def __init__(self, config_file, ms_adapter_file):
         if not os.path.exists(self.output_file_dir):
             os.mkdir(self.output_file_dir)
-        self.yaml_file = yaml_file
-        self.mind_former_file = mind_former_file
+        self.config_file = config_file
+        self.ms_adapter_file = ms_adapter_file
 
 
 class InitDryrun:
@@ -124,8 +120,8 @@ class InitDryrun:
 
         self.rank_size = data_parallel * model_parallel * self.init_stages
 
-        self.yaml_file = expert_input.yaml_file
-        self.mind_former_file = expert_input.mind_former_file
+        self.config_file = expert_input.config_file
+        self.ms_adapter_file = expert_input.ms_adapter_file
         self.dryrun_output = init_dryrun_file
 
     def deepseek_build_offset(self):
@@ -182,7 +178,7 @@ class InitDryrun:
         return recompute_config
 
     def init_dryrun(self):
-        dry_run = dryrun.DryRun(self.yaml_file, self.mind_former_file, self.dryrun_output)
+        dry_run = dryrun.DryRun(self.config_file, self.ms_adapter_file, self.dryrun_output)
         dry_run.start_dryrun(self.recompute_config, self.init_offset, self.init_layers, self.init_vpp, self.init_stages,
                              self.rank_size, self.dense_layers, self.init_micro)
         peak_mem = [dry_run.extract_memory_info(self.init_stages), dry_run.extract_memory_info_act(self.init_stages)]
@@ -215,14 +211,19 @@ class InitConfig:
 
     def __init__(self, expert_input: ExpertInput):
         self.expert_input = expert_input
-        self.yaml_file = expert_input.yaml_file
-        self.mind_former_file = expert_input.mind_former_file
-        self.get_yaml_config()
+        self.config_file = expert_input.config_file
+        self.ms_adapter_file = expert_input.ms_adapter_file
+        if dryrun.DryRun.config_file_type == 0:
+            self.get_yaml_config()
+        elif dryrun.DryRun.config_file_type == 1:
+            self.get_shell_config()
+        else:
+            raise TypeError(dryrun.dryrun_config_error)
         self.rank_size = self.pipeline_stage * self.model_parallel * self.data_parallel
         self.parts = self.micro_batch_num // self.pipeline_stage
         if self.parts == 0:
             raise ValueError(f'stage = {self.pipeline_stage} is greater than micro batch = {self.micro_batch_num}!, '
-                         f'please check the yaml file!')
+                         f'please check the config file!')
         self.mps_sol_filename = (f'layers{self.num_layers_type1}_{self.num_layers_type2}_micro{self.micro_batch_num}_'
                                  f'dp{self.data_parallel}'
                                  f'_tp{self.model_parallel}_pp{self.pipeline_stage}_vp{self.pp_interleave_num}'
@@ -264,7 +265,7 @@ class InitConfig:
         self.memory.print_mem()
 
     def get_yaml_config(self):
-        with open(self.yaml_file, 'r', encoding='utf-8') as file:
+        with open(self.config_file, 'r', encoding='utf-8') as file:
             data = yaml.safe_load(file)
             self.pipeline_stage = data['parallel_config']['pipeline_stage']
             self.micro_batch_num = data['parallel_config']['micro_batch_num']
@@ -296,6 +297,27 @@ class InitConfig:
             self.mem_lim = int(re.search(r'(\d+)GB', data['context']['max_device_memory']).group(1)) * 1024.0
 
 
+    def get_shell_config(self):
+        configs, unparses = pp_util.parse_shell(self.config_file)
+        self.pipeline_stage = configs.get('PP')
+        self.micro_batch_num = configs.get('GBS') // configs.get('MBS') // configs.get('DP')
+        self.model_parallel = configs.get('TP')
+        self.data_parallel = configs.get('DP')
+        self.expert_parallel = configs.get('EP', 1)
+        self.pp_interleave_num = configs.get('VPP', 1)
+        self.num_layers_type1 = configs.get('FIRST_K_DENSE_REPLACE', 0)
+        if self.expert_input.llm_class == 1:
+            self.num_layers_type1 = 36
+        self.num_layers_type2 = configs.get('NUM_LAYERS') - self.num_layers_type1
+        if not self.expert_input.is_head_loss_input:
+            self.seq_length = configs.get('SEQ_LEN')
+            self.hidden_size = configs.get('HIDDEN_SIZE')
+            self.intermediate_size = configs.get('FFN_HIDDEN_SIZE')
+            if 'VOCAB_SIZE' in configs:
+                self.vocab_size = configs.get('VOCAB_SIZE')
+        self.mem_lim = configs.get('MAX_DEVICE_MEMORY') * 1024.0
+
+
     def mem_calculator_by_dryrun(self):
         self.set_cur_memory_info()
         self.memory.mem_lim_stage0 = self.mem_lim - self.memory.static_mem0
@@ -312,7 +334,7 @@ class InitConfig:
             logger.info('Using input peak memory for act_layer memory!')
             peak_mem = pp_util.get_init_input_peak_mem()
         if any(mem == 0 for mem in peak_mem[1]):
-            raise ValueError(f'Dryrun failed, please check the environment!')
+            raise ValueError(pp_util.dryrun_error)
         if self.expert_input.llm_class == 0:
             self.update_deepseek_memory(peak_mem, init_dryrun)
         elif self.expert_input.llm_class == 1:
@@ -343,6 +365,9 @@ class InitConfig:
             self.memory.act_mem12 = 0
         self.memory.act_mem0 = self.memory.act_mem12
         self.memory.act_mem = (peak_mem[0][12] - peak_mem[0][13]) / (peaks[12] - peaks[13])
+        # 更正re_comp_mem
+        if dryrun.DryRun.config_file_type == 1:
+            self.memory.re_comp_mem = self.memory.act_mem
 
         self.memory.layer_mem012 = (((peak_mem[0][7] - peak_mem[0][1]) - self.memory.re_comp_mem12 * (peaks[7] - peaks[1]))
                                     / (init_dryrun.layers_stage_vpp[7][0] - init_dryrun.layers_stage_vpp[1][0]))
