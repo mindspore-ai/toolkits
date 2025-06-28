@@ -18,12 +18,15 @@ import csv
 import time
 
 from ndsearch.para_for_nd_search import ParaForNd
+from perftool.autoparallel.parallel_strategy_search.pipeline_conductor import pp_util
+from pipeline_conductor.pipeline_parallel import pipeline_proc
 from utils.input_param import InputParam
 from utils.logger import logger
 
 from ndsearch.memory_model import filter_oom_by_dryrun
+from utils.ppc_input import ParallelInput
 from utils.profiling.profile_launch import ProfileLaunch
-from utils.profiling.profile_parser import ProfileExe
+from utils.profiling.profile_parser import ProfileParser
 from utils.profiling.profile_prepare import profile_prepare
 from ndsearch.build_initial_spaces import build_initial_spaces
 from ndsearch.expert_filter_configs import expert_filter_configs
@@ -63,31 +66,23 @@ def taylor_search_tool(para):
     elapsed_time = end_time - start_time
     logger.info(f"program before profiling cost time: {elapsed_time} s")
 
+    # profile_configs: list[dp, tp, pp, 0, 0, layers_num, profile_result_dir]
+    # profile_file_dir: profile shell file dir
     profile_configs, profile_file_dir = profile_prepare(dryrun_prune_space, para, input_args)
-
-    # todo:自动执行profile
+    if para.ALG_PHASE != 1:
+        logger.info(f"ALG_PHASE: {para.ALG_PHASE}, no need to profile and solve pipeline")
+        return
+    # 自动执行profile
     profile_launch = ProfileLaunch(profile_configs, para)
     profile_launch.profile_launch(profile_file_dir)
     # 自动profile解析
-    profile_exe = ProfileExe()
-    # profile_exe.config_anal(profile_configs, ranks)
+    profile_parser = ProfileParser(input_args.mbn, input_args.num_layers)
+    # candidate_configs: List[PipelineInputConfig]
+    candidate_configs = profile_parser.parse_batch_profile_result(profile_configs, para)
 
-
-# 把profile结果写入csv
-def write_result_to_csv(dryrun_prune_space):
-    headers = ['dp', 'tp', 'pp', 'ep', 'dmratio', 'bfratio', 'hratio', 'moe_bw']
-    # 写入 CSV 文件
-    try:
-        with open('final_result.csv', 'w', newline='', encoding='utf-8') as csvfile:
-            writer = csv.writer(csvfile)
-            # 写入表头
-            writer.writerow(headers)
-            # 写入数据
-            writer.writerows(dryrun_prune_space[:-1])
-        print("CSV file generate succ。")
-    except Exception as e:
-        print(f"write CSV file fail: {e}")
-
+    # 流水线求解 todo: 想办法把candidate_configs传进去，不用csv读取
+    pipeline_input = ParallelInput(para.args, profile_file_dir)
+    pipeline_proc(pipeline_input)
 
 if __name__ == '__main__':
     logger.info('start to run parallel tool')
@@ -99,6 +94,8 @@ if __name__ == '__main__':
     parser.add_argument(f"--{InputParam.PARAM_MAPPING['MINDFORMERS_DIR']}", type=str,
                         default='./mindformers',
                         help='Directory of mindformers')
+    parser.add_argument(f"--{InputParam.PARAM_MAPPING['MINDSPEED_PATH']}", type=str, nargs='?', default='/home/test/pretrain_gpt.py',
+                        help='Path to the MindSpeed file')
     parser.add_argument(f"--{InputParam.PARAM_MAPPING['DRYRUN_DATA_DIR']}", type=str, nargs='?', default='',
                         help='Directory of dryrun data')
     parser.add_argument(f"--{InputParam.PARAM_MAPPING['PROFILE_DATA_DIR']}", type=str,
@@ -129,7 +126,15 @@ if __name__ == '__main__':
                         help='Whether search select recompute')
     parser.add_argument(f"--{InputParam.PARAM_MAPPING['ALG_PHASE']}", type=int, default=1,
                         help='Phase of parallel strategy search algorithm')
+    parser.add_argument(f"--{InputParam.PARAM_MAPPING['PARSER_RESULT']}", type=str, default=None,
+                        help='Profiling parser result file')
+    parser.add_argument(f"--{InputParam.PARAM_MAPPING['DRYRUN']}", type=pp_util.str2bool, default=True,
+                        help='Is auto dryrun')
+    parser.add_argument(f"--{InputParam.PARAM_MAPPING['CHECK']}", type=pp_util.str2bool, default=True,
+                        help="Is double check")
 
     args = parser.parse_args()
+    args.dryrun = False
+    args.check = False
     para = InputParam(args)
     taylor_search_tool(para)

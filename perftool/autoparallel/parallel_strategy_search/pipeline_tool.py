@@ -25,13 +25,13 @@ if __name__ == '__main__':
     logger.info('start to run pipeline tool')
     # 用户输入profiling结果，候选配置等信息，流水线工具给出配置cost排序
     parser = argparse.ArgumentParser(description='Run taylor pipeline_search_tool with user input parameters')
-    parser.add_argument('--yaml_path', type=str, default=None,
-                        help='Path to the YAML file directory')
+    parser.add_argument('--files_dir', type=str, default='./output/dryrun_yaml/',
+                        help='Path to the YAML or SHELL file directory')
     parser.add_argument('--shell_path', type=str, default=None,
                         help="Path of training config (.sh)")
     parser.add_argument('--mindformers_dir', type=str, default=None,
                         help='Directory of mindformers')
-    parser.add_argument('--mindspeed_dir', type=str, default=None,
+    parser.add_argument('--mindspeed_path', type=str, default=None,
                         help="Absolute path of posttrain_gpt (.py)")
     parser.add_argument('--profile_data_dir', type=str, default='./profile_data/',
                         help='Directory of profile data')
@@ -41,11 +41,11 @@ if __name__ == '__main__':
                         help='Profiling parser result file')
     parser.add_argument('--nd_path', type=str, default='./config/nd_result.csv',
                         help='Path to nd result file')
-    parser.add_argument('--env_config_json', type=str, required=True,
+    parser.add_argument('--env_json', type=str, required=True,
                         default='./config/boss_env_config.json', help="Path of environment config (.json)")
     parser.add_argument('--register_path', type=str,default='research/jiutian',
                         help="Path of register")
-    parser.add_argument('--dryrun_lim',  type=pp_util.str2int, default=16,
+    parser.add_argument('--parallel_num',  type=pp_util.str2int, default=16,
                         help="The number of dryrun at once")
     parser.add_argument('--dryrun', type=pp_util.str2bool, default=True,
                         help="Is auto dryrun")

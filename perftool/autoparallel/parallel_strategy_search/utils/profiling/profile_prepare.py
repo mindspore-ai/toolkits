@@ -16,9 +16,8 @@
 import os
 import socket
 
-from mindspore.ops_generate.gen_constants import YAML_PATH
 
-from utils.common import generate_files
+from utils.common import generate_files, cal_world_size
 
 
 def find_file_by_name(directory, filename):
@@ -94,7 +93,7 @@ def decide_pp_dp_llama(config, available_devices):
         dp //= cur_multiple
     return [dp, tp, pp]
 
-def trans_config_satisfy_rank_num(dryrun_prune_space, para):
+def trans_config_satisfy_rank_num(dryrun_prune_space, para, input_args):
     """
 
     :param dryrun_prune_space:
@@ -102,16 +101,17 @@ def trans_config_satisfy_rank_num(dryrun_prune_space, para):
     :return: list[[dp, tp, pp, ep, offset, num_layers]]
     """
     profile_configs = []
-    rank_num = para.RANK_NUM
+    world_size = cal_world_size(input_args)
+    rank_num = min(para.RANK_NUM, world_size)
     for config in dryrun_prune_space:
-        trans_config = budget_profile_config_generator(config, para)
+        trans_config = budget_profile_config_generator(config, para, rank_num)
         if trans_config is not None:
             profile_configs.append(trans_config)
     print(f"profile configs len: {len(profile_configs)} by {rank_num} devices")
     print(*(config for config in profile_configs), sep='\n')
     return profile_configs
 
-def budget_profile_config_generator(config, para):
+def budget_profile_config_generator(config, para, available_devices):
     """
     根据可用卡数，将config转换成当前卡资源可满足的并行配置做profile,先裁剪pp, pp最小为2，然后再缩减dp
     一次profiling同时获取不开重计算和完全重计算的信息
@@ -120,7 +120,6 @@ def budget_profile_config_generator(config, para):
     :param available_devices:
     :return: [dp, tp, pp, ep, offset, recompute, num_layers], min(pp)=2, 层数(num_layers+MTP)
     """
-    available_devices = para.RANK_NUM
     if len(config) < 4:
         basic_config = decide_pp_dp_llama(config, available_devices)
     else:
@@ -206,7 +205,7 @@ def profile_prepare(dryrun_prune_space, para, input_args):
     :return: ordered [dp, tp, pp, ep, cost]
     """
     # 配置转换可在现有卡资源下profile的配置
-    profile_configs = trans_config_satisfy_rank_num(dryrun_prune_space, para)
+    profile_configs = trans_config_satisfy_rank_num(dryrun_prune_space, para, input_args)
     profile_dir = 'profile_yaml' if para.YAML_PATH else 'profile_shell'
     profile_file_dir = os.path.abspath(para.OUTPUT_PATH)  + os.sep + profile_dir + os.sep
     file_task = "profile_yaml" if para.YAML_PATH else "profile_shell"

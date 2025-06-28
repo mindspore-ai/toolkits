@@ -23,6 +23,7 @@ class InputParam:
         "YAML_PATH" : "yaml_path",
         "SHELL_PATH" : "shell_path",
         "MINDFORMERS_DIR" : "mindformers_dir",
+        "MINDSPEED_PATH" : "mindspeed_path",
         "DRYRUN_DATA_DIR" : "dryrun_data_dir",
         "PROFILE_DATA_DIR" : "profile_data_dir",
         "PARALLEL_NUM" : "parallel_num",
@@ -34,6 +35,9 @@ class InputParam:
         "GBS": "gbs",
         "SELECT_RECOMPUTE": "select_recompute",
         "ALG_PHASE": "alg_phase",
+        "PARSER_RESULT": "parser_result",
+        "DRYRUN": "dryrun",
+        "CHECK": "check",
     }
 
     def __init__(self, args):

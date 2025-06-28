@@ -3,7 +3,7 @@
 export CUDA_DEVICE_MAX_CONNECTIONS=1
 export PYTORCH_NPU_ALLOC_CONF=expandable_segments:True
 
-NPUS_PER_NODE=8
+NPUS_PER_NODE=4
 MASTER_ADDR=localhost
 MASTER_PORT=6000
 NNODES=1
@@ -16,9 +16,12 @@ TOKENIZER_MODEL="your tokenizer path"
 CKPT_LOAD_DIR="your model ckpt path"
 TP=1
 PP=2
-GBS=256
+DP=2
+GBS=64
 MBS=1
-NUM_LAYERS=32
+NUM_LAYERS=16
+MAX_DEVICE_MEMORY=56
+MINDSPEED_PATH='/home/ma-user/pretrain_gpt.py'
 
 DISTRIBUTED_ARGS="
     --nproc_per_node $NPUS_PER_NODE \
@@ -33,7 +36,7 @@ GPT_ARGS="
     --tensor-model-parallel-size ${TP} \
     --pipeline-model-parallel-size ${PP} \
     --sequence-parallel \
-    --num-layers 32 \
+    --num-layers ${NUM_LAYERS} \
     --hidden-size 4096 \
     --ffn-hidden-size 11008 \
     --num-attention-heads 32 \
@@ -42,7 +45,7 @@ GPT_ARGS="
     --seq-length 4096 \
     --max-position-embeddings 4096 \
     --micro-batch-size 1 \
-    --global-batch-size 256 \
+    --global-batch-size ${GBS} \
     --make-vocab-size-divisible-by 1 \
     --lr 1.25e-6 \
     --train-iters 5000 \
@@ -89,7 +92,7 @@ OUTPUT_ARGS="
     --eval-iters 10 \
 "
 
-msrun $DISTRIBUTED_ARGS pretrain_gpt.py \
+msrun $DISTRIBUTED_ARGS ${MINDSPEED_PATH} \
     $GPT_ARGS \
     $DATA_ARGS \
     $OUTPUT_ARGS \
