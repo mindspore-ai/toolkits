@@ -190,6 +190,7 @@ def generate_profile_shell(destination_file, config, para):
     configs['DP'] = config[0]
     configs['TP'] = config[1]
     configs['PP'] = config[2]
+    configs['MINDSPEED_PATH'] = para.MINDSPEED_PATH
     # 生成要分析的进程编号列表
     step = para.RANK_NUM // config[2]
     profile_ranks = ' '.join(map(str, range(0, para.RANK_NUM, step)))

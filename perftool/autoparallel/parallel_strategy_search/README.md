@@ -137,7 +137,7 @@ python parallel_tool.py --yaml_path jiutian.yaml --mindfomres_dir ~/mindformers/
 （2）将部分参数/路径，设置为${数字}，在运行shell命令时，会进行赋值
 
     NODE_RANK设置为${1}
-    posttrain.py路径设置为${2},对应以下可配置参数的--mindspeed_dir
+    posttrain.py路径设置为${2},对应以下可配置参数的--mindspeed_path
     log路径设置为${3}
 
 3、可配置参数
@@ -147,7 +147,7 @@ python parallel_tool.py --yaml_path jiutian.yaml --mindfomres_dir ~/mindformers/
 | --yaml_path        | ND搜索生成的YAML文件夹路径      | None           | 是  |
 | --shell_path       | 需要求解的模型配置shell文件     | None           | 是  |
 | --mindformers_dir  | run_mindformer.py路径         | None           | 是  |
-| --mindspeed_dir    | posttrain_gpt.py路径          | None           | 是  |
+| --mindspeed_path   | posttrain_gpt.py路径          | None           | 是  |
 | --parser_result    | 各yaml profile结果汇总文件路径 | None                            | 是  |
 | --profile_data_dir | profile数据路径           | ./profile_data/                 | 否  |
 | --solver_name      | 流水线使用的求解器名称           | HIGHS                           | 否  |

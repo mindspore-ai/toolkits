@@ -19,7 +19,7 @@ from ndsearch.build_initial_spaces import build_initial_spaces
 from ndsearch.expert_filter_configs import expert_filter_configs
 from ndsearch.memory_model import grey_box_memory_prune
 from utils.input_config import InputConfig
-from utils.profiling.profile_parser import ProfileExe
+from utils.profiling.profile_parser import ProfileParser
 
 
 # ND搜索单元测试用例
@@ -96,7 +96,7 @@ class NdTestCase(unittest.TestCase):
 
     # parser test
     def test_profile_parser(self):
-        test = ProfileExe()
+        test = ProfileParser()
         test.config_anal('dp8tp4pp4ep32', [0, 32, 64, 127])
         test.refined_data()
         test.refresh()

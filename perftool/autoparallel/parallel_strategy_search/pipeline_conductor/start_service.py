@@ -315,7 +315,7 @@ class InitConfig:
             self.intermediate_size = configs.get('FFN_HIDDEN_SIZE')
             if 'VOCAB_SIZE' in configs:
                 self.vocab_size = configs.get('VOCAB_SIZE')
-        self.mem_lim = configs.get('MAX_DEVICE_MEMORY') * 1024.0
+        self.mem_lim = configs.get('MAX_DEVICE_MEMORY', 58) * 1024.0
 
 
     def mem_calculator_by_dryrun(self):

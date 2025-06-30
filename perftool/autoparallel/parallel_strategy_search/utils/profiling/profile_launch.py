@@ -3,6 +3,7 @@ from utils.logger import logger
 import subprocess
 import os
 import re
+import time
 class ProfileLaunch:
     # 自动执行profile
     def __init__(self, profile_configs, para):
@@ -30,6 +31,8 @@ class ProfileLaunch:
             preexec_fn=os.setpgrp
         )
         process.wait()
+        # 为避免profile子进程未结束生成profile文件失败，增加sleep
+        time.sleep(60)
         return_code = process.returncode
         logger.info("Last job returns %d.", return_code)
 
