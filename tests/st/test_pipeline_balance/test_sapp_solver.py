@@ -23,6 +23,8 @@ import pytest
 from toolkit.pipeline_balance.utils.layer import generate_layers_list
 from toolkit.pipeline_balance.utils.config import parse_training_config
 from toolkit.pipeline_balance.sapp.sapp_pipeline import SappPipeline
+from toolkit.pipeline_balance.utils.recompute import OFFSET, YAML_NAME, TYPE
+
 
 
 class TestSappSolver:
@@ -34,9 +36,8 @@ class TestSappSolver:
         Description: Test the sapp solver pipeline when vpp=1.
         Expectation: Correct result
         """
-        layers = generate_layers_list(
-            os.path.dirname(os.path.abspath(__file__)), "test"
-        )
+        layer_json = os.path.join(os.path.dirname(os.path.abspath(__file__)), "test.json")
+        layers = generate_layers_list(layer_json)
         pipe = SappPipeline(
             model_name="test",
             num_of_stage=16,
@@ -51,23 +52,28 @@ class TestSappSolver:
         total_time = pipe.simulate(show=False, file_name=None)
         mem_par = pipe.get_memory_parameter()
         mem_act = pipe.get_memory_activation()
-        assert pytest.approx(total_time, abs=5) == 36870
+        results = pipe.get_yaml_results()
+        yaml_result = next(iter(results.values()))
+        assert pytest.approx(total_time, abs=5) == 111510
+
+        assert yaml_result[OFFSET] == [[-1, 0, -1, -1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0]]
+        assert yaml_result[YAML_NAME[TYPE.FULL]] == [[3, 3, 2, 2, 2, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]]
         assert mem_par[0] == pytest.approx(
             [
                 18915.0,
                 9498.0,
-                6332.0,
-                6332.0,
-                9498.0,
+                7915.0,
                 7915.0,
                 9498.0,
                 9498.0,
                 9498.0,
+                9498.0,
+                9498.0,
+                9498.0,
                 11081.0,
                 11081.0,
-                11081.0,
-                11081.0,
-                11081.0,
+                9498.0,
+                9498.0,
                 11081.0,
                 11971.0,
             ],
@@ -77,18 +83,18 @@ class TestSappSolver:
             [
                 1748.0,
                 2574.0,
-                3304.0,
-                3304.0,
+                2542.0,
+                2542.0,
                 3368.0,
-                3336.0,
+                3368.0,
                 4162.0,
                 4162.0,
                 4956.0,
+                4956.0,
                 5782.0,
                 5782.0,
-                5782.0,
-                5782.0,
-                5782.0,
+                4956.0,
+                4956.0,
                 5782.0,
                 4956.0,
             ],
@@ -101,7 +107,8 @@ class TestSappSolver:
         Description: Test the sapp solver simulation when vpp=3.
         Expectation: Correct result
         """
-        layers = generate_layers_list(os.path.dirname(os.path.abspath(__file__)), "sim")
+        layer_json = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sim.json")
+        layers = generate_layers_list(layer_json)
         pipe = SappPipeline(
             model_name="sim",
             num_of_stage=16,
@@ -140,7 +147,7 @@ class TestSappSolver:
             file_name=None,
         )
 
-        assert total_time == 51394.8
+        assert total_time == 154184.4
 
     def test_sapp_seq_pp(self):
         """
@@ -152,7 +159,8 @@ class TestSappSolver:
         work_path = os.path.join(cur_path, "./seqpp")
         config_file_path = os.path.join(work_path, "./seq_config.yaml")
         extracted_training_params = parse_training_config(config_file_path)
-        layers = generate_layers_list(work_path, "seq")
+        layer_json = os.path.join(os.path.dirname(os.path.abspath(__file__)), "seqpp/seq.json")
+        layers = generate_layers_list(layer_json)
         pipe = SappPipeline(
             model_name="seq",
             num_of_stage=8,
@@ -168,7 +176,7 @@ class TestSappSolver:
         pipe.simulate(show=False, file_name=None)
         activation_nums = [[9, 8, 7, 6, 5, 4, 3, 2]]
         peak_mems = []
-        expected_peak_mems = [25966.5, 36592.0, 33155.0, 28670.0, 24185.0, 19700.0, 22822.5, 18760.0]
+        expected_peak_mems = [25966.5, 37640.0, 33155.0, 28670.0, 24185.0, 29550.0, 15215.0, 18760.0]
         for s in range(8):
             param_mem = pipe.problem_.stage_param_memory(
                 pipe.problem_.variables_,
