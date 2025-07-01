@@ -68,6 +68,7 @@ def pipeline_proc(pipeline_input: ParallelInput):
     ms_adapter_file = pipeline_input.ms_adapter_file
     DryRun.env_config_json = pipeline_input.env_config_json
     DryRun.register_path = pipeline_input.register_path
+    check_dryrun_parallel_number(pipeline_input.dryrun_lim)
     DryRun.dryrun_lim = pipeline_input.dryrun_lim
     ExpertInput.is_dryrun = pipeline_input.dryrun
     ExpertInput.is_double_check = pipeline_input.check
