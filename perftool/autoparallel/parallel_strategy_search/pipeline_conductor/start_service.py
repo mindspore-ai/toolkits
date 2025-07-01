@@ -184,11 +184,6 @@ class InitDryrun:
         peak_mem = [dry_run.extract_memory_info(self.init_stages), dry_run.extract_memory_info_act(self.init_stages)]
         return peak_mem
 
-    # def init_dryrun(self):
-    #     peak_mem = [[28025, 55615, 33174, 46782, 53986, 68922, 10231, 40551, 23301, 31873, 35909, 36122, 25576],
-    #                 [30725, 57351, 34823, 48135, 55302, 70814, 11270, 41991, 24583, 32775, 36871, 36871, 27650]]
-    #     return peak_mem
-
 
 class InitConfig:
     pipeline_stage = int
@@ -467,7 +462,3 @@ if __name__ == '__main__':
     expert_input.is_dryrun = False
     model_input = InitConfig(expert_input)
     print(model_input)
-    # model_input.mem_calculator_by_dryrun()
-    # input = Input('C:\code_alg\parallel\parallel-tool\model\pipelineSolver\pretrain_deepseek3_671b.yaml',
-    #               'd', True, 0.3, 2.0)
-    # input.mem_calculator_by_dryrun()

@@ -19,8 +19,7 @@ from pathlib import Path
 sys.path.append(os.getcwd())
 import unittest
 
-from pipeline_conductor import dryrun, pipeline_parallel
-from utils.logger import logger
+from pipeline_conductor import pipeline_parallel
 from pipeline_conductor.start_service import InitConfig, ExpertInput
 
 #流水线负载均衡算法单元测试用例
@@ -76,9 +75,6 @@ class PipeTestCase(unittest.TestCase):
         expert_input.backward_ratio = 1.627
         expert_input.recompute_ratio = 0.246
         expert_input.head_loss = 1.493
-        # dryrun.DryRun.env_config_json = self.get_yaml_path('deepseek_env_config.json')
-        # dryrun.DryRun.register_path = '~/research/deepseek3'
-        # cur_solution = pipeline_parallel.pp_calculator(expert_input)
         model_input = InitConfig(expert_input)
         model_input.memory.select_mem0 = 416.0
         model_input.memory.select_mem12 = 416.0
@@ -115,9 +111,6 @@ class PipeTestCase(unittest.TestCase):
         expert_input.backward_ratio = 1.627
         expert_input.recompute_ratio = 0.246
         expert_input.head_loss = 1.493
-        # dryrun.DryRun.env_config_json = self.get_yaml_path('deepseek_env_config.json')
-        # dryrun.DryRun.register_path = '~/research/deepseek3'
-        # cur_solution = pipeline_parallel.pp_calculator(expert_input)
         model_input = InitConfig(expert_input)
         model_input.memory.select_mem0 = 480.0
         model_input.memory.select_mem12 = 480.0
@@ -154,9 +147,6 @@ class PipeTestCase(unittest.TestCase):
         expert_input.backward_ratio = 1.627
         expert_input.recompute_ratio = 0.246
         expert_input.head_loss = 1.493
-        # dryrun.DryRun.env_config_json = self.get_yaml_path('swap_env_config.json')
-        # dryrun.DryRun.register_path = '~/research/deepseek3'
-        # cur_solution = pipeline_parallel.pp_calculator(expert_input)
         model_input = InitConfig(expert_input)
         model_input.memory.select_mem0 = 832.0
         model_input.memory.select_mem12 = 832.0
@@ -193,9 +183,6 @@ class PipeTestCase(unittest.TestCase):
         expert_input.layer_ratio = 0.71
         expert_input.head_loss = 1.5
         expert_input.recompute_ratio = 0.71
-        # dryrun.DryRun.env_config_json = self.get_yaml_path('deepseek_env_config.json')
-        # dryrun.DryRun.register_path = '~/research/deepseek3'
-        # cur_solution = pipeline_parallel.pp_calculator(expert_input)
         model_input = InitConfig(expert_input)
         model_input.memory.select_mem0 = 415.0
         model_input.memory.select_mem12 = 415.0
@@ -233,9 +220,6 @@ class PipeTestCase(unittest.TestCase):
         expert_input.backward_ratio = 1.627
         expert_input.recompute_ratio = 0.246
         expert_input.head_loss = 1.493
-        # dryrun.DryRun.env_config_json = self.get_yaml_path('swap_env_config.json')
-        # dryrun.DryRun.register_path = '~/research/deepseek3'
-        # cur_solution = pipeline_parallel.pp_calculator(expert_input)
         model_input = InitConfig(expert_input)
         model_input.memory.select_mem0 = 832.0
         model_input.memory.select_mem12 = 832.0
@@ -256,15 +240,9 @@ class PipeTestCase(unittest.TestCase):
         model_input.memory.mem_lim_last = 42894.0
         model_input.memory.print_mem()
         cur_solution = pipeline_parallel.solve_problem(model_input)
-        # object_value = 5562.66 # optimal
-        # object_value = 5769.88 # windows
-        object_value = 6019.33  # linux
+        object_value = 5562.66
         self.assertLessEqual(cur_solution.object_value, object_value + 20)
         self.assertGreaterEqual(cur_solution.object_value, object_value - 20)
 
 if __name__ == '__main__':
-    # unittest.main()
-    suite = unittest.TestSuite()
-    suite.addTest(PipeTestCase('test512_8k'))
-    runner = unittest.TextTestRunner()
-    runner.run(suite)
+    unittest.main()

@@ -303,5 +303,5 @@ def is_dualpipe_open(input_args):
     return use_zero_bubble_v
 
 def check_dryrun_parallel_number(parallel_num):
-    if parallel_num > 64:
+    if parallel_num > 16:
         raise Exception(f"The parallel number {parallel_num} is too large.")

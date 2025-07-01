@@ -28,6 +28,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Run taylor pipeline_search_tool with user input parameters')
     parser.add_argument('--files_dir', type=str, default='./output/dryrun_yaml/',
                         help='Path to the YAML or SHELL file directory')
+    parser.add_argument('--yaml_path', type=str, default=None,
+                        help='Path of training config (.yaml)')
     parser.add_argument('--shell_path', type=str, default=None,
                         help="Path of training config (.sh)")
     parser.add_argument('--mindformers_dir', type=str, default=None,
