@@ -61,18 +61,6 @@ def load_ms_weight2net(model,file):
     param = mindspore.load_checkpoint(file)
     mindspore.load_param_into_net(model, param)
 
-def _object_p_load(file):
-    import pickle
-    file = validate_and_normalize_path(file)
-    with open(file,'rb') as f:
-        obj = pickle.load(f)
-    return obj
-
-def _object_p_dump(obj, file):
-    import pickle
-    file = validate_and_normalize_path(file)
-    with open(file,'wb') as f:
-        pickle.dump(obj,f)
 
 def object_load(file):
     import json
