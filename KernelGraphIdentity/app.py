@@ -326,4 +326,4 @@ if __name__ == "__main__":
     available_port = find_available_port()
     if not app.debug or os.environ.get('WERKZEUG_RUN_MAIN') == 'true':  # 解决程序运行时打开两次页面的问题
         webbrowser.open_new(f'http://127.0.0.1:{available_port}/')
-    app.run(debug=True, use_reloader=False, port=available_port)
+    app.run(use_reloader=False, port=available_port)
