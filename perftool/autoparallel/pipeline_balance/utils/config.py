@@ -17,10 +17,10 @@ import json
 import os
 from dataclasses import dataclass, asdict
 from math import ceil
-import random
 
 import yaml
 import numpy as np
+import secrets
 
 from toolkit.pipeline_balance.utils.check_rules import check_yaml_depth_before_loading
 from toolkit.pipeline_balance.utils.logger import logger
@@ -32,8 +32,9 @@ import toolkit.pipeline_balance.utils.recompute as Recompute
 from toolkit.pipeline_balance.utils.computation_analyzer import ComputationAnalyzer
 from toolkit.pipeline_balance.utils.recompute import DEFAULT_COEF
 
-random.seed()
 
+def secure_randint(a, b):
+    return a + secrets.randbelow(b - a + 1)
 
 @dataclass
 class LayersDescription:
@@ -601,7 +602,7 @@ def generate_solvable_config(pp: int, num_layers: int, considered_rec: list):
                     offset_config[i] + layer_per_stage - stage_sum[i] for i in range(pp)
                 ]
                 layer_per_recompute[rec] = [
-                    random.randint(0, layers_left[i]) for i in range(pp)
+                    secure_randint(0, layers_left[i]) for i in range(pp)
                 ]
             rec_config_list.append(layer_per_recompute)
 
