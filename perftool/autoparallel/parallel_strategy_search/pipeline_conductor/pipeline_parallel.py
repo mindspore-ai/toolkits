@@ -25,6 +25,8 @@ from utils.ppc_input import ParallelInput
 from pipeline_conductor.result_csv import ResultCsv
 from pipeline_conductor.dryrun import DryRun, dryrun_config_error
 
+from utils.common import check_dryrun_parallel_number
+
 mps_dir_name = 'model_mps'
 sol_dir_name = 'sol_output'
 
@@ -190,6 +192,7 @@ if __name__ == '__main__':
                         help="The number of dryrun at once")
 
     args = parser.parse_args()
+    check_dryrun_parallel_number(args.dryrun_lim)
     if args.train_yaml and args.mindformers_loc:
         config_file = args.train_yaml
         ms_adapter_file = args.mindformers_loc

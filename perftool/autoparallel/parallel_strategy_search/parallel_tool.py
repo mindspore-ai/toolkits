@@ -18,7 +18,8 @@ import csv
 import time
 
 from ndsearch.para_for_nd_search import ParaForNd
-from perftool.autoparallel.parallel_strategy_search.pipeline_conductor import pp_util
+from utils.common import check_dryrun_parallel_number
+from pipeline_conductor import pp_util
 from pipeline_conductor.pipeline_parallel import pipeline_proc
 from utils.input_param import InputParam
 from utils.logger import logger
@@ -58,8 +59,6 @@ def taylor_search_tool(para):
     # [dp, tp, pp, ep, evaluate_peak_mem]
     dryrun_prune_space = filter_oom_by_dryrun(expert_prune_search_space, input_args, para)
     logger.info(f"Dryrun Prune Search space size: {len(dryrun_prune_space)}, format: [dp, tp, pp, ep, evaluate_peak_mem]")
-    print(*(config for config in dryrun_prune_space), sep='\n')
-    # write_result_to_csv(dryrun_prune_space)
     logger.info('%s', '\n'.join(str(item) for item in dryrun_prune_space))
 
     end_time = time.time()
@@ -102,7 +101,7 @@ if __name__ == '__main__':
                         default='./profile_data/',
                         help='Directory of profile data')
     parser.add_argument(f"--{InputParam.PARAM_MAPPING['PARALLEL_NUM']}", type=int, default=2,
-                        help='Number of parallel processes')
+                        help='Number of parallel dryrun processes')
     parser.add_argument(f"--{InputParam.PARAM_MAPPING['RANK_NUM']}", type=int, default=8,
                         help='Number of available device number')
     parser.add_argument(f"--{InputParam.PARAM_MAPPING['SOLVER_NAME']}", type=str, default='HIGHS',
@@ -134,7 +133,6 @@ if __name__ == '__main__':
                         help="Is double check")
 
     args = parser.parse_args()
-    args.dryrun = False
-    args.check = False
+    check_dryrun_parallel_number(args.parallel_num)
     para = InputParam(args)
     taylor_search_tool(para)

@@ -15,6 +15,7 @@
 
 import argparse
 
+from utils.common import check_dryrun_parallel_number
 from utils.ppc_input import ParallelInput
 from utils.logger import logger
 from pipeline_conductor.pipeline_parallel import pipeline_proc
@@ -53,5 +54,6 @@ if __name__ == '__main__':
                         help="Is double check")
 
     args = parser.parse_args()
+    check_dryrun_parallel_number(args.parallel_num)
     pipeline_input = ParallelInput(args)
     pipeline_proc(pipeline_input)

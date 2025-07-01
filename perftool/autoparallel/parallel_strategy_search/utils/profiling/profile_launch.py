@@ -26,14 +26,12 @@ class ProfileLaunch:
         cmd = ["bash", profile_file_dir]
         logger.info(f"profile command: {cmd}")
 
-        process = subprocess.Popen(
+        process = subprocess.run(
             cmd,
-            preexec_fn=os.setpgrp
+            preexec_fn=os.setpgrp,
+            check=False,
         )
-        process.wait()
         # 为避免profile子进程未结束生成profile文件失败，增加sleep
         time.sleep(60)
         return_code = process.returncode
         logger.info("Last job returns %d.", return_code)
-
-        # return return_code

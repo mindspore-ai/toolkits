@@ -55,6 +55,7 @@ ND配置搜索为自动并行策略搜索的第一阶段，搜索出用户给定
 | yaml_path           | 模型配置文件，基于原生MindSpore搜索时需填写该参数              | ./config/pretrain_deepseek3_128p.yaml  |
 | shell_path          | 模型配置文件，基于兼容MindSpeed方案搜索时需填写该参数            | ./config/pretrain_llama2_7b.sh         |
 | mindformers_dir     | run_mindformer.py路径，基于原生MindSpore搜索时需填写该参数 | ./mindformers                          |
+| mindspeed_path      | MindSpeed训练脚本路径，基于兼容MindSpeed方案搜索时需填写该参数   | ./home/pretrain_gpt.py                 |
 | dryrun_data_dir     | 已有dryrun数据路径                               | None                                   |
 | profile_data_dir    | 已有profile数据路径                              | None                                   |
 | parallel_num        | dryrun并行数                                  | 2                                      |
@@ -68,6 +69,9 @@ ND配置搜索为自动并行策略搜索的第一阶段，搜索出用户给定
 | gbs                 | global batch size                          | 1024                                   |
 | select_recompute    | 是否搜索自定义选重                                  | True                                   |
 | alg_phase           | 选择使用搜索算法阶段；0--全流程搜索, 1--ND搜索, 2--流水线负载均衡搜索 | 1                                      |
+| parser_result       | profile解析结果csv文件，不需要解析profile时填写此参数即可      | None                                   |
+| dryrun              | 是否使用dryrun计算内存信息                                           | True                                   |
+| check               | 是否使用double_check进行内存拟合                                           | True                                   |
 
 输出信息：
 
