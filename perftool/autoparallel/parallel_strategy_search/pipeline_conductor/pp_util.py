@@ -79,10 +79,12 @@ def highs_solve_mps(mps_file, solution_file, origin_model, time_limit):
 
 
 def qiuqi_solver_mps(solver_file, model_file, solution_file_name, origin_model):
-    command01 = f'chmod +x {solver_file} && {solver_file} -Help'
-    execute_command(command01)
-    command2 = f'{solver_file} -SolutionFile={solution_file_name} {model_file}'
-    subprocess.run(command2, shell=True)
+    command0 = ['chmod', '+x', solver_file]
+    subprocess.run(command0)
+    command1 = [solver_file, '-Help']
+    subprocess.run(command1, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    command2 = [solver_file, f'-SolutionFile={solution_file_name}', model_file]
+    subprocess.run(command2)
     logger.info(f'Writing the solution to {solution_file_name}')
     with open(solution_file_name, 'r', encoding='utf-8') as file:
         content = file.read()
@@ -90,10 +92,6 @@ def qiuqi_solver_mps(solver_file, model_file, solution_file_name, origin_model):
         objective_function_value = result_content.group(1)
     logger.info(f'Optimal objective = {objective_function_value}')
     origin_model.min_time = objective_function_value
-
-
-def execute_command(command):
-    subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 
 def write_config_to_yaml(recompute_config, offset, yaml_file):

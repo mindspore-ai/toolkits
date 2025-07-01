@@ -288,7 +288,6 @@ class Model:
 
     def solve(self):
         self.solver.EnableOutput()
-        # self.solver.SetSolverSpecificParametersAsString('output_flag=1')
         logger.info(f'Solving with {self.solver.SolverVersion()}')
         if self.expert_input.time_limit != sys.maxsize:
             self.solver.SetTimeLimit(self.expert_input.time_limit)

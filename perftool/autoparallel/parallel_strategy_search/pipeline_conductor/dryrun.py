@@ -17,6 +17,7 @@ import os
 import shutil
 import json
 import argparse
+import subprocess
 from utils.logger import logger
 from pipeline_conductor import pp_util
 from multiprocessing import Pool
@@ -82,18 +83,21 @@ class DryRun:
         rank_id = stage * self.rank_gap
         cwd = os.getcwd()
         log_file = os.path.join(cwd, self.log_file_name, f'rank_{rank_id}.log')
+        logger.info(f"start training for rank_{rank_id}, device_{device_id}, waiting a moment...")
         if self.config_file_type == 0:
             os.environ['ASCEND_RT_VISIBLE_DEVICES'] = str(device_id)
             os.environ['RANK_ID'] = str(rank_id)
-            command = (f'python {self.ms_adapter_file} --register_path {self.register_path} '
-                       f'--config {self.config_file} &> {log_file}')
+            command = ['python', self.ms_adapter_file, '--register_path',
+                       self.register_path, '--config', self.config_file]
+            with open(log_file, 'w') as log:
+                subprocess.run(command, stdout=log, stderr=subprocess.STDOUT)
         elif self.config_file_type == 1:
-            command = (f'export RANK_ID={rank_id}; '
-                       f'bash {self.config_file} {device_id} {self.ms_adapter_file} {log_file}')
+            env = os.environ.copy()
+            env['RANK_ID'] = str(rank_id)
+            command = ['bash', self.config_file, str(device_id), self.ms_adapter_file, log_file]
+            subprocess.run(command, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         else:
             raise TypeError(dryrun_config_error)
-        logger.info(f"start training for rank_{rank_id}, device_{device_id}, waiting a moment...")
-        pp_util.execute_command(command)
 
     def extract_memory_info(self, num_stage):
         cwd = os.getcwd()
@@ -197,6 +201,3 @@ if __name__ == "__main__":
         raise TypeError(dryrun_config_error)
 
     all_rank_dryrun(config_file, ms_adapter_file, output_file)
-
-    # one rank
-    # one_rank_dryrun(0, yaml_file, mindformer_file, output_file)

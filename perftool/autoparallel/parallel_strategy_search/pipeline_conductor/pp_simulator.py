@@ -507,9 +507,6 @@ class PipelineBuild:
     @staticmethod
     def _inter_merge(a: list[MicroBlockSim], b: list[MicroBlockSim], delta: int = 0) -> list[MicroBlockSim]:
         res = []
-        #res.extend(a)
-        #res.extend(b)
-        #return res
         if delta >= 0:
             res.extend(a[:delta])
             a = a[delta:]
@@ -569,14 +566,7 @@ class PipelineBuild:
                 for_line.extend([MicroBlockSim(p, 'f', r + m + inter * pp, i, forward_time[i], mem=block_mem[i], phase='warmup') for m in range(pp)])
                 back_line.extend([MicroBlockSim(p, 'b', r + m + inter * pp, i, backward_time[i], mem=block_mem[i], phase='cooldown') for m in range(pp)])
         else:
-            #back_line[14], back_line[15] = back_line[15], back_line[14]
             line = PipelineBuild._inter_merge(for_line, back_line, (vp + 1) * pp - 2 * p - 2 + r * (vp - 1))
-        #if p == 13: line[34], line[33] = line[33], line[34]
-
-        # if p == 15: line[31], line[32], line[33] = line[32],line[33],line[31]
-        # if p <= 12 and p > 7: line[38+(12-p)*2], line[39+(12-p)*2] = line[39+(12-p)*2], line[38+(12-p)*2]
-        # if p == 8: line[49], line[48] = line[48], line[49]
-        # if p == 14: line[31], line[32]= line[32],line[31]
         return PipelineBuild._build_chain(line, p)
     
     @staticmethod
@@ -856,7 +846,6 @@ class PipelineSimulator:
         send_block = lines[p].pop(i_send)
         i_new = lines[p].index(self.blocks[p][b + distance]) + 1
         lines[p].insert(i_new, send_block)
-    # @timer
     def swap_send_rec(self, lines) -> list[list[BlockSim]]:
         for p in range(self.pp):
             for b, block in enumerate(self.blocks[p]):
@@ -881,9 +870,7 @@ class PipelineSimulator:
                     if lines[p][i_b+1].dual._stage == lines[p][i_b+2].dual._stage and lines[p][i_b+2].dual._stage == lines[p][i_b+3].dual._stage:
                         if lines[p][i_b+1]._type == 's' and lines[p][i_b+2]._type == 's' and lines[p][i_b+3]._type == 'r':
                             lines[p][i_b+1], lines[p][i_b+2] = lines[p][i_b+2], lines[p][i_b+1]
-                            # lines[p][i_b+2], lines[p][i_b+3] = lines[p][i_b+3], lines[p][i_b+2]
         return lines
-    # @timer
     def vpp_send_delay(self, lines) -> list[list[BlockSim]]:
         if self.micro_num % self.pp != 0:
             return lines
@@ -892,7 +879,6 @@ class PipelineSimulator:
                 if block.send_block is not None and block.phase == 'stable':
                     self._send_block_delay(lines, p, b, 1)
         return lines
-    # @timer
     def residue_delay(self, lines) -> list[list[BlockSim]]:
         r = self.micro_num % self.pp
         if not r:
