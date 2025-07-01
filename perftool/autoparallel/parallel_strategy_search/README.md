@@ -146,21 +146,22 @@ python parallel_tool.py --yaml_path jiutian.yaml --mindfomres_dir ~/mindformers/
 
 3、可配置参数
 
-| 配置项                | 含义                    | 默认值                             | 必须 | 
-|--------------------|-----------------------|---------------------------------|:--:|
-| --yaml_path        | ND搜索生成的YAML文件夹路径      | None           | 是  |
-| --shell_path       | 需要求解的模型配置shell文件     | None           | 是  |
-| --mindformers_dir  | run_mindformer.py路径         | None           | 是  |
-| --mindspeed_path   | posttrain_gpt.py路径          | None           | 是  |
-| --parser_result    | 各yaml profile结果汇总文件路径 | None                            | 是  |
-| --profile_data_dir | profile数据路径           | ./profile_data/                 | 否  |
-| --solver_name      | 流水线使用的求解器名称           | HIGHS                           | 否  |
-| --nd_path          | 包含所有候选ND配置的csv文件      | /config/nd_result.csv           | 否  |
-| --env_json         | 包含环境变量参数设置的json文件   | ./config/boss_env_config.json   | 是  |
-| --register_path    | 注册自定义模型的路径            | research/jiutian                | 是  |
+| 配置项                | 含义                     | 默认值                             | 必须 | 
+|--------------------|------------------------|---------------------------------|:--:|
+| --files_dir        | ND搜索生成的YAML/SHELL文件夹路径 | ./output/dryrun_yaml/ | 是  |
+| --yaml_path        | ND搜索生成的YAML文件夹路径       | None           | 是  |
+| --shell_path       | ND搜索生成的SHELL文件夹路径      | None           | 是  |
+| --mindformers_dir  | run_mindformer.py路径    | None           | 是  |
+| --mindspeed_path   | posttrain_gpt.py路径     | None           | 是  |
+| --parser_result    | 各yaml profile结果汇总文件路径  | None                            | 是  |
+| --profile_data_dir | profile数据路径            | ./profile_data/                 | 否  |
+| --solver_name      | 流水线使用的求解器名称            | HIGHS                           | 否  |
+| --nd_path          | 包含所有候选ND配置的csv文件       | /config/nd_result.csv           | 否  |
+| --env_json         | 包含环境变量参数设置的json文件      | ./config/boss_env_config.json   | 是  |
+| --register_path    | 注册自定义模型的路径             | research/jiutian                | 是  |
 | --parallel_num     | 一次性拉起dryrun的进程数        | 16                              | 是  |
-| --dryrun           | 是否使用dryrun计算内存信息      | True   | 否  |
-| --check            | 是否使用double_check进行内存拟合| True   | 否  |
+| --dryrun           | 是否使用dryrun计算内存信息       | True   | 否  |
+| --check            | 是否使用double_check进行内存拟合 | True   | 否  |
 
 4、使用示例
 
