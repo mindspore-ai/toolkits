@@ -199,8 +199,8 @@ class MainWindow(QMainWindow):
         try:
             from PyQt5.QtGui import QIcon
             self.setWindowIcon(QIcon('icon.png'))
-        except:
-            pass
+        except Exception as e:
+            QMessageBox.information(self, "Icon load failed.")
         self.tabs = QTabWidget()
         self.tabs.setTabsClosable(True)
         self.tabs.tabCloseRequested.connect(self.close_tab)
