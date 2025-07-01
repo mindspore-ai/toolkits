@@ -161,41 +161,6 @@ def sapp_adaptor(profile_info):
     tail = profile_info['head']/3
     return profile_info['embed'], body_dense, body_moe, tail
 
-def start_profile(mindformers_dir, profile_yaml_directory):
-    """
-    遍历profile_yaml_directory目录下所有yaml文件，执行命令python xxx.yaml
-    :param mindformers_dir:
-    :param profile_yaml_directory:
-    """
-    # 遍历目录下的所有文件
-    yaml_list = []
-    for root, dirs, files in os.walk(profile_yaml_directory):
-        for file in files:
-            if file.endswith('.yaml'):
-                # 构建文件的完整路径
-                yaml_file_path = os.path.join(root, file)
-                execute_cmd(mindformers_dir, yaml_file_path)
-                yaml_list.append(yaml_file_path)
-    print("The profiling of all configurations has been completed.")
-    return yaml_list
-
-def execute_cmd(mindformers_dir, yaml_path):
-    master_host_name = os.getenv("VC_WORKER_HOSTS").split(",")[0]
-    master_addr = socket.gethostbyname(master_host_name)
-    rank_size = int(os.getenv("RANK_SIZE"))
-    node_rank = int(os.getenv("VC_TASK_INDEX"))
-    cmd = f"bash {mindformers_dir}/scripts/msrun_launcher.sh \"{mindformers_dir}/run_mindformer.py \
-           --config {yaml_path}    \
-           --register_path {mindformers_dir}/research/deepseek3/ \
-           --run_mode train \
-           --use_parallel True \
-           --remote_save_url s3://bucket-7002/logs/deepseek3_4224_op4/ \
-           --train_data {mindformers_dir}/wiki4096/wiki4096/wiki4096.mindrecord\" \
-           {rank_size} 8 {master_addr} 8120 {node_rank} {mindformers_dir}/logs/msrun_log False 300"
-    print(f"executing profile cmd: {cmd}")
-    os.system(cmd)
-
-
 def profile_prepare(dryrun_prune_space, para, input_args):
     """
     prepare for profiling
