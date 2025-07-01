@@ -302,11 +302,6 @@ def is_dualpipe_open(input_args):
     )
     return use_zero_bubble_v
 
-# def get_args_from_file(para):
-#     # if para.YAML_PATH:
-#     #     input_args = InputConfig(para.YAML_PATH)
-#     # elif para.SHELL_PATH:
-#     #     # todo: 填入shell解析
-#     #     input_args, unparses = parse_shell(para.SHELL_PATH)
-#     para_nd = ParaForNd(para)
-#     return para_nd
+def check_dryrun_parallel_number(parallel_num):
+    if parallel_num > 64:
+        raise Exception(f"The parallel number {parallel_num} is too large.")
