@@ -162,6 +162,7 @@ python parallel_tool.py --yaml_path jiutian.yaml --mindfomres_dir ~/mindformers/
 | --parallel_num     | 一次性拉起dryrun的进程数        | 16                              | 是  |
 | --dryrun           | 是否使用dryrun计算内存信息       | True   | 否  |
 | --check            | 是否使用double_check进行内存拟合 | True   | 否  |
+| --output_path      | 输出信息的路径                       | ./output       | 否  |
 
 4、使用示例
 

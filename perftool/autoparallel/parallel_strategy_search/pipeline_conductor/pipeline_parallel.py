@@ -72,7 +72,7 @@ def pipeline_proc(pipeline_input: ParallelInput):
     DryRun.dryrun_lim = pipeline_input.dryrun_lim
     ExpertInput.is_dryrun = pipeline_input.dryrun
     ExpertInput.is_double_check = pipeline_input.check
-    result_csv = ResultCsv(pipeline_output_file)
+    result_csv = ResultCsv(pipeline_input.output_path, pipeline_output_file)
     num_all = len(pipeline_input.candidate_configs)
     num_cur = 0
     for candidate in pipeline_input.candidate_configs:
