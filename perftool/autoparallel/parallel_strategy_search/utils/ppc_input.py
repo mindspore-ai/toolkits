@@ -51,6 +51,7 @@ class ParallelInput:
         self.dryrun_lim = args.parallel_num
         self.dryrun = args.dryrun
         self.check = args.check
+        self.output_path = args.output_path
         if DryRun.config_file_type == 0:
             self.ms_adapter_file = args.mindformers_dir
         elif DryRun.config_file_type == 1:

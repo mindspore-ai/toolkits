@@ -28,6 +28,7 @@ def find_file_by_name(directory, filename):
     for root, _, files in os.walk(directory):
         if filename in files:
             return os.path.join(root, filename)
+    logger.error(f'No such file {filename} in directory {directory}')
     return None
 
 def median_mean(durs):
@@ -112,6 +113,11 @@ class ProfileParser:
         with open(path, 'r', encoding=encoding) as f:
             self.profile_data = json.load(f)
 
+    def load_profile_by_kernel(self, file):
+        global encoding
+        path = find_file_by_name(file, 'kernel_details.csv')
+        self.profile_data = path
+
     def load_profile_no_recompute(self, file, rk):
         global encoding
         path = os.path.abspath('.\\profile_info') + '\\' + str(file)
@@ -141,8 +147,28 @@ class ProfileParser:
         logger.info(f'num of atts is {len(atts)}, num of grad_atts is {len(grad_atts)}')
         return atts, grad_atts
 
+    def extract_atts_by_kernel(self):
+        atts, grad_atts = [], []
+        try:
+            with open(self.profile_data, 'r', encoding='utf-8') as file:
+                reader = csv.DictReader(file)
+                for row in reader:
+                    name_value = row.get('Name', '')
+                    if isinstance(name_value, str):
+                        if name_value.endswith('FlashAttentionScore_FlashAttentionScore'):
+                            ts_value = float(row.get('Start Time(us)'))
+                            atts.append(ts_value)
+                        elif name_value.endswith('FlashAttentionScoreGrad_FlashAttentionScoreGrad'):
+                            ts_value = float(row.get('Start Time(us)'))
+                            grad_atts.append(ts_value)
+            logger.info(f'extract by kernel_details.csv num of atts is {len(atts)}, num of grad_atts')
+            return atts, grad_atts
+        except Exception as e:
+            logger.error(f'extract by kernel_details.csv fail: {e}')
+            return [], []
+
     def stage_anal_llama(self, pp, stage, isRecompute=False): #assuming we profiled 2 steps w/ micro = 32
-        atts, grad_atts = self.extract_atts()
+        atts, grad_atts = self.extract_atts_by_kernel()
         step = 2
         mbn = self.mbn
         net_type = 0 #0表示llama, 1表示deepseek
@@ -200,7 +226,7 @@ class ProfileParser:
 
     #todo: 待修改
     def stage_anal(self, pp, stage, isRecompute): #assuming we profiled 2 steps w/ micro = 32
-        atts, grad_atts = self.extract_atts()
+        atts, grad_atts = self.extract_atts_by_kernel()
         layers, xlayers = len(grad_atts) // 64,  2 * len(grad_atts) // 64
         warm_up = (pp-1-stage) * layers
         atts = atts[warm_up : 32*xlayers - warm_up] + atts[32*xlayers + warm_up : 32*xlayers + 32*xlayers-warm_up]
@@ -275,7 +301,7 @@ class ProfileParser:
         i = 0
         for rank_folder in folders:
             logger.info(f"parsing: {rank_folder}")
-            self.load_profile_by_dir(rank_folder)
+            self.load_profile_by_kernel(rank_folder)
             self.stage_anal_llama(pp, i)
             i += 1
         self.refined_data()

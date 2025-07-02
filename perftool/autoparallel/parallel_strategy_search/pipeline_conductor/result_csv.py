@@ -23,14 +23,14 @@ from pipeline_conductor import pp_util
 from pipeline_conductor.dryrun import DryRun, dryrun_config_error
 
 class ResultCsv:
-    def __init__(self, output_file='pipeline_output', name='test_result'):
+    def __init__(self, output_path, output_file='pipeline_output', name='test_result'):
         self.header = ['test', 'layers', 'micro', 'dp', 'tp', 'pp', 'ep', 'vp','dense:moe', '反向:正向',
                        '重计算增加比率', 'mtp+head', 'moe时长', 'low_mem', '目标值', 'cost', 'x', 'offset',
                        'ra', '内存信息', '内存上限(GB)', '求解器', 'GAP', 'solution_status', 'model_status',
                        '求解耗时/s', 'dryrun_check']
         self.name = name
         timestamp = time.strftime("%Y%m%d%H%M%S")
-        csv_dir = os.path.join(os.getcwd(), output_file)
+        csv_dir = os.path.join(os.path.abspath(output_path), output_file)
         if not os.path.exists(csv_dir):
             os.mkdir(csv_dir)
         self.path = os.path.join(csv_dir, f'{self.name}_{timestamp}.csv')

@@ -54,6 +54,9 @@ if __name__ == '__main__':
                         help="Is auto dryrun")
     parser.add_argument('--check', type=pp_util.str2bool, default=True,
                         help="Is double check")
+    parser.add_argument('--output_path', type=str,
+                        default='./output/',
+                        help='Directory of output info')
 
     args = parser.parse_args()
     check_dryrun_parallel_number(args.parallel_num)
