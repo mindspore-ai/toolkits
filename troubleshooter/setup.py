@@ -15,10 +15,8 @@
 setup script
 """
 import os
-import shlex
 import shutil
 import stat
-import subprocess
 
 from setuptools import find_packages, setup
 from setuptools.command.build_py import build_py
@@ -73,28 +71,6 @@ def update_permissions(path):
             os.chmod(file_fullpath, stat.S_IREAD)
 
 
-def get_description():
-    """
-    Get description.
-
-    Returns:
-        str, wheel package description.
-    """
-    cmd = "git log --format='[sha1]:%h, [branch]:%d' -1"
-    process = subprocess.Popen(
-        shlex.split(cmd),
-        shell=False,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
-    stdout, _ = process.communicate()
-    if not process.returncode:
-        git_version = stdout.decode().strip()
-        return "A troubleshooting toolbox for MindSpore"
-    return "A troubleshooting toolbox for MindSpore."
-
-
 class EggInfo(egg_info):
     """Egg info."""
     def run(self):
@@ -121,7 +97,7 @@ setup(
         'Sources': 'https://gitee.com/mindspore/toolkits/tree/master/troubleshooter',
         'Issue Tracker': 'https://gitee.com/mindspore/toolkits/issues',
     },
-    description=get_description(),
+    description='A troubleshooting toolbox for MindSpore.',
     license='Apache 2.0',
     packages=find_packages(),
     include_package_data=True,
