@@ -1,10 +1,12 @@
-# Copyright 2023 Huawei Technologies Co., Ltd
+# SPDX-License-Identifier: Apache-2.0
+# 
+# Copyright (c) Huawei Technologies Co., Ltd. 2023. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-# http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -794,6 +796,8 @@ class MSGraph(Graph):
 
 
 class OptimizedGraph(MSGraph):
+    # Refer to
+    # https://gitee.com/mindspore/mindinsight/blob/v1.6.0/mindinsight/datavisual/data_transform/graph/optimized_graph.py
     """The object describes the MindSpore graph, and it is defined in the anf_ir proto file."""
 
     MIN_GROUP_NODE_COUNT = 10
