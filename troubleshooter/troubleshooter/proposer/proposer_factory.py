@@ -1,10 +1,14 @@
-# Copyright 2022-2023 Huawei Technologies Co., Ltd
+# SPDX-License-Identifier: Apache-2.0
+# 
+# Adapted from
+# https://gitee.com/mindspore/mindinsight/blob/v0.5.0-beta/mindinsight/profiler/proposer/proposer_factory.py
+# Copyright (c) Huawei Technologies Co., Ltd. 2020. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-# http://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
