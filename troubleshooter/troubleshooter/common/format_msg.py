@@ -21,6 +21,7 @@ import stat
 import traceback
 from textwrap import fill
 import copy
+import time
 
 from prettytable import PrettyTable
 
@@ -238,112 +239,6 @@ def _parse_api_name(name):
             is_output = True
     return name, is_output
 
-def print_adapter_diff_result(result_list, *, print_level=1, title=None, field_names=None, show_dtype_diff=False,
-                      show_shape_diff=False, output_file=None, frame_names=None):
-
-    orig_frame, tgt_frame = frame_names
-    orig_frame = "pt" if orig_frame == 'pytorch' else 'mt'
-    tgt_frame = "pt" if tgt_frame == 'pytorch' else 'mt'
-
-    # 0 Do not print
-    # Print All
-    # print False
-    if print_level == 0:
-        return
-    if not result_list:
-        return
-    if field_names is None:
-        field_names = ["orig array name", "target array name", "ratio of allclose", "cosine similarity",
-                       "mean cmp (orig, target)", "max cmp (orig, target)", "min cmp (orig, target)"]
-    column_width = [45, 45, 17, 17, 25, 25, 25]
-    if show_shape_diff:
-        field_names = field_names + [f"shape cmp ({orig_frame}, {tgt_frame})"]
-        column_width += [18]
-    if show_dtype_diff:
-        field_names = field_names + [f"dtype cmp ({orig_frame}, {tgt_frame})"]
-        column_width += [18]
-
-    x = PrettyTable()
-    x._max_width = dict(zip(field_names, column_width))
-    x.padding_width = 0
-    if title is None:
-        x.title = 'The list of comparison results'
-    else:
-        x.title = title
-    x.field_names = field_names
-    csv_x = copy.deepcopy(x)
-
-    is_below_output = is_below_layer = False
-    for result in result_list:
-        if show_shape_diff:
-            if show_dtype_diff:
-                orig_name, target_name, orig_dtype, target_dtype, orig_shape, target_shape, ratio, \
-                    mean_cmp, max_cmp, min_cmp, cosine_sim = result
-            else:
-                orig_name, target_name, orig_shape, target_shape, ratio, mean_cmp, max_cmp, min_cmp, \
-                    cosine_sim = result
-        else:
-            orig_name, target_name, ratio, mean_cmp, max_cmp, min_cmp, cosine_sim = result
-
-        if print_level == 2 and ratio == 1:
-            continue
-
-        is_layer = False
-        if target_name is not None:
-            if target_name[:6] == "LAYER_":
-                target_name = _parse_layer_name(target_name)
-                is_layer = True
-            else:
-                target_name, is_output = _parse_api_name(target_name)
-        if orig_name is not None:
-            if orig_name[:6] == "LAYER_":
-                orig_name = _parse_layer_name(orig_name)
-                is_layer = True
-            else:
-                orig_name, is_output = _parse_api_name(orig_name)
-
-        name_info = [orig_name, target_name]
-        basic_info = []
-        basic_info_uncolored = []
-        if show_shape_diff:
-            if orig_shape !=  target_shape:
-                shape_cmp_uncolored = f"{orig_shape}, {target_shape}"
-                shape_cmp = f"\033[1;31m{shape_cmp_uncolored}\033[0m"
-            else:
-                shape_cmp_uncolored = shape_cmp = str(orig_shape)
-            basic_info = [shape_cmp]
-            basic_info_uncolored = [shape_cmp_uncolored]
-            if show_dtype_diff:
-                if orig_dtype !=  target_dtype:
-                    dtype_cmp_uncolored = f"{orig_dtype}, {target_dtype}"
-                    dtype_cmp = f"\033[1;31m{dtype_cmp_uncolored}\033[0m"
-                else:
-                    dtype_cmp_uncolored = dtype_cmp = str(orig_dtype)
-                basic_info = [shape_cmp, dtype_cmp]
-                basic_info_uncolored = [shape_cmp_uncolored, dtype_cmp_uncolored]
-        if is_layer:
-            x.add_row([*name_info] + ["-" * i for i in column_width[2:]])
-            csv_x.add_row([*name_info] + ["-" * i for i in column_width[2:]])
-            is_below_layer = True
-        else:
-            if is_below_output and not is_below_layer:
-                x.add_row(["-" * i for i in column_width])
-                csv_x.add_row(["-" * i for i in column_width])
-            compare_res_uncolored, compare_res = _adapter_format_compare_result(ratio, mean_cmp,
-                                                                                max_cmp, min_cmp, cosine_sim)
-            x.add_row([*name_info, *compare_res, *basic_info])
-            csv_x.add_row([*name_info, *compare_res_uncolored, *basic_info_uncolored])
-            is_below_output = True if is_output else False
-            is_below_layer = False
-    print(x.get_string())
-
-    if output_file:
-        if not os.path.exists(os.path.dirname(output_file)):
-            raise ValueError(f"output_file {output_file} not exist")
-        with os.fdopen(os.open(output_file, os.O_WRONLY | os.O_CREAT, stat.S_IRUSR | stat.S_IWUSR), 'w') as f:
-            f.write(csv_x.get_csv_string(dialect='unix') + os.linesep)
-    return x.get_string()
-
 def print_net_infer_diff_result(result_list):
     x = PrettyTable()
     x.title = 'The list of comparison results'
@@ -409,8 +304,10 @@ def print_result(expert_experience, write_file_path):
     if write_file_path:
         case_id = expert_experience.get("ID")
         _add_row(x, "case_id", case_id)
+        timestamp = time.time()
+        file_name = f"mindspore_failure_analysis_report_{timestamp}.log"
         file = os.path.join(
-            write_file_path, "mindspore_failure_analysis_report.log")
+            write_file_path, file_name)
         with open(file, "w") as f:
             f.write(x.get_string() + os.linesep)
     print(x.get_string())
@@ -488,16 +385,18 @@ def _replace_link_version(link, link_version, mindspore_version):
     """
     replace url link version for diff version
     """
+    escaped_link_version = re.escape(link_version)
     if mindspore_version < link_version:
         return link
     if mindspore_version < "r1.7" or link_version >= "r1.7":
-        match = re.search(link_version, link)
-        link = link[:match.start()] + mindspore_version + link[match.end():]
+        match = re.search(escaped_link_version, link)
+        if match
+            link = link[:match.start()] + mindspore_version + link[match.end():]
         return link
     if link_version < "r1.7" <= mindspore_version:
-        keys = [r"note/zh-CN/{}".format(link_version),
-                r"api/zh-CN/{}".format(link_version),
-                r"faq/zh-CN/{}".format(link_version)]
+        keys = [re.escape(r"note/zh-CN/{}".format(link_version)),
+                re.escape(r"api/zh-CN/{}".format(link_version)),
+                re.escape(r"faq/zh-CN/{}".format(link_version))]
         target = ["zh-CN/{}/note".format(mindspore_version),
                   "zh-CN/{}".format(mindspore_version),
                   "zh-CN/{}/faq".format(mindspore_version)]
