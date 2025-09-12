@@ -452,7 +452,7 @@ function showIsolatedNodesDiffResult(response) {
     const diffOverlay = createDiffOverlay();
 
     const content = createDiffContent();
-    content.innerHTML = response.diff_result;
+    content.textContent = response.diff_result;
     diffOverlay.appendChild(content);
 
     const closeBtn = createDiffCloseBtn();
