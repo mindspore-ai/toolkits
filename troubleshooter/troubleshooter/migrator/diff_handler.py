@@ -23,7 +23,7 @@ import numpy as np
 from tqdm import tqdm
 
 from troubleshooter import log as logger
-from troubleshooter.common.format_msg import print_diff_result, print_adapter_diff_result
+from troubleshooter.common.format_msg import print_diff_result
 from troubleshooter.common.util import (find_file, none_and_isdir_check, type_check,
                                         validate_and_normalize_path, extract_end_number, extract_front_end_number)
 
@@ -187,34 +187,6 @@ def _ms_cal_compare_npy_single_process(name, normal_orig_dir, normal_target_dir,
         return (orig_name, target_name, orig_shape, target_shape, result, rel_ratio, cosine_sim, diff_detail)
     else:
         return (orig_name, target_name, result, rel_ratio, cosine_sim, diff_detail)
-
-def _adapter_cal_compare_npy_single_process(name, normal_orig_dir, normal_target_dir, rtol, atol, equal_nan, compare_shape,
-                                    compare_dtype):
-    def load_value(dir, name):
-        if name is None:
-            return None
-        if not name.endswith('.npy'):
-            name = name + '.npy'
-        file = os.path.join(dir, name)
-        if not os.path.isfile(file):
-            return None
-        return np.load(file)
-    orig_name, target_name = name
-    orig_value = load_value(normal_orig_dir, orig_name)
-    target_value = load_value(normal_target_dir, target_name)
-    rel_ratio, mean_cmp, max_cmp, min_cmp, cosine_sim = adapter_cal_algorithm(
-        orig_value, target_value, rtol, atol, equal_nan)
-    res = (orig_name, target_name, rel_ratio, mean_cmp, max_cmp, min_cmp, cosine_sim)
-
-    if compare_shape:
-        orig_shape = orig_value.shape if orig_value is not None else None
-        target_shape = target_value.shape if target_value is not None else None
-        res = res[:2] + (orig_shape, target_shape) + res[2:]
-    if compare_dtype:
-        orig_dtype = orig_value.dtype if orig_value is not None else None
-        target_dtype = target_value.dtype if target_value is not None else None
-        res = res[:2] + (orig_dtype, target_dtype) + res[2:]
-    return res
 
 
 def compare_npy_dir(

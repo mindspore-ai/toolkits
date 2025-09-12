@@ -21,6 +21,7 @@ from pprint import pprint
 import mindspore as ms
 import torch
 from tqdm import tqdm
+import time
 
 from troubleshooter import FRAMEWORK_TYPE
 from troubleshooter import log as logger
@@ -260,11 +261,13 @@ def save_net_and_weight_params(net, path=os.getcwd(), weight_params_filename=Non
     if not os.path.exists(path):
         os.makedirs(path, mode=0o700)
 
+    timestamp = time.time()
+
     if "torch" in FRAMEWORK_TYPE and isinstance(net, torch.nn.Module):
         if weight_params_filename is None:
-            params_name = "torch_troubleshooter_create.pth"
+            params_name = f"{timestamp}_torch_troubleshooter_create.pth"
         else:
-            params_name = weight_params_filename
+            params_name = f"{timestamp}_{weight_params_filename}"
         torch.save(net.state_dict(), os.path.join(path, params_name))
         from troubleshooter.migrator import get_weight_map
         get_weight_map(net, weight_map_save_path=os.path.join(path, "torch_net_map.json"))
@@ -273,9 +276,9 @@ def save_net_and_weight_params(net, path=os.getcwd(), weight_params_filename=Non
 
     if "mindspore" in FRAMEWORK_TYPE and isinstance(net, mindspore.nn.Cell):
         if weight_params_filename is None:
-            params_name = "mindspore_troubleshooter_create.ckpt"
+            params_name = f"{timestamp}_mindspore_troubleshooter_create.ckpt"
         else:
-            params_name = weight_params_filename
+            params_name = f"{timestamp}_{weight_params_filename}"
         mindspore.save_checkpoint(net, os.path.join(path, params_name))
         print_to_file(net, os.path.join(path, "mindspore_net_architecture.txt"))
         return

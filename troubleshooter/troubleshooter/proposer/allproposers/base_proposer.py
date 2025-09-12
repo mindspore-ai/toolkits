@@ -76,13 +76,18 @@ class Proposer(ABC):
             code_paths = code_paths.split(";")
             key_words = experience['Key Log Information']
             for code_path in code_paths:
+                if not code_path:
+                    continue
                 # analyze with code path where throw exception
-                if code_path and re.search(code_path, error_message):
+                escaped_code_path = re.escape(code_path)
+                if re.search(escaped_code_path, error_message):
                     path_matching = True
                     break
-
-            if key_words and re.search(key_words, error_message):
-                key_matching = True
+            
+            if key_words:
+                escaped_key_words = re.escape(key_words)
+                if re.search(escaped_key_words, error_message):
+                    key_matching = True
 
             if condition_flag == REQUIRE_A_COND and (key_matching or path_matching):
                 result = experience

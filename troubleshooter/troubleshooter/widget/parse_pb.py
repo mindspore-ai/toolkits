@@ -15,6 +15,7 @@
 import csv
 import json
 import os
+import time
 
 from .graph import mindinsight_anf_ir_pb2 as anf_ir_pb2
 from .graph.graph import MSGraph, OptimizedGraph
@@ -107,7 +108,8 @@ def precision_tracker(abs_pb_filepath, precision_flags=('normal', 'raise', 'redu
         output_path = os.path.dirname(abs_pb_filepath)
     if not output_filename:
         output_filename = os.path.basename(abs_pb_filepath)
-    output_filename = output_filename.split('.')[0] + '.csv'
+    timestamp = time.time()
+    output_filename = output_filename.split('.')[0] + f'_{timestamp}.csv'
 
     graph = PbParser.parse_pb_file(abs_pb_filepath)
     all_nodes_detail = []
