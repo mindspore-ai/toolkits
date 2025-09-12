@@ -19,7 +19,7 @@ import sys
 import yaml
 import matplotlib.pyplot as plt
 
-from toolkit.pipeline_balance.utils.check_rules import check_yaml_depth_before_loading
+from toolkit.pipeline_balance.utils.check_rules import check_yaml_depth_before_loading, check_valid_path
 from toolkit.pipeline_balance.utils.logger import logger
 import toolkit.pipeline_balance.simulator.pp_simulator as sim
 from toolkit.pipeline_balance.sapp.sapp_solver import SappSolver
@@ -380,6 +380,7 @@ class SappPipeline:
 
     def simulate_file(self, manual_config_file, output_folder):
         """simulate manual input config"""
+        check_valid_path([manual_config_file, output_folder])
         with open(manual_config_file, encoding="utf-8") as fp:
             check_yaml_depth_before_loading(fp)
             fp.seek(0)
@@ -402,7 +403,7 @@ class SappPipeline:
             file_name = manual.get("file_name")
             full_file_name = os.path.join(output_folder,
                                           file_name) if (file_name) else None
-
+            check_valid_path(full_file_name)
             fig = plt.figure(figsize=(24, 8))
             sub_figs = fig.subfigures(1, 2, wspace=0.07)
             sub_figs[0].suptitle('Automatic', fontsize='x-large')

@@ -22,7 +22,7 @@ import yaml
 import numpy as np
 import secrets
 
-from toolkit.pipeline_balance.utils.check_rules import check_yaml_depth_before_loading
+from toolkit.pipeline_balance.utils.check_rules import check_yaml_depth_before_loading, check_valid_path
 from toolkit.pipeline_balance.utils.logger import logger
 from toolkit.pipeline_balance.sapp.sapp_solver import SappSolver
 from toolkit.pipeline_balance.utils.layer import Layer
@@ -143,6 +143,7 @@ class ModelInfo:
                 layer["memory_parameter"] = mem_par
 
     def dump_json(self, file_name):
+        check_valid_path(file_name)
         with open(file_name, "w+") as json_file:
             json.dump(self.to_json_, json_file, indent=4)
 
@@ -157,6 +158,7 @@ def time_parser(file_name: str):
         logger.error("Only accept yaml as input format")
         raise ValueError(f"Only accept yaml as input format. not {file_name}")
 
+    check_valid_path(file_name)
     filepath = os.path.realpath(file_name)
     with open(filepath, encoding="utf-8") as fp:
         check_yaml_depth_before_loading(fp)
@@ -309,6 +311,7 @@ def auto_ppb_config_parser(file_name: str):
         raise ValueError(f"Only accept yaml as input format. not {file_name}")
 
     filepath = os.path.realpath(file_name)
+    check_valid_path(file_name)
     with open(filepath, encoding="utf-8") as fp:
         check_yaml_depth_before_loading(fp)
         fp.seek(0)
@@ -336,7 +339,7 @@ def memory_parser(file_name: str):
     if not file_name.endswith("yaml") and not file_name.endswith("yml"):
         logger.error("Only accept yaml as input format")
         raise ValueError(f"Only accept yaml as input format. not {file_name}")
-
+    check_valid_path(file_name)
     filepath = os.path.realpath(file_name)
     with open(filepath, encoding="utf-8") as fp:
         check_yaml_depth_before_loading(fp)
@@ -618,6 +621,7 @@ def generate_solvable_config(pp: int, num_layers: int, considered_rec: list):
 
 def parse_training_config(yaml_path):
     """extract useful configuration from training yaml to calculate operator shape"""
+    check_valid_path(yaml_path, exist_check=True)
     try:
         with open(yaml_path, "r", encoding="utf-8") as file:
             config = yaml.safe_load(file)
