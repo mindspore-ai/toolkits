@@ -129,6 +129,9 @@ class IR_Analyzer:
     def extract_ops_info_from_ir(self, ir_file_path):
         op_attrs = {}
         flag_get_op_info = False
+        ir_file_path = os.path.realpath(ir_file_path)
+        if not ir_file_path.endswith(".ir"):
+            return
         with open(ir_file_path, "r", encoding="utf-8") as file:
             line = file.readline()
             while line:
