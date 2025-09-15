@@ -20,6 +20,7 @@ from enum import Enum
 
 from toolkit.pipeline_balance.utils.logger import logger
 import toolkit.pipeline_balance.utils.recompute as Recompute
+from toolkit.pipeline_balance.utils.check_rules import check_valid_path
 from toolkit.pipeline_balance.utils.computation_analyzer import (ComputationAnalyzer,)
 
 
@@ -170,6 +171,7 @@ class Layer:
 def generate_layers_list(json_layer: str) -> list[Layer]:
     """ "Parse layer_folder/model_name.json to generate a list of layer"""
     layers = []
+    check_valid_path(json_layer)
     with open(json_layer, encoding="utf-8") as json_file:
         layer_data_json = json.load(json_file)
         if "layers_description" in layer_data_json:

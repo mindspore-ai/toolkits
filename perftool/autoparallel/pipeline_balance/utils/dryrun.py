@@ -23,7 +23,6 @@ import time
 import copy
 import yaml
 
-
 import toolkit.pipeline_balance.utils.recompute as Recompute
 from toolkit.pipeline_balance.utils.logger import logger
 from toolkit.pipeline_balance.utils.config import (
@@ -36,6 +35,7 @@ from toolkit.pipeline_balance.utils.config import (
 )
 from toolkit.pipeline_balance.utils.interactive import dryrun_guide
 from toolkit.pipeline_balance.utils.stage import StagesBuilder
+from toolkit.pipeline_balance.utils.check_rules import check_valid_path
 from toolkit.pipeline_balance.utils.compute_memory import ComputeMemory
 from toolkit.pipeline_balance.utils.computation_analyzer import ComputationAnalyzer
 
@@ -64,7 +64,7 @@ def dump_config(config_file: str, yaml_configs, output_path: str, validate_confi
         dryrun_configs.append(dryrun_config)
         shutil.copy(config_file, dryrun_config)
         # 
-        if(validate_config):
+        if (validate_config):
             update_validate_settings(dryrun_config, validate_config)
         else:
             delete_interleave_settings(dryrun_config)
@@ -104,43 +104,39 @@ def dump_config(config_file: str, yaml_configs, output_path: str, validate_confi
         with open(dryrun_config, "w") as f:
             f.writelines(lines)
 
-
-        
-
     return dryrun_configs
 
 
-
-
 def delete_interleave_settings(config_path):
+    check_valid_path(config_path)
     with open(config_path, 'r') as f:
         lines = f.readlines()
-    
+
     new_lines = []
     in_pipeline_config = False
     parent_indent = 0
-    
+
     for line in lines:
         current_indent = len(line) - len(line.lstrip())
-        
+
         # Detect pipeline_config start
         if line.strip() == 'pipeline_config:':
             in_pipeline_config = True
             parent_indent = current_indent
             continue
-        
+
         # Skip indented content under pipeline_config
         if in_pipeline_config:
             if current_indent > parent_indent:
                 continue
             in_pipeline_config = False  # Exit pipeline_config block
-        
+
         # Skip pp_interleave_num leaf
         if line.strip().startswith('pp_interleave_num:'):
             continue
-        
+
         new_lines.append(line)
-    
+
     with open(config_path, 'w') as f:
         f.writelines(new_lines)
 
@@ -148,7 +144,7 @@ def delete_interleave_settings(config_path):
 def update_validate_settings(config_path, validate_settings):
     with open(config_path, 'r') as f:
         lines = f.readlines()
-    
+
     needs_pipeline_config = True
     settings_require = {"pipeline_interleave": True, 'pp_interleave_num': True,
                         'micro_batch_num': True, 'pipeline_scheduler': True,
@@ -171,21 +167,19 @@ def update_validate_settings(config_path, validate_settings):
                 )
                 settings_require[key] = False
 
-    
     # Add pipeline_config if missing
     if needs_pipeline_config:
         for i, line in enumerate(lines):
             if line.strip() == 'parallel:':
                 indent = len(line) - len(line.lstrip())
-                lines.insert(i+1, 
-                    f"{' '*(indent+2)}pipeline_config:\n"
-                    f"{' '*(indent+4)}pipeline_interleave: True\n"
-                    f"{' '*(indent+4)}pipeline_scheduler: '1f1b'\n")
-                
+                lines.insert(i + 1,
+                             f"{' ' * (indent + 2)}pipeline_config:\n"
+                             f"{' ' * (indent + 4)}pipeline_interleave: True\n"
+                             f"{' ' * (indent + 4)}pipeline_scheduler: '1f1b'\n")
+
                 settings_require["pipeline_interleave"] = False
                 settings_require["pipeline_scheduler"] = False
                 break
-
 
     # Add all required leaf nodes
     for i, line in enumerate(lines):
@@ -194,31 +188,32 @@ def update_validate_settings(config_path, validate_settings):
             indent = len(line) - len(line.lstrip())
             if settings_require["pipeline_interleave"]:
                 idx += 1
-                lines.insert(idx, 
-                    f"{' '*(indent+2)}pipeline_interleave: True\n")
+                lines.insert(idx,
+                             f"{' ' * (indent + 2)}pipeline_interleave: True\n")
             if settings_require["pipeline_scheduler"]:
                 idx += 1
-                lines.insert(idx, 
-                    f"{' '*(indent+2)}pipeline_scheduler: '1f1b'\n")
+                lines.insert(idx,
+                             f"{' ' * (indent + 2)}pipeline_scheduler: '1f1b'\n")
         elif line.strip() == 'parallel_config:':
             indent = len(line) - len(line.lstrip())
             idx = i
-            if(settings_require["micro_batch_num"]):
+            if (settings_require["micro_batch_num"]):
                 idx += 1
-                lines.insert(idx, f"{' '*(indent+2)}micro_batch_num: {validate_settings['micro_batch_num']}\n")
-            if(settings_require["pipeline_stage"]):
+                lines.insert(idx, f"{' ' * (indent + 2)}micro_batch_num: {validate_settings['micro_batch_num']}\n")
+            if (settings_require["pipeline_stage"]):
                 idx += 1
-                lines.insert(idx, f"{' '*(indent+2)}pipeline_stage: {validate_settings['pipeline_stage']}\n")
+                lines.insert(idx, f"{' ' * (indent + 2)}pipeline_stage: {validate_settings['pipeline_stage']}\n")
         elif line.strip() == 'model_config:' and settings_require["pp_interleave_num"]:
             indent = len(line) - len(line.lstrip())
-            lines.insert(i+1, f"{' '*(indent+2)}pp_interleave_num: {validate_settings['pp_interleave_num']}\n")
-    
+            lines.insert(i + 1, f"{' ' * (indent + 2)}pp_interleave_num: {validate_settings['pp_interleave_num']}\n")
+
     with open(config_path, 'w') as f:
         f.writelines(lines)
 
 
 def gather_mem_results(dryrun_folders: str, pp: int, timeout=30):
     """gather memory results in given folder"""
+    check_valid_path(dryrun_folders)
     regex = re.compile("Used peak")
     t = 0
     while t < timeout:
@@ -259,6 +254,45 @@ def gather_mem_results(dryrun_folders: str, pp: int, timeout=30):
     return None
 
 
+def execute_dryrun(execute_order, rank_size, pipeline_stages, output_folder):
+    """execute dryrun"""
+
+    # 设置环境变量
+    env = os.environ.copy()
+    env.update({
+        'GLOG_v': '2',
+        'MS_DEV_SIDE_EFFECT_LOAD_ELIM': '3',
+        'MS_SIMULATION_LEVEL': '1',
+        'MS_MEMORY_STATISTIC': '1',
+        'RANK_SIZE': str(rank_size)
+    })
+
+    os.makedirs(output_folder, exist_ok=True)
+
+    rank_gap = rank_size // pipeline_stages
+    processes = []
+
+    for i in range(pipeline_stages):
+        stage_env = env.copy()
+        stage_env.update({
+            'STAGE_ID': str(i),
+            'RANK_ID': str(i * rank_gap)
+        })
+
+        log_file = f"{output_folder}/stage{i}_{i * rank_gap}.log"
+
+        process = subprocess.Popen(
+            execute_order,
+            shell=True,
+            env=stage_env,
+            stdout=open(log_file, 'w'),
+            stderr=subprocess.STDOUT
+        )
+        processes.append(process)
+
+    return
+
+
 def auto_dryrun(dryrun_configs, output_folder: str, validate_settings=None):
     """automatically dryrun"""
     if dryrun_configs is None:
@@ -284,21 +318,12 @@ def auto_dryrun(dryrun_configs, output_folder: str, validate_settings=None):
         if validate_settings:
             vpp_str = '1' if validate_settings["lm"] else '0'
             os.environ["ENABLE_LESS_MEM_VPP"] = vpp_str
-        subprocess.run(
-            [
-                "bash",
-                dryrun_sh,
-                COMMAND_TEMPLATE.format(run_mindformer=run_mindformer_path, config=dryrun_configs[i]),
-                f"{rank_size}",
-                f"{pp}",
-                dryrun_folder,
-            ]
-        )
+
+        execute_dryrun(COMMAND_TEMPLATE.format(run_mindformer=run_mindformer_path, config=dryrun_configs[i]),
+                        rank_size=rank_size, pipeline_stages=pp, output_folder=dryrun_folder)
         dryrun_folders.append(dryrun_folder)
 
     return dryrun_folders
-
-
 
 
 def get_comp_mem(mem_results, yaml_configs, num_layers):
@@ -321,26 +346,22 @@ def get_comp_mem(mem_results, yaml_configs, num_layers):
         rec_list = []
         for config in yaml_configs:
             rec_list.append(config[rec])
-        recompute_config.update({rec:rec_list})
-    stage_ids = [[i for i in range(1, num_stages-1)] for _ in range(rounds)]
+        recompute_config.update({rec: rec_list})
+    stage_ids = [[i for i in range(1, num_stages - 1)] for _ in range(rounds)]
 
-    if rounds == 1: # squeeze 2d list to 1d
+    if rounds == 1:  # squeeze 2d list to 1d
         offset_config = offset_config[0]
         recompute_config = {key: value[0] for key, value in recompute_config.items()}
         stage_ids = stage_ids[0]
         body_mems = body_mems[0]
     stage_builder = StagesBuilder(
-        num_stages, num_layers, recompute_config, offset_config, 
+        num_stages, num_layers, recompute_config, offset_config,
         stage_ids, head_mem, tail_mem, body_mems
     )
     stages = stage_builder.build_stages()
     comp_mem = ComputeMemory(num_stages, stages)
 
     return comp_mem
-
-
-
-
 
 
 def convert_auto_to_sapp(yaml_configs, mem_results_list, layer_times, num_layers, model_name, output_folder):
@@ -370,7 +391,7 @@ def auto_ppb(config_path: str, auto_ppb_config, output_folder: str):
 
     if auto_ppb_config["model_type"] == "deepseek":
         # TODO: num_layers = auto_ppb_config["training_config"]["body_layer_nums"]
-        num_layers = [extracted_params['num_layers'] - 3] # for deepseek
+        num_layers = [extracted_params['num_layers'] - 3]  # for deepseek
 
     else:
         num_layers = [extracted_params['num_layers']]
@@ -378,7 +399,7 @@ def auto_ppb(config_path: str, auto_ppb_config, output_folder: str):
     yaml_configs_dryrun = convert_to_mf_format(offset_config_list, rec_config_list)
     yaml_configs_compute = copy.deepcopy(yaml_configs_dryrun)
     if auto_ppb_config["model_type"] == "deepseek":
-        for i in range(len(yaml_configs_dryrun)): # for deepseek
+        for i in range(len(yaml_configs_dryrun)):  # for deepseek
             for _, value in yaml_configs_dryrun[i].items():
                 value[0] += 3
     dryrun_config_path = os.path.join(
@@ -397,8 +418,8 @@ def auto_validate(config_path: str, auto_ppb_config, validate_settings, sapp_res
     extracted_params = parse_training_config(config_path)
     sapp_configs_validate = [next(iter(sapp_result.values()))]
     if auto_ppb_config["model_type"] == "deepseek":
-        for _, value in sapp_configs_validate[0].items(): # for deepseek
-            if isinstance(value[0], list): #interleave
+        for _, value in sapp_configs_validate[0].items():  # for deepseek
+            if isinstance(value[0], list):  # interleave
                 value[0][0] += 3
                 value[-1][-1] += 1
             else:

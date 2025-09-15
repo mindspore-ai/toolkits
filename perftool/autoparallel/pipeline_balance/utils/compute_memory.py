@@ -55,7 +55,7 @@ class ComputeMemory:
     memory_tail_: float
 
     def __init__(self, number_of_stage: int, stages_A: list[Stage] = None,
-                 stages_B: list[Stage] = None,):
+                 stages_B: list[Stage] = None, ):
         """
         number_of_stage: total number of stage for the LLM
         stagesA: some dry run stages information required at least head and tail stages
@@ -84,7 +84,7 @@ class ComputeMemory:
             for stage2 in stages:
                 if not stage1.same_global_config(stage2):
                     logger.error(
-                        "Cannot set stagesA, all elements don't have the same configuration",)
+                        "Cannot set stagesA, all elements don't have the same configuration", )
                     self.stages_a = []
                     return
         self.stages_a = stages
@@ -224,6 +224,12 @@ class ComputeMemory:
             if stage.id_ not in [0, self.number_of_stage_ - 1]:
                 variable_factor_list.append(stage.get_index_memory_var())
                 for rec_i in unused_rec:
+                    target_index = (1 + rec_i)
+                    if target_index < 0 or target_index >= len(variable_factor_list[-1]):
+                        logger.error(
+                            f"Error: Index {target_index} out of range (0 to {len(variable_factor_list[-1]) - 1})")
+                        raise Exception(
+                            f"Error: Index {target_index} out of range (0 to {len(variable_factor_list[-1]) - 1})")
                     variable_factor_list[-1].pop(1 + rec_i)
                 constant_memory_list.append(stage.memory_usage_)
         solution = list(
@@ -232,8 +238,6 @@ class ComputeMemory:
         memory_param = solution.pop(0)
         memory_act_rec = Recompute.assign_used(solution, unused_rec)
         return (memory_param, memory_act_rec)
-
-
 
     def _compute_memories_layer_bodies_local_with_fix_(
             self, unused_rec: list[Recompute.TYPE],
@@ -294,12 +298,12 @@ class ComputeMemory:
                 (memory_const_a,
                  memory_parameter_a,
                  memory_recompute_a) = (self._compute_memories_layer_bodies_local_with_fix_(
-                     unused_rec, self.stages_a))
+                    unused_rec, self.stages_a))
             if len(self.stages_b) >= 5:
                 (memory_const_b,
                  memory_parameter_b,
                  memory_recompute_b) = (self._compute_memories_layer_bodies_local_with_fix_(
-                     unused_rec, self.stages_b))
+                    unused_rec, self.stages_b))
 
             return self._average_if_needed_fix(
                 memory_const_a,
@@ -312,11 +316,11 @@ class ComputeMemory:
         if len(self.stages_a) >= 5:
             (memory_parameter_a,
              memory_recompute_a) = (self._compute_memories_layer_bodies_local_(
-                 unused_rec, self.stages_a))
+                unused_rec, self.stages_a))
         if len(self.stages_b) >= 5:
             (memory_parameter_b,
              memory_recompute_b) = (self._compute_memories_layer_bodies_local_(
-                 unused_rec, self.stages_b))
+                unused_rec, self.stages_b))
 
         return self._average_if_needed(
             memory_parameter_a,
@@ -357,7 +361,7 @@ class ComputeMemory:
         return True
 
     def _average_if_needed(self, memory_parameter_a, memory_recompute_a, memory_parameter_b,
-                           memory_recompute_b,):
+                           memory_recompute_b, ):
         """check if average is needed"""
         if memory_parameter_a is not None and memory_parameter_a != 0:
             if memory_parameter_b is not None and memory_parameter_b != 0:
@@ -429,4 +433,3 @@ class ComputeMemory:
         if force_recompute or self.memory_tail_ is None:
             self.memory_tail_ = self._compute_memory_tail_()
         return self.memory_tail_
-
